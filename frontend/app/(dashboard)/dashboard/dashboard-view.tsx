@@ -139,11 +139,19 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
     async function fetchMarket() {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/market/summary`);
-        if (!res.ok) throw new Error("Failed");
-        const data = await res.json();
-        setMarketSummary(data);
-        setMarketError(false);
+        const [resMarket, resCurrency] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/v1/market/summary`),
+          fetch(`${BACKEND_URL}/api/v1/market/currency`)
+        ]);
+        if (resMarket.ok) {
+          const data = await resMarket.json();
+          setMarketSummary(data);
+          setMarketError(false);
+        }
+        if (resCurrency.ok) {
+          const cData = await resCurrency.json();
+          setCurrencyRates(cData);
+        }
       } catch {
         setMarketError(true);
       }
