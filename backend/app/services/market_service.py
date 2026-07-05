@@ -35,6 +35,31 @@ def get_market_summary() -> dict:
         {"symbol": "HDFCBANK.NS", "name": "HDFC Bank", "short": "HDFC BANK"},
         {"symbol": "INFY.NS", "name": "Infosys", "short": "INFOSYS"},
         {"symbol": "ICICIBANK.NS", "name": "ICICI Bank", "short": "ICICI BANK"},
+        {"symbol": "BHARTIARTL.NS", "name": "Bharti Airtel", "short": "BHARTIARTL"},
+        {"symbol": "SBIN.NS", "name": "State Bank of India", "short": "SBIN"},
+        {"symbol": "L&T.NS", "name": "Larsen & Toubro", "short": "L&T"},
+        {"symbol": "ITC.NS", "name": "ITC Limited", "short": "ITC"},
+        {"symbol": "HINDUNILVR.NS", "name": "Hindustan Unilever", "short": "HINDUNILVR"},
+        {"symbol": "KOTAKBANK.NS", "name": "Kotak Mahindra Bank", "short": "KOTAKBANK"},
+        {"symbol": "AXISBANK.NS", "name": "Axis Bank", "short": "AXISBANK"},
+        {"symbol": "BAJFINANCE.NS", "name": "Bajaj Finance", "short": "BAJFINANCE"},
+        {"symbol": "MARUTI.NS", "name": "Maruti Suzuki", "short": "MARUTI"},
+        {"symbol": "ASIANPAINT.NS", "name": "Asian Paints", "short": "ASIANPAINT"},
+        {"symbol": "HCLTECH.NS", "name": "HCL Technologies", "short": "HCLTECH"},
+        {"symbol": "TITAN.NS", "name": "Titan Company", "short": "TITAN"},
+        {"symbol": "M&M.NS", "name": "Mahindra & Mahindra", "short": "M&M"},
+        {"symbol": "SUNPHARMA.NS", "name": "Sun Pharma", "short": "SUNPHARMA"},
+        {"symbol": "ULTRACEMCO.NS", "name": "UltraTech Cement", "short": "ULTRACEMCO"},
+        {"symbol": "TATASTEEL.NS", "name": "Tata Steel", "short": "TATASTEEL"},
+        {"symbol": "POWERGRID.NS", "name": "Power Grid Corp", "short": "POWERGRID"},
+        {"symbol": "NTPC.NS", "name": "NTPC Limited", "short": "NTPC"},
+        {"symbol": "TATAMOTORS.NS", "name": "Tata Motors", "short": "TATAMOTORS"},
+        {"symbol": "INDUSINDBK.NS", "name": "IndusInd Bank", "short": "INDUSINDBK"},
+        {"symbol": "NESTLEIND.NS", "name": "Nestle India", "short": "NESTLEIND"},
+        {"symbol": "JSWSTEEL.NS", "name": "JSW Steel", "short": "JSWSTEEL"},
+        {"symbol": "TECHM.NS", "name": "Tech Mahindra", "short": "TECHM"},
+        {"symbol": "WIPRO.NS", "name": "Wipro", "short": "WIPRO"},
+        {"symbol": "ONGC.NS", "name": "ONGC", "short": "ONGC"},
     ]
 
     indices_data = []
@@ -70,7 +95,7 @@ def get_market_summary() -> dict:
                 price = info.get("currentPrice") or info.get("regularMarketPrice") or info.get("previousClose")
                 prev_close = info.get("previousClose") or info.get("regularMarketPreviousClose")
                 change = None
-                change_pct = None
+                change_pct = 0.0
                 if price and prev_close:
                     change = round(price - prev_close, 2)
                     change_pct = round((change / prev_close) * 100, 2)
@@ -82,6 +107,10 @@ def get_market_summary() -> dict:
                     "change": change,
                     "change_pct": change_pct,
                 })
+        
+        # Sort stocks by change_pct (descending) and take top 25
+        stocks_data.sort(key=lambda x: x.get("change_pct") or 0.0, reverse=True)
+        stocks_data = stocks_data[:25]
     except Exception as e:
         logger.error("Failed to fetch market summary: %s", e)
         if _market_cache.get("data"):

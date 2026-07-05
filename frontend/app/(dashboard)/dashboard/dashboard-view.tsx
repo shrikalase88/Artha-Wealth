@@ -27,7 +27,8 @@ import {
   PieChart,
   HelpCircle,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Lock
 } from "lucide-react";
 import { formatIndianCurrency } from "@/lib/utils";
 import { CustomBarChart } from "@/components/ui/custom-bar-chart";
@@ -288,7 +289,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
     <div className="space-y-6">
       {/* Live Market indices ticker at the top */}
       {marketSummary && marketSummary.indices && (
-        <div className="relative z-20 flex items-center gap-6 overflow-x-auto py-2.5 px-6 bg-slate-950/45 border-b border-white/5 scrollbar-none shrink-0 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="relative z-20 flex items-center mx-auto max-w-5xl mt-6 px-6 py-2.5 bg-[#0A0A0A] border border-white/10 rounded-full shadow-lg overflow-x-auto scrollbar-none gap-6 shrink-0">
           <div className={`flex shrink-0 items-center gap-1.5 text-[11px] sm:text-xs font-semibold tracking-wider uppercase pr-4 border-r border-white/10 ${isMarketOpen ? 'text-blue-400' : 'text-slate-400'}`}>
             <Activity className={`h-3.5 w-3.5 ${isMarketOpen ? 'animate-pulse' : ''}`} /> 
             {isMarketOpen ? 'Market Live' : 'Market Closed'}
@@ -341,12 +342,14 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               })}
             </nav>
 
-            <Button
-              onClick={handleOpenAddModal}
-              className="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500 active:scale-95 p-0 shrink-0"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
+            {user && activeTab === "portfolio" && (
+              <Button
+                onClick={handleOpenAddModal}
+                className="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500 active:scale-95 p-0 shrink-0"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -366,7 +369,33 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
         {/* -------------------- TAB 1: PORTFOLIO VIEW -------------------- */}
         {activeTab === "portfolio" && (
           <div className="space-y-6">
-            {/* Primary KPI Tiles grid */}
+            {!user ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 border border-white/5 bg-slate-900/20 rounded-2xl mx-4 sm:mx-0">
+                <div className="rounded-full bg-blue-500/10 p-5 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.15)]">
+                  <Lock className="h-10 w-10 text-blue-400" />
+                </div>
+                <div className="space-y-2 px-4">
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Portfolio Access Restricted</h2>
+                  <p className="text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
+                    Log in to securely connect your brokerage accounts, upload CAS statements, and unlock advanced P&L analytics.
+                  </p>
+                </div>
+                <div className="flex gap-4 pt-2">
+                  <Link href="/login">
+                    <Button variant="outline" className="border-white/10 text-white hover:bg-white/5">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/signup">
+                    <Button className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25">
+                      Create Account <ChevronRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Primary KPI Tiles grid */}
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               <Card className="border-white/5 bg-slate-900/40 glass-card">
                 <CardContent className="p-4 space-y-1">
@@ -789,6 +818,8 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 </div>
               </Card>
             )}
+            </>
+          )}
           </div>
         )}
 
@@ -824,7 +855,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                     const change = idx.change ?? 0;
                     const positive = change >= 0;
                     return (
-                      <Card key={idx.short} className="border-white/10 bg-black/40 backdrop-blur-md rounded-none border-l-2 hover:bg-white/[0.02] transition-colors" style={{ borderLeftColor: positive ? '#10b981' : '#ef4444' }}>
+                      <Card key={idx.short} className="border-white/5 bg-slate-900/40 glass-card hover:bg-white/5 transition-colors overflow-hidden" style={{ borderBottomWidth: '2px', borderBottomColor: positive ? '#10b981' : '#ef4444' }}>
                         <CardContent className="p-5 flex flex-col justify-between h-full">
                           <div className="flex justify-between items-start mb-4">
                             <p className="text-sm font-bold text-slate-300 uppercase tracking-wide">{idx.name}</p>
@@ -847,13 +878,13 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                   })}
                 </div>
               ) : marketError ? (
-                <div className="p-6 border border-red-500/30 bg-red-500/10 text-red-200 rounded-none text-sm font-mono flex items-center gap-3">
+                <div className="p-6 border border-red-500/30 bg-red-500/10 text-red-200 rounded-lg text-sm font-mono flex items-center gap-3">
                   <Activity className="h-4 w-4" /> Failed to load real-time market indexes. Checking connection...
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-pulse">
                   {[1, 2, 3, 4].map((n) => (
-                    <div key={n} className="h-32 bg-slate-900/40 border border-white/5 rounded-none" />
+                    <div key={n} className="h-32 bg-slate-900/40 border border-white/5 rounded-xl glass-card" />
                   ))}
                 </div>
               )}
@@ -867,7 +898,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 </h3>
               </div>
               
-              <div className="grid gap-px bg-white/10 sm:grid-cols-3 lg:grid-cols-5 border border-white/10">
+              <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
                 {[
                   { name: "IT & Tech", value: 41250.45, change: 1.25, trend: "up" },
                   { name: "Banking", value: 48900.20, change: -0.45, trend: "down" },
@@ -882,18 +913,20 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 ].map((sector) => {
                   const positive = sector.trend === "up";
                   return (
-                    <div key={sector.name} className="bg-[#0A0A0A] p-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors group cursor-default">
-                      <div className="flex justify-between items-start mb-3">
-                        <p className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors">{sector.name}</p>
-                        {positive ? <TrendingUp className="h-3.5 w-3.5 text-emerald-500/70" /> : <TrendingDown className="h-3.5 w-3.5 text-red-500/70" />}
-                      </div>
-                      <div>
-                        <p className="text-lg font-bold text-white font-mono tracking-tight">{sector.value.toLocaleString("en-IN")}</p>
-                        <p className={`text-[10px] font-mono mt-0.5 ${positive ? "text-emerald-400" : "text-red-400"}`}>
-                          {positive ? "+" : ""}{sector.change}%
-                        </p>
-                      </div>
-                    </div>
+                    <Card key={sector.name} className="border-white/5 bg-slate-900/40 glass-card hover:bg-white/5 transition-colors group cursor-default">
+                      <CardContent className="p-4 flex flex-col justify-between h-full">
+                        <div className="flex justify-between items-start mb-3">
+                          <p className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors">{sector.name}</p>
+                          {positive ? <TrendingUp className="h-3.5 w-3.5 text-emerald-500/70" /> : <TrendingDown className="h-3.5 w-3.5 text-red-500/70" />}
+                        </div>
+                        <div>
+                          <p className="text-lg font-bold text-white font-mono tracking-tight">{sector.value.toLocaleString("en-IN")}</p>
+                          <p className={`text-[10px] font-mono mt-0.5 ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                            {positive ? "+" : ""}{sector.change}%
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
                   )
                 })}
               </div>
@@ -905,7 +938,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 <div className="h-px w-4 bg-slate-400/30" /> Active Movers
               </h3>
               
-              <div className="border border-white/10 bg-[#0A0A0A] overflow-hidden">
+              <div className="border border-white/5 bg-slate-900/40 glass-card rounded-xl overflow-hidden">
                 {marketSummary && marketSummary.stocks ? (
                   <div className="divide-y divide-white/10">
                     <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-white/[0.02]">
@@ -917,7 +950,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       const change = stock.change ?? 0;
                       const positive = change >= 0;
                       return (
-                        <div key={stock.symbol} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/[0.02] transition-colors">
+                        <div key={stock.symbol} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors">
                           <div className="col-span-5 sm:col-span-4">
                             <p className="text-sm font-bold text-white tracking-wide">{stock.short}</p>
                             <p className="text-[10px] text-slate-500 mt-0.5 truncate pr-2">{stock.name}</p>
