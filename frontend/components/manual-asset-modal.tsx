@@ -59,7 +59,7 @@ export function ManualAssetModal({
         assetToEdit.current_price ? String(assetToEdit.current_price) : ""
       );
       setIsin(assetToEdit.isin || "");
-      setFolio(assetToEdit.folio || "");
+      setFolio(assetToEdit.metadata?.folio || "");
     } else {
       // Reset
       setName("");
@@ -126,10 +126,12 @@ export function ManualAssetModal({
         current_price: parsedCurrent,
         market_value: marketValue,
         isin: isin.trim() || null,
-        folio: folio.trim() || null,
         ticker: isEquity ? identifier : null,
         scheme_code: !isEquity ? identifier : null,
-        metadata: {},
+        metadata: {
+          ...(isEdit && assetToEdit.metadata ? assetToEdit.metadata : {}),
+          ...(folio.trim() ? { folio: folio.trim() } : {})
+        },
       };
 
       if (isEdit) {

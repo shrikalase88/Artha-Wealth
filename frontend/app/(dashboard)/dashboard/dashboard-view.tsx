@@ -327,6 +327,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 return (
                   <button
                     key={tab.id}
+                    type="button"
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                       active
@@ -686,7 +687,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                                     <span className="text-[10px] font-normal ml-1">({gain >= 0 ? "+" : ""}{gainPct?.toFixed(1)}%)</span>
                                   </span>
                                 ) : (
-                                  <span className="text-slate-500 text-xs font-mono">{asset.folio || "—"}</span>
+                                  <span className="text-slate-500 text-xs font-mono">{asset.metadata?.folio || "—"}</span>
                                 )}
                               </td>
                               <td className="px-4 sm:px-6 py-4 text-center">
