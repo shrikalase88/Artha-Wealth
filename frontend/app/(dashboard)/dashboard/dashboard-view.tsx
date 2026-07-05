@@ -1118,8 +1118,6 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
             </div>
           </div>
         )}
-      </div>
-
 
         {/* -------------------- TAB 4: CURRENCY -------------------- */}
         {activeTab === "currency" && (
@@ -1216,7 +1214,9 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
           </div>
         )}
 
-            {/* Manual Input modal dialog */}
+            </div>
+
+      {/* Manual Input modal dialog */}
       <ManualAssetModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
