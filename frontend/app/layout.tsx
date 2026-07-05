@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   title: "Artha Wealth — Portfolio Tracker",
   description: "Track your mutual funds and stock portfolio with precision. Real-time Indian market data, CAS PDF parsing, and Gemini AI screenshot extraction.",
   keywords: "portfolio tracker, mutual funds, indian stocks, CAS statement, SIP calculator",
+  icons: {
+    icon: "/icon?v=3",
+    apple: "/apple-icon?v=3",
+  },
 };
 
 export const viewport: Viewport = {

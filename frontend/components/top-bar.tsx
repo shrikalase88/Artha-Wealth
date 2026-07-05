@@ -27,13 +27,8 @@ export function TopBar() {
 
   return (
     <header className="hidden lg:flex h-16 border-b border-white/10 bg-[#070a13]/40 backdrop-blur-xl px-8 items-center justify-between sticky top-0 z-40 w-full">
-      {/* Left side: Welcome tag */}
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-blue-400 animate-pulse" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Artha Premium Lounge
-        </span>
-      </div>
+      {/* Left side: Empty placeholder for flex-between layout */}
+      <div className="flex items-center gap-2"></div>
 
       {/* Right side: Action items and User Menu */}
       <div className="flex items-center gap-4">
