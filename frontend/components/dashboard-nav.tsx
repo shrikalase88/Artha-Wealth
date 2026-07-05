@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
-import { LayoutDashboard, Upload, Settings, Menu, X, Wallet, Calculator } from "lucide-react";
+import { LayoutDashboard, Upload, Settings, Menu, X, Wallet, Calculator, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function DashboardNav() {
@@ -85,7 +85,17 @@ export function DashboardNav() {
             <p className="text-[10px] text-slate-500 truncate max-w-[120px]">{user.email}</p>
           </div>
         </div>
-        <UserMenu user={user} />
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            router.push("/");
+            router.refresh();
+          }}
+          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+          title="Log out"
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
