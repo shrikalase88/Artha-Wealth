@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BarChart, DonutChart } from "@tremor/react";
 import {
   TrendingUp,
   TrendingDown,
@@ -16,6 +17,8 @@ import {
   Calculator,
   Compass,
   Briefcase,
+  Coins,
+  ArrowRightLeft,
   ChevronRight,
   Sparkles,
   Loader2,
@@ -59,6 +62,10 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
   // Live market details
   const [marketSummary, setMarketSummary] = useState<any>(null);
+  const [currencyRates, setCurrencyRates] = useState<any>(null);
+  const [currencyAmount, setCurrencyAmount] = useState<string>("1000");
+  const [currencyFrom, setCurrencyFrom] = useState<string>("USDINR=X");
+
   const [marketError, setMarketError] = useState(false);
   const [isMarketOpen, setIsMarketOpen] = useState(false);
 
@@ -322,6 +329,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               {[
                 { id: "market", name: "Markets", icon: Activity },
                 { id: "funds", name: "Funds", icon: Compass },
+                { id: "currency", name: "Currency", icon: Coins },
                 { id: "portfolio", name: "Portfolio", icon: Briefcase }
               ].map((tab) => {
                 const active = activeTab === tab.id;
@@ -920,6 +928,47 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 })}
               </div>
             </div>
+
+
+              {/* Market Analytics Charts */}
+              {marketSummary && marketSummary.sectors && (
+                <div className="grid gap-4 md:grid-cols-2 pt-4">
+                  <Card className="border-white/5 bg-slate-900/40 glass-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-px w-4 bg-slate-400/30" /> Sector Performance (% Change)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[250px] p-4">
+                      <BarChart
+                        data={marketSummary.sectors.map((s: any) => ({ name: s.short, "Change %": s.change_pct }))}
+                        index="name"
+                        categories={["Change %"]}
+                        colors={["blue"]}
+                        valueFormatter={(val) => `${val}%`}
+                        yAxisWidth={48}
+                        className="h-full"
+                      />
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-white/5 bg-slate-900/40 glass-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-px w-4 bg-slate-400/30" /> Top 5 Movers by Price
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[250px] p-4 flex justify-center">
+                      <CustomDonutChart 
+                        data={(marketSummary.stocks || []).slice(0, 5).map((s: any) => ({
+                          name: s.short,
+                          value: s.price
+                        }))} 
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
             {/* Stocks Listing - Active Movers */}
             <div className="space-y-4 pt-4">
