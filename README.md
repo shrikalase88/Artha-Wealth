@@ -11,11 +11,9 @@ Artha Wealth is a modern, AI-powered portfolio tracker that parses CAS statement
 ## 📸 Screenshots
 
 ### Desktop View - Dashboard
-*(Please upload your desktop screenshot here and replace this placeholder)*
 ![Desktop Dashboard](./screenshots/desktop-dashboard.png)
 
 ### Mobile View - Application
-*(Please upload your mobile screenshot here and replace this placeholder)*
 ![Mobile View](./screenshots/mobile-view.png)
 
 ## 🛠️ Tech Stack
