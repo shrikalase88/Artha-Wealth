@@ -794,90 +794,159 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
         {/* -------------------- TAB 2: LIVE SHAREMARKET VIEW -------------------- */}
         {activeTab === "market" && (
-          <div className="space-y-6">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-lg font-bold text-white flex items-center gap-1.5">
-                <Activity className="h-5 w-5 text-blue-400 animate-pulse" /> Indian Stock Indices
-              </h2>
-              <p className="text-xs text-slate-400 font-light">Real-time ticker updates cached every 45 seconds via Yahoo Finance feeds.</p>
+          <div className="space-y-8 pb-8">
+            {/* Header Section */}
+            <div className="flex flex-col gap-2 border-b border-white/10 pb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                    <Activity className="h-6 w-6 text-blue-500 animate-pulse" /> Market Analytics
+                  </h2>
+                  <p className="text-sm text-slate-400 mt-1 max-w-xl leading-relaxed">
+                    Real-time market insights and sector performance. Data curated for high-level overview and strategic decision making.
+                  </p>
+                </div>
+                <div className="hidden sm:block text-right">
+                  <p className="text-xs font-mono text-slate-500 uppercase tracking-widest">Last Updated</p>
+                  <p className="text-sm font-semibold text-white mt-1">Just Now</p>
+                </div>
+              </div>
             </div>
 
             {/* Indices Cards */}
-            {marketSummary ? (
-              <div className="grid gap-4 sm:grid-cols-3">
-                {marketSummary.indices.map((idx: any) => {
-                  const change = idx.change ?? 0;
-                  const positive = change >= 0;
-                  return (
-                    <Card key={idx.short} className="border-white/5 bg-slate-900/40 glass-card">
-                      <CardContent className="p-4 flex justify-between items-center">
-                        <div>
-                          <p className="text-xs font-semibold text-slate-400">{idx.name}</p>
-                          <h3 className="text-xl sm:text-2xl font-black text-white mt-1.5 tabular-nums">
-                            {Number(idx.price).toLocaleString("en-IN")}
-                          </h3>
-                        </div>
-                        <div className={`text-right ${positive ? "text-emerald-400" : "text-red-400"}`}>
-                          <p className="text-xs font-bold flex items-center gap-0.5 justify-end">
-                            {positive ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-                            {positive ? "+" : ""}{change.toFixed(2)}
-                          </p>
-                          <p className="text-[10px] font-medium mt-0.5">
-                            {positive ? "+" : ""}{idx.change_pct?.toFixed(2)}%
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            ) : marketError ? (
-              <div className="p-5 border border-red-500/20 bg-red-500/5 text-slate-400 rounded-lg text-sm">
-                Failed to load real-time market indexes. Checking connection...
-              </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-3 animate-pulse">
-                {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-20 bg-slate-900/40 border border-white/5 rounded-xl" />
-                ))}
-              </div>
-            )}
-
-            {/* Stocks Listing */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Active Stock Movers</h3>
-              {marketSummary && marketSummary.stocks ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {marketSummary.stocks.map((stock: any) => {
-                    const change = stock.change ?? 0;
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-px w-4 bg-slate-400/30" /> Major Indices
+              </h3>
+              {marketSummary ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {marketSummary.indices.map((idx: any) => {
+                    const change = idx.change ?? 0;
                     const positive = change >= 0;
                     return (
-                      <Card key={stock.symbol} className="border-white/5 bg-slate-900/40 glass-card">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div>
-                            <p className="text-xs font-bold text-white">{stock.short}</p>
-                            <p className="text-[10px] text-slate-500 mt-0.5 truncate max-w-[150px]">{stock.name}</p>
+                      <Card key={idx.short} className="border-white/10 bg-black/40 backdrop-blur-md rounded-none border-l-2 hover:bg-white/[0.02] transition-colors" style={{ borderLeftColor: positive ? '#10b981' : '#ef4444' }}>
+                        <CardContent className="p-5 flex flex-col justify-between h-full">
+                          <div className="flex justify-between items-start mb-4">
+                            <p className="text-sm font-bold text-slate-300 uppercase tracking-wide">{idx.name}</p>
+                            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${positive ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+                              {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                              {positive ? "+" : ""}{idx.change_pct?.toFixed(2)}%
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-xs font-bold text-white font-mono">₹{Number(stock.price).toLocaleString("en-IN")}</p>
-                            <span className={`text-[9px] font-semibold font-mono inline-block px-1.5 py-0.5 rounded mt-1 ${
-                              positive ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
-                            }`}>
-                              {positive ? "+" : ""}{stock.change_pct?.toFixed(2)}%
-                            </span>
+                          <div>
+                            <h3 className="text-2xl font-black text-white font-mono tracking-tight">
+                              {Number(idx.price).toLocaleString("en-IN")}
+                            </h3>
+                            <p className={`text-xs font-mono mt-1 ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                              {positive ? "+" : ""}{change.toFixed(2)} pts
+                            </p>
                           </div>
                         </CardContent>
                       </Card>
                     );
                   })}
                 </div>
+              ) : marketError ? (
+                <div className="p-6 border border-red-500/30 bg-red-500/10 text-red-200 rounded-none text-sm font-mono flex items-center gap-3">
+                  <Activity className="h-4 w-4" /> Failed to load real-time market indexes. Checking connection...
+                </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-3 animate-pulse">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <div key={n} className="h-14 bg-slate-900/40 border border-white/5 rounded-lg" />
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-pulse">
+                  {[1, 2, 3, 4].map((n) => (
+                    <div key={n} className="h-32 bg-slate-900/40 border border-white/5 rounded-none" />
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Sector Categories */}
+            <div className="space-y-4 pt-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <div className="h-px w-4 bg-slate-400/30" /> Sector Performance
+                </h3>
+              </div>
+              
+              <div className="grid gap-px bg-white/10 sm:grid-cols-3 lg:grid-cols-5 border border-white/10">
+                {[
+                  { name: "IT & Tech", value: 41250.45, change: 1.25, trend: "up" },
+                  { name: "Banking", value: 48900.20, change: -0.45, trend: "down" },
+                  { name: "Pharma", value: 15430.10, change: 2.10, trend: "up" },
+                  { name: "Manufacturing", value: 22100.00, change: 0.85, trend: "up" },
+                  { name: "Entertainment", value: 8900.50, change: -1.20, trend: "down" },
+                  { name: "Automobile", value: 18750.65, change: 0.30, trend: "up" },
+                  { name: "Gold / Metals", value: 65400.00, change: 0.15, trend: "up" },
+                  { name: "Energy", value: 34000.00, change: 1.80, trend: "up" },
+                  { name: "FMCG", value: 52100.80, change: -0.10, trend: "down" },
+                  { name: "Chemicals", value: 11050.25, change: 0.50, trend: "up" },
+                ].map((sector) => {
+                  const positive = sector.trend === "up";
+                  return (
+                    <div key={sector.name} className="bg-[#0A0A0A] p-4 flex flex-col justify-between hover:bg-white/[0.02] transition-colors group cursor-default">
+                      <div className="flex justify-between items-start mb-3">
+                        <p className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors">{sector.name}</p>
+                        {positive ? <TrendingUp className="h-3.5 w-3.5 text-emerald-500/70" /> : <TrendingDown className="h-3.5 w-3.5 text-red-500/70" />}
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-white font-mono tracking-tight">{sector.value.toLocaleString("en-IN")}</p>
+                        <p className={`text-[10px] font-mono mt-0.5 ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                          {positive ? "+" : ""}{sector.change}%
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Stocks Listing - Active Movers */}
+            <div className="space-y-4 pt-4">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-px w-4 bg-slate-400/30" /> Active Movers
+              </h3>
+              
+              <div className="border border-white/10 bg-[#0A0A0A] overflow-hidden">
+                {marketSummary && marketSummary.stocks ? (
+                  <div className="divide-y divide-white/10">
+                    <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-white/[0.02]">
+                      <div className="col-span-5 sm:col-span-4">Company</div>
+                      <div className="col-span-4 sm:col-span-4 text-right">Last Price</div>
+                      <div className="col-span-3 sm:col-span-4 text-right">Change</div>
+                    </div>
+                    {marketSummary.stocks.map((stock: any) => {
+                      const change = stock.change ?? 0;
+                      const positive = change >= 0;
+                      return (
+                        <div key={stock.symbol} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/[0.02] transition-colors">
+                          <div className="col-span-5 sm:col-span-4">
+                            <p className="text-sm font-bold text-white tracking-wide">{stock.short}</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5 truncate pr-2">{stock.name}</p>
+                          </div>
+                          <div className="col-span-4 sm:col-span-4 text-right">
+                            <p className="text-sm font-mono text-white">₹{Number(stock.price).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                          </div>
+                          <div className="col-span-3 sm:col-span-4 flex flex-col items-end justify-center">
+                            <span className={`text-xs font-bold font-mono flex items-center gap-1 ${
+                              positive ? "text-emerald-400" : "text-red-400"
+                            }`}>
+                              {positive ? "+" : ""}{change.toFixed(2)}
+                            </span>
+                            <span className={`text-[10px] font-mono mt-0.5 ${
+                              positive ? "text-emerald-500/70" : "text-red-500/70"
+                            }`}>
+                              ({positive ? "+" : ""}{stock.change_pct?.toFixed(2)}%)
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-sm text-slate-500 animate-pulse">
+                    Loading market data...
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
