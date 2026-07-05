@@ -1080,7 +1080,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
         onClose={() => setModalOpen(false)}
         assetToEdit={editingAsset}
         portfolios={portfolios}
-        userId={user.id}
+        userId={user?.id || ""}
       />
     </div>
   );
