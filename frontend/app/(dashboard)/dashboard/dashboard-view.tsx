@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, DonutChart } from "@tremor/react";
@@ -972,8 +973,30 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                     })}
                   </div>
                 ) : (
-                  <div className="p-8 text-center text-sm text-slate-500 animate-pulse">
-                    Loading market data...
+                  <div className="divide-y divide-white/10">
+                    <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-white/[0.02]">
+                      <div className="col-span-5 sm:col-span-4">Company</div>
+                      <div className="col-span-4 sm:col-span-4 text-right">Last Price</div>
+                      <div className="col-span-3 sm:col-span-4 text-right">Change</div>
+                    </div>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center">
+                        <div className="col-span-5 sm:col-span-4 flex items-center gap-3">
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <div className="flex flex-col gap-1">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                        </div>
+                        <div className="col-span-4 sm:col-span-4 flex flex-col items-end gap-1">
+                          <Skeleton className="h-4 w-16" />
+                        </div>
+                        <div className="col-span-3 sm:col-span-4 flex flex-col items-end gap-1">
+                          <Skeleton className="h-4 w-12" />
+                          <Skeleton className="h-3 w-10" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

@@ -27,6 +27,8 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-visual",
 };
 
+import { Prefetcher } from "@/components/prefetcher";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,6 +44,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
+          <Prefetcher />
           {children}
           <Toaster richColors position="top-right" />
         </ThemeProvider>
