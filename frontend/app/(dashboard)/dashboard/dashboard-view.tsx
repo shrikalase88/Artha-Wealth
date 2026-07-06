@@ -812,6 +812,46 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               </div>
             </div>
 
+            {/* Market Analytics Charts */}
+              {marketSummary && marketSummary.sectors && (
+                <div className="grid gap-4 md:grid-cols-2 pt-4">
+                  <Card className="border-white/5 bg-slate-900/40 glass-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-px w-4 bg-slate-400/30" /> Sector Performance (% Change)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[250px] p-4">
+                      <BarChart
+                        data={marketSummary.sectors.map((s: any) => ({ name: s.short, "Change %": s.change_pct }))}
+                        index="name"
+                        categories={["Change %"]}
+                        colors={["blue"]}
+                        valueFormatter={(val) => `${val}%`}
+                        yAxisWidth={48}
+                        className="h-full"
+                      />
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-white/5 bg-slate-900/40 glass-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-px w-4 bg-slate-400/30" /> Top 5 Movers by Price
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[250px] p-4 flex justify-center">
+                      <CustomDonutChart 
+                        data={(marketSummary.stocks || []).slice(0, 5).map((s: any) => ({
+                          name: s.short,
+                          value: s.price
+                        }))} 
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
             {/* Indices Cards */}
             <div className="space-y-3">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -890,45 +930,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
             </div>
 
 
-              {/* Market Analytics Charts */}
-              {marketSummary && marketSummary.sectors && (
-                <div className="grid gap-4 md:grid-cols-2 pt-4">
-                  <Card className="border-white/5 bg-slate-900/40 glass-card">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <div className="h-px w-4 bg-slate-400/30" /> Sector Performance (% Change)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[250px] p-4">
-                      <BarChart
-                        data={marketSummary.sectors.map((s: any) => ({ name: s.short, "Change %": s.change_pct }))}
-                        index="name"
-                        categories={["Change %"]}
-                        colors={["blue"]}
-                        valueFormatter={(val) => `${val}%`}
-                        yAxisWidth={48}
-                        className="h-full"
-                      />
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border-white/5 bg-slate-900/40 glass-card">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <div className="h-px w-4 bg-slate-400/30" /> Top 5 Movers by Price
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="h-[250px] p-4 flex justify-center">
-                      <CustomDonutChart 
-                        data={(marketSummary.stocks || []).slice(0, 5).map((s: any) => ({
-                          name: s.short,
-                          value: s.price
-                        }))} 
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+              
 
             {/* Stocks Listing - Active Movers */}
             <div className="space-y-4 pt-4">
