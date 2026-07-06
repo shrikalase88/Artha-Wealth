@@ -1,0 +1,14 @@
+name: Market Cache Refresh Cron
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Runs every 5 minutes
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  refresh-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit Market Refresh Endpoint
+        run: |
+          curl -X POST https://backend-hhls4780t-shrikant-kalase-s-projects.vercel.app/api/v1/market/cron/refresh
