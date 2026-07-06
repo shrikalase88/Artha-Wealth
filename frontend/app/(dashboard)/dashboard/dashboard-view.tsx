@@ -1008,7 +1008,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {topFunds.map((fund) => {
+                  {topFunds.map((fund: any) => {
                     const positive = fund.change >= 0;
                     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(fund.name + " Mutual Fund Value Research")}`;
                     
