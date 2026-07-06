@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -61,17 +62,36 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   const [editingAsset, setEditingAsset] = useState<any>(null);
 
   // Live market details
-  const [marketSummary, setMarketSummary] = useState<any>(null);
-  const [currencyRates, setCurrencyRates] = useState<any>(null);
+  const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+  const { data: marketSummary, error: marketSummaryError } = useSWR(`${BACKEND_URL}/api/v1/market/summary`, fetcher, { refreshInterval: 30000 });
+  const { data: currencyRates } = useSWR(`${BACKEND_URL}/api/v1/market/currency`, fetcher, { refreshInterval: 60000 });
+  
+  const marketError = !!marketSummaryError;
+
   const [currencyAmount, setCurrencyAmount] = useState<string>("1000");
   const [currencyFrom, setCurrencyFrom] = useState<string>("USDINR=X");
 
-  const [marketError, setMarketError] = useState(false);
-  const [isMarketOpen, setIsMarketOpen] = useState(false);
+  const checkMarketStatus = () => {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const istTime = new Date(utc + istOffset);
+    const day = istTime.getDay();
+    const hours = istTime.getHours();
+    const minutes = istTime.getMinutes();
+    if (day === 0 || day === 6) return false;
+    const timeInMinutes = hours * 60 + minutes;
+    return timeInMinutes >= 555 && timeInMinutes <= 930;
+  };
+  const isMarketOpen = checkMarketStatus();
 
   // Curated mutual funds aggregator
-  const [topFunds, setTopFunds] = useState<any[]>([]);
-  const [fundsLoading, setFundsLoading] = useState(false);
+  const { data: topFundsData, isLoading: fundsLoading } = useSWR(
+    activeTab === "funds" ? `${BACKEND_URL}/api/v1/market/top-funds` : null, 
+    fetcher
+  );
+  const topFunds = topFundsData || [];
 
   // Calculated Portfolio totals
   const totalValue = assets.reduce((s, a) => s + Number(a.market_value ?? 0), 0);
@@ -113,76 +133,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
     return matchesSearch && matchesType;
   });
 
-  // Fetch Live Market Data
-  useEffect(() => {
-    const checkMarketStatus = () => {
-      const now = new Date();
-      // IST is UTC+5:30
-      const istOffset = 5.5 * 60 * 60 * 1000;
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const istTime = new Date(utc + istOffset);
 
-      const day = istTime.getDay();
-      const hours = istTime.getHours();
-      const minutes = istTime.getMinutes();
-
-      // Weekend check (0 = Sunday, 6 = Saturday)
-      if (day === 0 || day === 6) {
-        setIsMarketOpen(false);
-        return;
-      }
-      
-      const timeInMinutes = hours * 60 + minutes;
-      // BSE/NSE Open: 9:15 AM (555), Close: 3:30 PM (930)
-      setIsMarketOpen(timeInMinutes >= 555 && timeInMinutes <= 930);
-    };
-
-    async function fetchMarket() {
-      try {
-        const [resMarket, resCurrency] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/v1/market/summary`),
-          fetch(`${BACKEND_URL}/api/v1/market/currency`)
-        ]);
-        if (resMarket.ok) {
-          const data = await resMarket.json();
-          setMarketSummary(data);
-          setMarketError(false);
-        }
-        if (resCurrency.ok) {
-          const cData = await resCurrency.json();
-          setCurrencyRates(cData);
-        }
-      } catch {
-        setMarketError(true);
-      }
-      checkMarketStatus();
-    }
-    
-    fetchMarket();
-    const interval = setInterval(fetchMarket, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Fetch Top Mutual Funds
-  useEffect(() => {
-    async function fetchFunds() {
-      setFundsLoading(true);
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/v1/market/top-funds`);
-        if (res.ok) {
-          const data = await res.json();
-          setTopFunds(data);
-        }
-      } catch (e) {
-        console.error("Failed to load top funds", e);
-      } finally {
-        setFundsLoading(false);
-      }
-    }
-    if (activeTab === "funds" && topFunds.length === 0) {
-      fetchFunds();
-    }
-  }, [activeTab, topFunds.length]);
 
   // Helper to dynamically categorize assets based on name and type
   const getFundCategory = (asset: any) => {
