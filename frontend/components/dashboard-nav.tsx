@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
-import { LayoutDashboard, Upload, Settings, Menu, X, Wallet, Calculator, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, Settings, Menu, X, Wallet, Calculator, LogOut, Info, Phone } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function DashboardNav() {
@@ -38,6 +38,8 @@ export function DashboardNav() {
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { name: "Upload Statement", href: "/portfolio/upload", icon: Upload },
     { name: "SIP Calculator", href: "/sip-calculator", icon: Calculator },
+    { name: "About Us", href: "/about", icon: Info },
+    { name: "Contact Us", href: "/contact", icon: Phone },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 
