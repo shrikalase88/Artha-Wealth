@@ -30,9 +30,17 @@ from app.core.config import settings
 
 app = FastAPI(title=settings.app_name, version="0.1.0")
 
+# Secure CORS configuration protecting from cross-origin/CSRF attackers
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://artha-wealth.vercel.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://artha-wealth-.*-shrikant-kalase-s-projects\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -518,6 +518,36 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               </Card>
             </div>
 
+            {/* Autonomous Web 4.0 Proactive Advisory */}
+            {assets.length > 0 && (
+              <Card className="border-white/5 bg-slate-900/40 glass-card">
+                <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/25 animate-pulse shrink-0">
+                      <Sparkles className="h-5 w-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                        Proactive Portfolio Insights <span className="text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full font-medium tracking-wide uppercase">Web 4.0 Agent</span>
+                      </h4>
+                      <p className="text-xs text-slate-300 font-light mt-1 max-w-2xl leading-relaxed">
+                        {totalValue > 0 && Math.round((equitiesTotal / totalValue) * 100) > 70 ? (
+                          "Your portfolio has high exposure to direct equities (over 70%). To mitigate volatility in the current market, the autonomous advisor recommends rebalancing a portion of your capital into debt mutual funds or hybrid assets."
+                        ) : diversificationRating === "Low" ? (
+                          "Your investments are highly concentrated in a few assets. Consider allocating funds across sectors or choosing a Flexi Cap mutual fund to increase diversification and reduce potential losses."
+                        ) : (
+                          "Your asset diversification is healthy and stable. The autonomous system is proactively monitoring live market values. Your current equity-to-mutual fund ratio is balanced."
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-xs font-semibold text-slate-400 font-mono tracking-wider bg-white/5 px-2.5 py-1 rounded border border-white/5 self-stretch md:self-auto flex items-center justify-center">
+                    Agent Monitoring Live
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Charts section */}
             {assets.length > 0 && (
               <div className="grid gap-6 grid-cols-1 md:grid-cols-5">
