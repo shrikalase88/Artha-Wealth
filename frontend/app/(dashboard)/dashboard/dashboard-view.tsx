@@ -353,7 +353,9 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                   className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold shadow-lg transition-all duration-200 active:scale-90 p-0 shrink-0 border border-white/10 backdrop-blur-md"
                   title="Sync with live market values"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                  <span className={`inline-flex items-center justify-center h-4 w-4 shrink-0 ${isSyncing ? "animate-spin transform-gpu" : ""}`}>
+                    <RefreshCw className="h-4 w-4" />
+                  </span>
                 </Button>
                 <Button
                   onClick={handleOpenAddModal}
