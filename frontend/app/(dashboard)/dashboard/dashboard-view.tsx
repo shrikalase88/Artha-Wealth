@@ -320,7 +320,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
         {/* Navigation Tabs and Manual Entry Trigger */}
         <div className="sticky top-14 lg:top-0 z-30 w-full border-b border-slate-800/80 bg-[#070a13]/80 backdrop-blur-xl py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6">
           <div className="flex items-center justify-between gap-4">
-            <nav className="flex p-1 bg-slate-950/40 backdrop-blur-md rounded-xl border border-white/5 w-full sm:w-auto overflow-x-auto scrollbar-none">
+            <nav className="flex p-1 bg-slate-950/60 backdrop-blur-md rounded-2xl border border-white/10 w-full sm:w-auto overflow-x-auto scrollbar-none items-center gap-1">
               {[
                 { id: "market", name: "Markets", icon: Activity },
                 { id: "funds", name: "Funds", icon: Compass },
@@ -328,17 +328,19 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 { id: "portfolio", name: "Portfolio", icon: Briefcase }
               ].map((tab) => {
                 const active = activeTab === tab.id;
+                const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-lg transition-all duration-300 ${
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 shrink-0 select-none ${
                       active
-                        ? "bg-white/10 text-white border border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-md"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
+                        ? "bg-gradient-to-r from-blue-600/15 to-indigo-600/15 text-white font-extrabold text-xs sm:text-sm border border-blue-500/30 shadow-[0_4px_20px_rgba(59,130,246,0.2)] backdrop-blur-lg scale-[1.02]"
+                        : "text-slate-300 hover:text-white hover:bg-white/5 border border-transparent font-semibold text-xs"
                     }`}
                   >
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-blue-400 stroke-[2.5]" : "text-slate-400"}`} />
                     <span>{tab.name}</span>
                   </button>
                 );
