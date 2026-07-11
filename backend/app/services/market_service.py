@@ -23,8 +23,11 @@ def _trigger_background_refresh():
     with _refresh_lock:
         if now - _last_refresh_started > 60:
             _last_refresh_started = now
-            logger.info("Triggering background cache refresh...")
-            threading.Thread(target=refresh_market_cache, daemon=True).start()
+            logger.info("Triggering synchronous cache refresh...")
+            try:
+                refresh_market_cache()
+            except Exception as e:
+                logger.error("Failed to refresh market cache: %s", e)
 
 def get_market_summary() -> dict:
     """Read cached market summary from Supabase."""
