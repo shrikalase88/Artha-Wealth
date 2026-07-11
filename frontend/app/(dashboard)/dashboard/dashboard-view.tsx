@@ -25,6 +25,7 @@ import {
   Sparkles,
   Loader2,
   Plus,
+  RefreshCw,
   Pencil,
   Trash2,
   Layers,
@@ -61,6 +62,40 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   // Manual input modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<any>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncPortfolio = async () => {
+    if (!user) return;
+    setIsSyncing(true);
+    const toastId = toast.loading("Syncing portfolio with live market values...");
+    try {
+      const resp = await fetch(`${BACKEND_URL}/api/v1/assets/user/${user.id}/sync`, {
+        method: "POST",
+      });
+      if (!resp.ok) {
+        throw new Error("Sync API failed");
+      }
+      toast.success("Portfolio successfully synced!", { id: toastId });
+      router.refresh();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to sync portfolio: " + (err.message || "Unknown error"), { id: toastId });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && activeTab === "portfolio") {
+      const lastSync = localStorage.getItem(`lastSync_${user.id}`);
+      const now = Date.now();
+      // Auto-sync if last sync was more than 15 minutes ago
+      if (!lastSync || now - parseInt(lastSync) > 15 * 60 * 1000) {
+        handleSyncPortfolio();
+        localStorage.setItem(`lastSync_${user.id}`, String(now));
+      }
+    }
+  }, [user, activeTab]);
 
   // Live market details
   const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -311,12 +346,23 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
             </nav>
 
             {user && activeTab === "portfolio" && (
-              <Button
-                onClick={handleOpenAddModal}
-                className="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500 active:scale-95 p-0 shrink-0"
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleSyncPortfolio}
+                  disabled={isSyncing}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold shadow-lg transition-all active:scale-95 p-0 shrink-0 border border-white/5"
+                  title="Sync with live market values"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                </Button>
+                <Button
+                  onClick={handleOpenAddModal}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500 active:scale-95 p-0 shrink-0"
+                  title="Add Asset Manually"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
             )}
           </div>
         </div>

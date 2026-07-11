@@ -10,16 +10,52 @@ from app.supabase_client import get_supabase
 
 logger = logging.getLogger(__name__)
 
+import threading
+
+_refresh_lock = threading.Lock()
+_last_refresh_started = 0.0
+
+def _trigger_background_refresh():
+    global _last_refresh_started
+    import time
+    now = time.time()
+    
+    with _refresh_lock:
+        if now - _last_refresh_started > 60:
+            _last_refresh_started = now
+            logger.info("Triggering background cache refresh...")
+            threading.Thread(target=refresh_market_cache, daemon=True).start()
+
 def get_market_summary() -> dict:
     """Read cached market summary from Supabase."""
+    data = {"indices": [], "sectors": [], "stocks": []}
+    needs_refresh = False
     try:
         supabase = get_supabase()
         res = supabase.from_table("market_cache").eq("key", "summary").select().execute()
         if res.data and len(res.data) > 0:
-            return res.data[0].get("data", {})
+            row = res.data[0]
+            data = row.get("data", {})
+            updated_at_str = row.get("updated_at")
+            if updated_at_str:
+                try:
+                    updated_at = datetime.fromisoformat(updated_at_str.replace("Z", "+00:00"))
+                    if datetime.now(timezone.utc) - updated_at > timedelta(minutes=15):
+                        needs_refresh = True
+                except Exception:
+                    needs_refresh = True
+            else:
+                needs_refresh = True
+        else:
+            needs_refresh = True
     except Exception as e:
         logger.error(f"Error reading summary from cache: {e}")
-    return {"indices": [], "sectors": [], "stocks": []}
+        needs_refresh = True
+
+    if needs_refresh:
+        _trigger_background_refresh()
+        
+    return data
 
 def get_indices() -> list[dict]:
     """Fallback function for backward compatibility. Returns Nifty 50 and Sensex."""
@@ -30,25 +66,65 @@ def get_indices() -> list[dict]:
 
 def get_top_funds() -> list[dict]:
     """Read cached top funds from Supabase."""
+    data = []
+    needs_refresh = False
     try:
         supabase = get_supabase()
         res = supabase.from_table("market_cache").eq("key", "funds").select().execute()
         if res.data and len(res.data) > 0:
-            return res.data[0].get("data", [])
+            row = res.data[0]
+            data = row.get("data", [])
+            updated_at_str = row.get("updated_at")
+            if updated_at_str:
+                try:
+                    updated_at = datetime.fromisoformat(updated_at_str.replace("Z", "+00:00"))
+                    if datetime.now(timezone.utc) - updated_at > timedelta(hours=1):
+                        needs_refresh = True
+                except Exception:
+                    needs_refresh = True
+            else:
+                needs_refresh = True
+        else:
+            needs_refresh = True
     except Exception as e:
         logger.error(f"Error reading funds from cache: {e}")
-    return []
+        needs_refresh = True
+
+    if needs_refresh:
+        _trigger_background_refresh()
+        
+    return data
 
 def get_currency_rates() -> dict:
     """Read cached currency rates from Supabase."""
+    data = {"rates": []}
+    needs_refresh = False
     try:
         supabase = get_supabase()
         res = supabase.from_table("market_cache").eq("key", "currency").select().execute()
         if res.data and len(res.data) > 0:
-            return res.data[0].get("data", {})
+            row = res.data[0]
+            data = row.get("data", {})
+            updated_at_str = row.get("updated_at")
+            if updated_at_str:
+                try:
+                    updated_at = datetime.fromisoformat(updated_at_str.replace("Z", "+00:00"))
+                    if datetime.now(timezone.utc) - updated_at > timedelta(hours=1):
+                        needs_refresh = True
+                except Exception:
+                    needs_refresh = True
+            else:
+                needs_refresh = True
+        else:
+            needs_refresh = True
     except Exception as e:
         logger.error(f"Error reading currency from cache: {e}")
-    return {"rates": []}
+        needs_refresh = True
+
+    if needs_refresh:
+        _trigger_background_refresh()
+        
+    return data
 
 def _fetch_single_fund_nav(fund: dict, client: httpx.Client) -> dict:
     """Helper to fetch NAV history from AMFI/mfapi and calculate returns."""
