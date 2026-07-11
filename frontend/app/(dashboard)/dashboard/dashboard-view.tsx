@@ -1032,33 +1032,53 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               <div className="border border-white/5 bg-slate-900/40 glass-card rounded-xl overflow-hidden">
                 {marketSummary && marketSummary.stocks ? (
                   <div className="divide-y divide-white/10">
-                    <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-white/[0.02]">
+                    <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/[0.02]">
                       <div className="col-span-5 sm:col-span-4">Company</div>
-                      <div className="col-span-4 sm:col-span-4 text-right">Last Price</div>
-                      <div className="col-span-3 sm:col-span-4 text-right">Change</div>
+                      <div className="col-span-2 hidden sm:block">Ticker</div>
+                      <div className="col-span-4 sm:col-span-2 text-right">Last Price</div>
+                      <div className="col-span-2 hidden sm:block text-right">Change</div>
+                      <div className="col-span-3 sm:col-span-2 text-right">Trend</div>
                     </div>
                     {marketSummary.stocks.map((stock: any) => {
                       const change = stock.change ?? 0;
                       const positive = change >= 0;
                       return (
-                        <div key={stock.symbol} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors">
-                          <div className="col-span-5 sm:col-span-4">
-                            <p className="text-sm font-bold text-white tracking-wide">{stock.short}</p>
-                            <p className="text-[10px] text-slate-500 mt-0.5 truncate pr-2">{stock.name}</p>
+                        <div key={stock.symbol} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-all duration-200 border-b border-white/5 last:border-0">
+                          {/* Company Name */}
+                          <div className="col-span-5 sm:col-span-4 min-w-0">
+                            <p className="text-sm font-bold text-white tracking-wide truncate">{stock.short}</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5 truncate pr-2">{stock.name}</p>
                           </div>
-                          <div className="col-span-4 sm:col-span-4 text-right">
-                            <p className="text-sm font-mono text-white">₹{Number(stock.price).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                          </div>
-                          <div className="col-span-3 sm:col-span-4 flex flex-col items-end justify-center">
-                            <span className={`text-xs font-bold font-mono flex items-center gap-1 ${
-                              positive ? "text-emerald-400" : "text-red-400"
-                            }`}>
-                              {positive ? "+" : ""}{change.toFixed(2)}
+                          
+                          {/* Ticker badge (sm+) */}
+                          <div className="col-span-2 hidden sm:flex items-center">
+                            <span className="text-[10px] font-mono bg-white/5 border border-white/5 text-slate-300 px-2 py-0.5 rounded font-medium">
+                              {stock.symbol}
                             </span>
-                            <span className={`text-[10px] font-mono mt-0.5 ${
-                              positive ? "text-emerald-500/70" : "text-red-500/70"
+                          </div>
+                          
+                          {/* Last Price */}
+                          <div className="col-span-4 sm:col-span-2 text-right">
+                            <p className="text-sm font-bold font-mono text-white">
+                              ₹{Number(stock.price).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                          
+                          {/* Absolute Change (sm+) */}
+                          <div className="col-span-2 hidden sm:block text-right">
+                            <p className={`text-sm font-mono font-semibold ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                              {positive ? "+" : ""}{change.toFixed(2)}
+                            </p>
+                          </div>
+                          
+                          {/* Change Percent Pill */}
+                          <div className="col-span-3 sm:col-span-2 flex justify-end">
+                            <span className={`text-xs font-bold font-mono px-2.5 py-1 rounded-lg flex items-center justify-center gap-0.5 min-w-[75px] ${
+                              positive 
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/15" 
+                                : "bg-red-500/10 text-red-400 border border-red-500/15"
                             }`}>
-                              ({positive ? "+" : ""}{stock.change_pct?.toFixed(2)}%)
+                              {positive ? "+" : ""}{stock.change_pct?.toFixed(2)}%
                             </span>
                           </div>
                         </div>
@@ -1067,26 +1087,33 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                   </div>
                 ) : (
                   <div className="divide-y divide-white/10">
-                    <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-white/[0.02]">
+                    <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/[0.02]">
                       <div className="col-span-5 sm:col-span-4">Company</div>
-                      <div className="col-span-4 sm:col-span-4 text-right">Last Price</div>
-                      <div className="col-span-3 sm:col-span-4 text-right">Change</div>
+                      <div className="col-span-2 hidden sm:block">Ticker</div>
+                      <div className="col-span-4 sm:col-span-2 text-right">Last Price</div>
+                      <div className="col-span-2 hidden sm:block text-right">Change</div>
+                      <div className="col-span-3 sm:col-span-2 text-right">Trend</div>
                     </div>
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center">
+                      <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center border-b border-white/5 last:border-0 animate-pulse">
                         <div className="col-span-5 sm:col-span-4 flex items-center gap-3">
-                          <Skeleton className="h-8 w-8 rounded-md" />
-                          <div className="flex flex-col gap-1">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-3 w-16" />
+                          <Skeleton className="h-8 w-8 rounded-md bg-white/5" />
+                          <div className="flex flex-col gap-1.5">
+                            <Skeleton className="h-4 w-24 bg-white/5" />
+                            <Skeleton className="h-3 w-16 bg-white/5" />
                           </div>
                         </div>
-                        <div className="col-span-4 sm:col-span-4 flex flex-col items-end gap-1">
-                          <Skeleton className="h-4 w-16" />
+                        <div className="col-span-2 hidden sm:block">
+                          <Skeleton className="h-5 w-16 bg-white/5" />
                         </div>
-                        <div className="col-span-3 sm:col-span-4 flex flex-col items-end gap-1">
-                          <Skeleton className="h-4 w-12" />
-                          <Skeleton className="h-3 w-10" />
+                        <div className="col-span-4 sm:col-span-2 text-right">
+                          <Skeleton className="h-4.5 w-16 bg-white/5 ml-auto" />
+                        </div>
+                        <div className="col-span-2 hidden sm:block text-right">
+                          <Skeleton className="h-4 w-12 bg-white/5 ml-auto" />
+                        </div>
+                        <div className="col-span-3 sm:col-span-2 flex justify-end">
+                          <Skeleton className="h-6 w-16 bg-white/5" />
                         </div>
                       </div>
                     ))}
