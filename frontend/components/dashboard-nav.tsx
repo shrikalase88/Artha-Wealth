@@ -103,19 +103,19 @@ export function DashboardNav() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-white/5 bg-[#070a13] h-screen sticky top-0">
+      <aside className="hidden lg:flex w-64 flex-col border-r border-white/5 bg-[#070a13]/25 backdrop-blur-2xl h-screen sticky top-0">
         {sidebarContent}
       </aside>
 
       {/* Mobile Header (Top) */}
-      <header className="lg:hidden sticky top-0 z-40 border-b border-white/10 bg-[#070a13]/85 backdrop-blur-xl w-full">
+      <header className="lg:hidden sticky top-0 z-40 border-b border-white/10 bg-[#070a13]/40 backdrop-blur-2xl w-full">
         <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors hover:bg-white/5 hover:text-white h-10 w-10 text-slate-300 -ml-2">
                 <Menu className="h-6 w-6" />
               </SheetTrigger>
-              <SheetContent side="left" className="w-[280px] p-0 border-r border-white/10 bg-[#070a13]">
+              <SheetContent side="left" className="w-[280px] p-0 border-r border-white/10 bg-[#070a13]/90 backdrop-blur-3xl">
                 {sidebarContent}
               </SheetContent>
             </Sheet>

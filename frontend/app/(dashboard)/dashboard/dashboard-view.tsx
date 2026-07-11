@@ -320,7 +320,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
         {/* Navigation Tabs and Manual Entry Trigger */}
         <div className="sticky top-14 lg:top-0 z-30 w-full border-b border-slate-800/80 bg-[#070a13]/80 backdrop-blur-xl py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6">
           <div className="flex items-center justify-between gap-4">
-            <nav className="flex p-1 bg-slate-900/80 rounded-xl border border-slate-800 w-full sm:w-auto overflow-x-auto scrollbar-none">
+            <nav className="flex p-1 bg-slate-950/40 backdrop-blur-md rounded-xl border border-white/5 w-full sm:w-auto overflow-x-auto scrollbar-none">
               {[
                 { id: "market", name: "Markets", icon: Activity },
                 { id: "funds", name: "Funds", icon: Compass },
@@ -333,10 +333,10 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-lg transition-all duration-300 ${
                       active
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                        : "text-slate-400 hover:text-slate-200"
+                        ? "bg-white/10 text-white border border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.15)] backdrop-blur-md"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
                     }`}
                   >
                     <span>{tab.name}</span>
@@ -350,14 +350,14 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 <Button
                   onClick={handleSyncPortfolio}
                   disabled={isSyncing}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold shadow-lg transition-all active:scale-95 p-0 shrink-0 border border-white/5"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold shadow-lg transition-all duration-200 active:scale-90 p-0 shrink-0 border border-white/10 backdrop-blur-md"
                   title="Sync with live market values"
                 >
                   <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
                 </Button>
                 <Button
                   onClick={handleOpenAddModal}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-500 active:scale-95 p-0 shrink-0"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-bold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 active:scale-90 p-0 shrink-0 border border-white/10"
                   title="Add Asset Manually"
                 >
                   <Plus className="h-5 w-5" />

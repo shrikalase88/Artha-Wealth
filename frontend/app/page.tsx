@@ -25,8 +25,8 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-[#0b0f19] text-slate-100 selection:bg-blue-500/30">
       {/* Background Gradients */}
-      <div className="absolute top-0 left-1/4 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.15)_0%,transparent_70%)] pointer-events-none" />
-      <div className="absolute top-[20%] right-1/4 h-[400px] w-[400px] rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.1)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.25)_0%,rgba(6,182,212,0.08)_40%,transparent_70%)] pointer-events-none filter blur-[80px] animate-glow-1" />
+      <div className="absolute top-[20%] right-1/4 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.22)_0%,rgba(20,184,166,0.08)_45%,transparent_70%)] pointer-events-none filter blur-[80px] animate-glow-2" />
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0b0f19]/60 backdrop-blur-md">
