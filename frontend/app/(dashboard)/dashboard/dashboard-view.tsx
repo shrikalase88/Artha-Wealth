@@ -518,7 +518,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               </Card>
             </div>
 
-            {/* Autonomous Web 4.0 Proactive Advisory */}
+            {/* Autonomous Web 4.0 & Web 5.0 Proactive Sensory Advisory */}
             {assets.length > 0 && (
               <Card className="border-white/5 bg-slate-900/40 glass-card">
                 <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -527,10 +527,16 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       <Sparkles className="h-5 w-5 text-blue-400" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                        Proactive Portfolio Insights <span className="text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full font-medium tracking-wide uppercase">Web 4.0 Agent</span>
-                      </h4>
-                      <p className="text-xs text-slate-300 font-light mt-1 max-w-2xl leading-relaxed">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="text-sm font-bold text-white">
+                          Proactive Portfolio Insights
+                        </h4>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[8px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full font-medium tracking-wide uppercase">Web 4.0 Proactive</span>
+                          <span className="text-[8px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-full font-medium tracking-wide uppercase">Web 5.0 Symbiotic</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-300 font-light mt-1.5 max-w-2xl leading-relaxed">
                         {totalValue > 0 && Math.round((equitiesTotal / totalValue) * 100) > 70 ? (
                           "Your portfolio has high exposure to direct equities (over 70%). To mitigate volatility in the current market, the autonomous advisor recommends rebalancing a portion of your capital into debt mutual funds or hybrid assets."
                         ) : diversificationRating === "Low" ? (
@@ -539,10 +545,19 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                           "Your asset diversification is healthy and stable. The autonomous system is proactively monitoring live market values. Your current equity-to-mutual fund ratio is balanced."
                         )}
                       </p>
+                      <div className="mt-2 text-[10px] text-indigo-300/90 font-medium flex items-center gap-1 border-t border-white/5 pt-2">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping"></span>
+                        <strong>Sensory Sentiment Matrix:</strong>{" "}
+                        {totalGain !== null && totalGain >= 0 ? (
+                          "Optimistic & Confident. Your growth trajectory is solid. The empathetic engine recommends systematic monthly compound SIP additions to sustain momentum."
+                        ) : (
+                          "Empathetic & Resilient. Market consolidation is pacing low. The sensory advisor detects potential portfolio caution—stay disciplined and accumulate units during market dips."
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="text-xs font-semibold text-slate-400 font-mono tracking-wider bg-white/5 px-2.5 py-1 rounded border border-white/5 self-stretch md:self-auto flex items-center justify-center">
-                    Agent Monitoring Live
+                    Agent Symbiosis Online
                   </div>
                 </CardContent>
               </Card>

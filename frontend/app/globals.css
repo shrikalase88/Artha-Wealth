@@ -211,27 +211,27 @@
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(12, 17, 34, 0.38) 0%, rgba(8, 12, 28, 0.28) 100%) !important;
-  backdrop-filter: blur(16px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(190%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(135deg, rgba(18, 26, 50, 0.52) 0%, rgba(12, 18, 38, 0.42) 100%) !important;
+  backdrop-filter: blur(20px) saturate(220%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(220%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   box-shadow: 
-    inset 0 1px 0.5px rgba(255, 255, 255, 0.12), 
-    inset 0 -1px 1px rgba(0, 0, 0, 0.25),
-    0 6px 24px rgba(0, 0, 0, 0.3);
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.18), 
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.3),
+    0 10px 30px rgba(0, 0, 0, 0.45);
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: 1.15rem !important; /* iOS Widget Radius */
 }
 
 .glass-card:hover {
-  background: linear-gradient(135deg, rgba(14, 20, 42, 0.55) 0%, rgba(10, 15, 32, 0.45) 100%) !important;
-  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: linear-gradient(135deg, rgba(22, 32, 62, 0.65) 0%, rgba(16, 24, 48, 0.55) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
   box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.22), 
-    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
-    0 16px 48px rgba(0, 0, 0, 0.55), 
-    0 0 25px rgba(59, 130, 246, 0.22);
-  transform: translateY(-2.5px) scale(1.008);
+    inset 0 1.5px 1.5px rgba(255, 255, 255, 0.28), 
+    inset 0 -1.5px 2.5px rgba(0, 0, 0, 0.45),
+    0 20px 60px rgba(0, 0, 0, 0.65), 
+    0 0 30px rgba(59, 130, 246, 0.3);
+  transform: translateY(-3px) scale(1.01);
 }
 
 /* ---- Dark Mode Component Text Fixes ---- */
