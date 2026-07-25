@@ -159,26 +159,17 @@ function DashboardNavContent() {
           {/* Desktop Footer profile */}
           <div className="border-t border-[#27272a] pt-4 flex items-center justify-between">
             {user ? (
-              <>
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-xs font-bold text-white shadow-inner">
-                    {user.email?.[0].toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-white truncate max-w-[110px]">
-                      {user.user_metadata?.full_name || user.email?.split("@")[0]}
-                    </p>
-                    <p className="text-[10px] text-zinc-400 truncate max-w-[110px]">{user.email}</p>
-                  </div>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-xs font-bold text-white shadow-inner shrink-0">
+                  {user.email?.[0].toUpperCase()}
                 </div>
-                <button
-                  onClick={handleSignOut}
-                  className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                  title="Log out"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-white truncate max-w-[140px]">
+                    {user.user_metadata?.full_name || user.email?.split("@")[0]}
+                  </p>
+                  <p className="text-[10px] text-zinc-400 truncate max-w-[140px]">{user.email}</p>
+                </div>
+              </div>
             ) : (
               <Link href="/login" className="w-full">
                 <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl">
