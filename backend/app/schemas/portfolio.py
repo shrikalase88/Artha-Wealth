@@ -17,22 +17,6 @@ class PortfolioBase(BaseModel):
     as_of_date: date | None = None
 
 
-class PortfolioCreate(PortfolioBase):
-    pass
-
-
-class PortfolioUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=200)
-    description: str | None = None
-    upload_status: UploadStatus | None = None
-    parse_error: str | None = None
-    total_invested: Decimal | None = None
-    total_value: Decimal | None = None
-    as_of_date: date | None = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class PortfolioRead(PortfolioBase):
     id: UUID
     user_id: UUID

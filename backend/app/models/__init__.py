@@ -1,9 +1,5 @@
-"""SQLAlchemy ORM models mirroring infra/db/*.sql."""
+"""Shared enums used by services and schemas."""
 
-from app.db.base import Base
-from app.models.profile import Profile
-from app.models.portfolio import Portfolio
-from app.models.asset import Asset
-from app.models.portfolio_metric import PortfolioMetric
+from app.models.enums import AssetClass, AssetType, CurrencyCode, UploadStatus
 
-__all__ = ["Base", "Profile", "Portfolio", "Asset", "PortfolioMetric"]
+__all__ = ["AssetClass", "AssetType", "CurrencyCode", "UploadStatus"]

@@ -1,22 +1,6 @@
 """Pydantic v2 schemas — public API contract."""
 
-from app.schemas.profile import ProfileRead, ProfileUpdate
-from app.schemas.portfolio import (
-    PortfolioCreate,
-    PortfolioRead,
-    PortfolioUpdate,
-)
-from app.schemas.asset import AssetCreate, AssetRead, AssetUpdate
-from app.schemas.metric import PortfolioMetricRead
+from app.schemas.portfolio import PortfolioRead
+from app.schemas.asset import AssetRead
 
-__all__ = [
-    "ProfileRead",
-    "ProfileUpdate",
-    "PortfolioCreate",
-    "PortfolioRead",
-    "PortfolioUpdate",
-    "AssetCreate",
-    "AssetRead",
-    "AssetUpdate",
-    "PortfolioMetricRead",
-]
+__all__ = ["PortfolioRead", "AssetRead"]

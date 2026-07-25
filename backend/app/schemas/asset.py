@@ -27,29 +27,7 @@ class AssetBase(BaseModel):
     @field_validator("ticker", "scheme_code")
     @classmethod
     def at_least_one_identifier(cls, v, info):
-        # Allow empty strings; the SQL CHECK enforces actual identifier presence.
         return v
-
-
-class AssetCreate(AssetBase):
-    portfolio_id: UUID
-    user_id: UUID
-
-    model_config = ConfigDict(populate_by_name=True)
-
-
-class AssetUpdate(BaseModel):
-    asset_class: AssetClass | None = None
-    name: str | None = None
-    quantity: Decimal | None = Field(default=None, gt=0)
-    average_buy_price: Decimal | None = None
-    cost_basis: Decimal | None = None
-    current_price: Decimal | None = None
-    market_value: Decimal | None = None
-    last_price_at: datetime | None = None
-    metadata: dict | None = None
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class AssetRead(AssetBase):
