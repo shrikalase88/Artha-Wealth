@@ -12,10 +12,9 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
+        setAll() {
+          // Next.js App Router Server Components cannot modify cookies during render.
+          // Cookie refresh is safely handled by proxy/middleware and server actions.
         },
       },
     },

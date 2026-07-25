@@ -86,6 +86,9 @@ def parse_screenshot(request: ParseRequest, authorization: str | None = Header(N
         raise HTTPException(status_code=500, detail=f"Parsing failed: {e}")
 
 
+from app.services.portfolio_service import process_portfolio_pdf, process_portfolio_screenshot, delete_user_portfolio
+
+
 @router.get("/{portfolio_id}")
 def get_portfolio(portfolio_id: UUID):
     supabase = get_supabase()
@@ -95,3 +98,16 @@ def get_portfolio(portfolio_id: UUID):
         raise HTTPException(status_code=404, detail="Portfolio not found")
     portfolio = data[0] if isinstance(data, list) else data
     return PortfolioRead.model_validate(portfolio)
+
+
+@router.delete("/{portfolio_id}")
+def delete_portfolio(portfolio_id: str, user_id: str, authorization: str | None = Header(None)):
+    """Delete a specific statement source and update DB in real-time."""
+    verify_user_token(user_id, authorization)
+    try:
+        res = delete_user_portfolio(portfolio_id=portfolio_id, user_id=user_id)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Deletion failed: {e}")

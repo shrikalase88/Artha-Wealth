@@ -22,7 +22,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#070a13" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
   ],
   interactiveWidget: "resizes-visual",
 };
@@ -36,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased bg-[#070a13] text-slate-100`}>
+      <body className={`${inter.variable} font-sans antialiased bg-[#09090b] text-zinc-50`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

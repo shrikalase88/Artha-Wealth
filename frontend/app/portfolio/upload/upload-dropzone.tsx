@@ -130,7 +130,7 @@ export function UploadDropzone({ userId }: { userId: string }) {
       }
 
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/dashboard?tab=portfolio");
         setUploading(false);
       }, 1200);
     },

@@ -43,7 +43,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0b0f19] text-slate-100">
+    <div className="flex min-h-screen bg-[#09090b] text-zinc-100">
       {/* Back button */}
       <Link href="/" className="absolute top-6 left-6 z-50 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
         <ArrowLeft className="h-4 w-4" />

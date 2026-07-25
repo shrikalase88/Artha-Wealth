@@ -50,14 +50,22 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#070a13] flex items-center justify-center text-slate-400">
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-slate-400">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     );
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-400">
+        Please sign in to access settings.
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#070a13] p-6 lg:p-10 text-slate-100 pb-24">
+    <div className="min-h-screen bg-[#09090b] p-6 lg:p-10 text-zinc-100 pb-24">
       <div className="mx-auto max-w-2xl space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white">Settings</h1>

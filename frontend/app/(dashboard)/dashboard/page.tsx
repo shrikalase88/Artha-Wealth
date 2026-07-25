@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,11 +39,20 @@ export default async function DashboardPage() {
   }
 
   return (
-    <DashboardView
-      user={user ?? null}
-      portfolios={portfolios}
-      assets={assets}
-    />
+    <Suspense fallback={
+      <div className="flex h-64 w-full items-center justify-center p-8">
+        <div className="flex items-center gap-3 text-slate-400">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+          <span className="text-sm font-medium">Loading Artha Wealth Dashboard...</span>
+        </div>
+      </div>
+    }>
+      <DashboardView
+        user={user ?? null}
+        portfolios={portfolios}
+        assets={assets}
+      />
+    </Suspense>
   );
 }
 

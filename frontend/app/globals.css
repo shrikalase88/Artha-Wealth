@@ -54,6 +54,12 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --animate-marquee: marquee-slide 25s linear infinite;
+  @keyframes marquee-slide {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
 }
 
 .dark {
@@ -120,8 +126,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    background-color: #070a13;
-    color: #f1f5f9; /* slate-100 */
+    background-color: #09090b;
+    color: #fafafa;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -136,32 +142,27 @@
   }
 }
 
-/* Dark-first design — :root defaults to dark theme values */
+/* Dark-first design — :root defaults to exact ui.shadcn.com Zinc Dark Grey theme */
 :root {
-  --background: oklch(0.08 0 0);      /* near-black #070a13 */
-  --foreground: oklch(0.95 0 0);      /* near-white */
-  --card: oklch(0.12 0 0);            /* dark card surface */
-  --card-foreground: oklch(0.95 0 0); /* white text on cards */
-  --popover: oklch(0.12 0 0);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.17 0 0);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.17 0 0);
-  --muted-foreground: oklch(0.70 0 0);  /* slate-400 equivalent */
-  --accent: oklch(0.17 0 0);
-  --accent-foreground: oklch(0.95 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --background: oklch(0.141 0.005 285.823);  /* #09090b - Zinc 950 */
+  --foreground: oklch(0.985 0 0);            /* #fafafa - Zinc 50 */
+  --card: oklch(0.141 0.005 285.823);        /* #09090b */
+  --card-foreground: oklch(0.985 0 0);       /* #fafafa */
+  --popover: oklch(0.141 0.005 285.823);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.141 0.005 285.823);
+  --secondary: oklch(0.274 0.006 286.033);    /* #27272a - Zinc 800 */
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067); /* #a1a1aa - Zinc 400 */
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --border: oklch(0.274 0.006 286.033);      /* #27272a - Zinc 800 */
+  --input: oklch(0.274 0.006 286.033);
+  --ring: oklch(0.442 0.017 285.786);
+  --radius: 0.75rem;
   --sidebar: oklch(0.10 0 0);
   --sidebar-foreground: oklch(0.95 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -197,6 +198,74 @@
 }
 .animate-glow-3 {
   animation: float-glow-3 30s ease-in-out infinite alternate;
+}
+
+/* Continuous Animated Marquee Ticker */
+@keyframes marquee-slide {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-slide 35s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Shadcn.io Modern Financial Tracker Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.8);
+    opacity: 0.85;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.shimmer-bg {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+.shadcn-card-hover {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.shadcn-card-hover:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  box-shadow: 0 16px 40px -10px rgba(59, 130, 246, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.25);
 }
 
 .glass-panel {
