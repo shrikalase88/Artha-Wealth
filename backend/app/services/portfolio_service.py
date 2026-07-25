@@ -24,6 +24,39 @@ def _map_asset_type(name: str) -> str:
     return "mutual_fund"
 
 
+def _consolidate_holdings(holdings: list[dict]) -> list[dict]:
+    """Merge duplicate holdings that represent the same instrument.
+
+    Deduplication key: ISIN (if present and valid), otherwise
+    normalized scheme_name. Holdings with the same key have their
+    units, market_value, and cost_basis summed; nav is averaged.
+    """
+    groups: dict[str, dict] = {}
+    for h in holdings:
+        isin = (h.get("isin") or "").strip()
+        if isin and len(isin) >= 10:
+            key = isin.upper()
+        else:
+            key = h.get("scheme_name", "").strip().lower()
+        if not key:
+            key = h.get("scheme_name", "").strip() or "unknown"
+            if key.startswith("unknown"):
+                key = key + str(len(groups))
+
+        if key in groups:
+            existing = groups[key]
+            existing["units"] += h.get("units", 0)
+            existing["market_value"] += h.get("market_value", 0)
+            cb = h.get("cost_basis")
+            if cb:
+                existing["cost_basis"] = (existing.get("cost_basis") or 0) + cb
+            existing["nav"] = h.get("nav", 0)
+        else:
+            groups[key] = dict(h)
+
+    return list(groups.values())
+
+
 def process_portfolio_pdf(
     portfolio_id: str,
     user_id: str,
@@ -51,6 +84,9 @@ def process_portfolio_pdf(
             logger.info("CAS parser returned 0 holdings, trying generic parser")
             result = parse_generic_pdf(tmp_path)
             source = "generic"
+
+        # Consolidate duplicate holdings (same ISIN or scheme name)
+        result["holdings"] = _consolidate_holdings(result["holdings"])
 
         holdings_count = len(result["holdings"])
         total_invested = Decimal("0")
@@ -194,6 +230,10 @@ def process_portfolio_screenshot(
 
         # Parse screenshot holdings
         result = parse_screenshot_image(image_bytes, mime_type, gemini_api_key)
+
+        # Consolidate duplicate holdings (same ISIN or scheme name)
+        result["holdings"] = _consolidate_holdings(result["holdings"])
+
         holdings_count = len(result["holdings"])
         total_invested = Decimal("0")
 

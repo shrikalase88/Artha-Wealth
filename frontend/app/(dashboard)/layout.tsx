@@ -16,7 +16,7 @@ export default function DashboardLayout({
       <DashboardNav />
       <div className="flex-grow min-w-0 flex flex-col relative z-10">
         <TopBar />
-        <main className="flex-1 pb-8">
+        <main className="flex-1 pb-28 lg:pb-8">
           {children}
         </main>
       </div>

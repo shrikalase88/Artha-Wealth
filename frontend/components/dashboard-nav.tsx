@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
-import { LayoutDashboard, Upload, Settings, Menu, X, Wallet, Calculator, LogOut, Info, Phone } from "lucide-react";
+import { Briefcase, Upload, Settings, Calculator, LogOut, Info, Phone } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function DashboardNav() {
@@ -35,12 +35,12 @@ export function DashboardNav() {
   if (loading || !user) return null;
 
   const navItems = [
-    { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Upload Statement", href: "/portfolio/upload", icon: Upload },
-    { name: "SIP Calculator", href: "/sip-calculator", icon: Calculator },
-    { name: "About Us", href: "/about", icon: Info },
-    { name: "Contact Us", href: "/contact", icon: Phone },
+    { name: "Portfolio", href: "/dashboard", icon: Briefcase },
+    { name: "Upload", href: "/portfolio/upload", icon: Upload },
+    { name: "SIP", href: "/sip-calculator", icon: Calculator },
     { name: "Settings", href: "/settings", icon: Settings },
+    { name: "About", href: "/about", icon: Info },
+    { name: "Contact", href: "/contact", icon: Phone },
   ];
 
   const sidebarContent = (
@@ -109,22 +109,21 @@ export function DashboardNav() {
         {sidebarContent}
       </aside>
 
-      {/* Mobile Header (Top) */}
-      <header className="lg:hidden sticky top-0 z-40 border-b border-white/10 bg-[#070a13]/40 backdrop-blur-2xl w-full">
-        <div className="flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors hover:bg-white/5 hover:text-white h-10 w-10 text-slate-300 -ml-2">
-                <Menu className="h-6 w-6" />
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[280px] p-0 border-r border-white/10 bg-[#070a13]/90 backdrop-blur-3xl">
-                {sidebarContent}
-              </SheetContent>
-            </Sheet>
-          </div>
-
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-[#070a13]/90 backdrop-blur-2xl">
+        <div className="flex items-center justify-around py-2 px-1">
+          {navItems.map((item) => {
+            const active = pathname === item.href;
+            const Icon = item.icon;
+            return (
+              <Link key={item.name} href={item.href} className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors min-w-[52px]">
+                <Icon className={`h-5 w-5 ${active ? "text-blue-400" : "text-slate-400"}`} />
+                <span className={`text-[9px] font-medium ${active ? "text-blue-400" : "text-slate-500"}`}>{item.name}</span>
+              </Link>
+            );
+          })}
         </div>
-      </header>
+      </nav>
     </>
   );
 }
