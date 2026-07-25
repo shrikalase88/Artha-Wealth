@@ -74,6 +74,12 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
     }
   }, [tabParam]);
 
+  const [localPortfolios, setLocalPortfolios] = useState<any[]>(portfolios || []);
+
+  useEffect(() => {
+    setLocalPortfolios(portfolios || []);
+  }, [portfolios]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [assetTypeFilter, setAssetTypeFilter] = useState("all");
 
@@ -104,38 +110,31 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   };
 
   const handleDeleteStatement = async (portfolioId: string) => {
-    if (!confirm("Are you sure you want to remove this statement source? All assets extracted from this statement will be removed from your portfolio.")) return;
-    
+    // Optimistically update UI instantly for mobile responsiveness
+    setLocalPortfolios((prev) => prev.filter((p) => p.id !== portfolioId));
     const toastId = toast.loading("Removing statement source & updating database...");
+    
     try {
+      // 1. Perform direct Supabase database deletion
+      await supabase.from("assets").delete().eq("portfolio_id", portfolioId);
+      await supabase.from("portfolios").delete().eq("id", portfolioId).eq("user_id", user.id);
+
+      // 2. Call backend API endpoint asynchronously
       const session = (await supabase.auth.getSession()).data.session;
       const token = session?.access_token;
-      
-      const resp = await fetch(`${BACKEND_URL}/api/v1/portfolios/${portfolioId}?user_id=${user.id}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
-
-      if (!resp.ok) {
-        // Direct Supabase deletion fallback
-        await supabase.from("assets").delete().eq("portfolio_id", portfolioId);
-        await supabase.from("portfolios").delete().eq("id", portfolioId);
+      if (token) {
+        fetch(`${BACKEND_URL}/api/v1/portfolios/${portfolioId}?user_id=${user.id}`, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${token}` }
+        }).catch(() => {});
       }
 
       toast.success("Statement source removed and database updated!", { id: toastId });
       router.refresh();
     } catch (err: any) {
-      console.error(err);
-      try {
-        await supabase.from("assets").delete().eq("portfolio_id", portfolioId);
-        await supabase.from("portfolios").delete().eq("id", portfolioId);
-        toast.success("Statement source removed!", { id: toastId });
-        router.refresh();
-      } catch (e2: any) {
-        toast.error("Failed to remove statement: " + (err.message || "Error"), { id: toastId });
-      }
+      console.error("Delete error:", err);
+      toast.error("Error removing statement: " + (err.message || "Failed"), { id: toastId });
+      router.refresh();
     }
   };
 
@@ -663,60 +662,65 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
             </div>
 
             {/* Uploaded Statement Sources & Linked Accounts Manager */}
-            {portfolios && portfolios.length > 0 && (
-              <Card className="border-white/10 bg-[#090e1d]/90 glass-card">
-                <CardHeader className="pb-3 flex flex-row items-center justify-between border-b border-white/10">
+            {localPortfolios && localPortfolios.length > 0 && (
+              <Card className="border-[#27272a] bg-[#121215]/90 glass-card">
+                <CardHeader className="pb-3 flex flex-row items-center justify-between border-b border-[#27272a]">
                   <div className="space-y-1">
                     <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                       <FileText className="h-4 w-4 text-blue-400" />
                       <span>Uploaded Statement Sources & Linked Accounts</span>
-                      <span className="text-xs font-mono font-normal text-slate-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
-                        {portfolios.length} Total
+                      <span className="text-xs font-mono font-normal text-zinc-400 bg-zinc-900 border border-[#27272a] px-2 py-0.5 rounded-full">
+                        {localPortfolios.length} Total
                       </span>
                     </CardTitle>
-                    <p className="text-[11px] text-slate-400">
-                      Manage your uploaded CAS PDFs, broker statements, and screenshots. Removing a source updates your portfolio database in real-time.
+                    <p className="text-[11px] text-zinc-400">
+                      Manage your uploaded CAS PDFs, broker statements, and screenshots. Tap delete to remove a source and update database records instantly.
                     </p>
                   </div>
                   <Link href="/portfolio/upload">
                     <Button size="sm" className="h-8 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white gap-1.5 rounded-xl shadow-md">
                       <Upload className="h-3.5 w-3.5" />
-                      <span>Upload Source</span>
+                      <span className="hidden sm:inline">Upload Source</span>
                     </Button>
                   </Link>
                 </CardHeader>
                 <CardContent className="p-4">
                   <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                    {portfolios.map((p: any) => {
+                    {localPortfolios.map((p: any) => {
                       const fileName = p.file_path ? p.file_path.split("/").pop() : "Statement Record";
                       const isPdf = fileName.toLowerCase().endsWith(".pdf");
 
                       return (
-                        <div key={p.id} className="flex flex-col justify-between p-3.5 rounded-xl bg-slate-950/60 border border-white/10 hover:border-slate-700 transition-all space-y-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2.5 min-w-0">
+                        <div key={p.id} className="flex flex-col justify-between p-3.5 rounded-xl bg-zinc-950/80 border border-[#27272a] hover:border-zinc-700 transition-all space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <div className={`p-2 rounded-lg shrink-0 ${isPdf ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20"}`}>
                                 {isPdf ? <FileText className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
                               </div>
-                              <div className="min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <p className="text-xs font-bold text-white truncate" title={fileName}>{fileName}</p>
-                                <p className="text-[9.5px] font-mono text-slate-400 mt-0.5">
+                                <p className="text-[9.5px] font-mono text-zinc-400 mt-0.5">
                                   As of: {p.as_of_date || (p.created_at ? p.created_at.split("T")[0] : "Recent")}
                                 </p>
                               </div>
                             </div>
 
                             <button
-                              onClick={() => handleDeleteStatement(p.id)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all shrink-0"
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteStatement(p.id);
+                              }}
+                              className="h-9 w-9 shrink-0 flex items-center justify-center rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 active:scale-95 transition-all touch-manipulation cursor-pointer"
                               title="Remove statement source & update database"
+                              aria-label="Delete statement record"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
 
                           <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px]">
-                            <span className="text-slate-400 font-medium">Parsed Value</span>
+                            <span className="text-zinc-400 font-medium">Parsed Value</span>
                             <span className="font-bold font-mono text-white">
                               {p.total_value ? formatIndianCurrency(Number(p.total_value)) : "Synced"}
                             </span>
