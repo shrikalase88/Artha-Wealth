@@ -124,7 +124,7 @@ function DashboardNavContent() {
                   Artha
                 </span>
                 <span className="text-[10px] font-semibold text-blue-400 tracking-wider uppercase mt-0.5">
-                  Wealth OS
+                  Wealth
                 </span>
               </div>
             </Link>

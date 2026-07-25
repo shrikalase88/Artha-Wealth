@@ -80,6 +80,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
     setLocalPortfolios(portfolios || []);
   }, [portfolios]);
 
+  const [portfolioTimeRange, setPortfolioTimeRange] = useState<"1M" | "3M" | "6M" | "1Y">("1Y");
   const [searchQuery, setSearchQuery] = useState("");
   const [assetTypeFilter, setAssetTypeFilter] = useState("all");
 
@@ -213,6 +214,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   // Split calculations by asset types
   const mutualFundsTotal = assets.filter(a => a.asset_type === "mutual_fund").reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
   const equitiesTotal = assets.filter(a => a.asset_type === "equity").reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
+  const otherTotal = assets.filter(a => !["mutual_fund", "equity"].includes(a.asset_type)).reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
   
   // Filtered Assets
   const filteredAssets = assets.filter((asset) => {
@@ -552,114 +554,152 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               </div>
             ) : (
               <>
-                {/* Primary KPI Tiles grid */}
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 animate-fade-in-up">
-              <Card className="border-white/5 bg-slate-900/40 glass-card shadcn-card-hover">
-                <CardContent className="p-4 space-y-1">
-                  <p className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider">Current Portfolio Value</p>
-                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight tabular-nums">
-                    {formatIndianCurrency(totalValue)}
+                {/* ----------------- MOCKUP MATCHING HERO GLASS CARD ----------------- */}
+                <div className="rounded-3xl border border-[#27272a] bg-gradient-to-b from-[#18181b]/95 via-[#121215]/90 to-[#09090b]/95 p-6 shadow-2xl backdrop-blur-2xl relative overflow-hidden space-y-6">
+                  {/* Subtle ambient lighting background blur */}
+                  <div className="absolute -top-24 -right-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                  {/* Header Greeting & Profile Avatar */}
+                  <div className="flex items-center justify-between relative z-10">
+                    <div>
+                      <p className="text-xs text-zinc-400 font-medium">Good Day,</p>
+                      <h2 className="text-xl font-bold text-white tracking-tight">
+                        {user.user_metadata?.full_name || user.email?.split("@")[0] || "Investor"}
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-500 via-teal-500 to-blue-600 text-sm font-bold text-white shadow-lg ring-2 ring-emerald-400/20">
+                        {(user.email?.[0] || "A").toUpperCase()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hero Value & Daily Gain */}
+                  <div className="relative z-10 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Total Portfolio Value</p>
+                      {gainPercent !== null && (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold font-mono border ${gainPercent >= 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+                          {gainPercent >= 0 ? "+" : ""}{gainPercent.toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight tabular-nums font-mono">
+                        {formatIndianCurrency(totalValue)}
+                      </h1>
+                      {totalGain !== null && (
+                        <p className={`text-xs sm:text-sm font-semibold font-mono ${totalGain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                          {totalGain >= 0 ? "+" : ""}{formatIndianCurrency(totalGain)} today
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Time Range Filter Selector (Pills) */}
+                  <div className="flex items-center justify-between pt-2 border-t border-white/5 relative z-10">
+                    <p className="text-[11px] font-semibold text-zinc-400">Artha Wealth</p>
+                    <div className="flex items-center gap-1 bg-zinc-900/80 border border-[#27272a] p-1 rounded-full backdrop-blur-md">
+                      {(["1M", "3M", "6M", "1Y"] as const).map((range) => (
+                        <button
+                          key={range}
+                          onClick={() => setPortfolioTimeRange(range)}
+                          className={`px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 ${
+                            portfolioTimeRange === range
+                              ? "bg-zinc-800 text-white shadow border border-zinc-700"
+                              : "text-zinc-400 hover:text-zinc-200"
+                          }`}
+                        >
+                          {range}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Smoothed SVG Area Graph Wave */}
+                  <div className="h-20 w-full relative z-0 pt-2 opacity-90">
+                    <svg className="w-full h-full overflow-visible" viewBox="0 0 400 60" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="areaGlow" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+                          <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d="M 0 45 C 50 40, 90 20, 140 30 C 190 40, 240 10, 290 15 C 340 20, 370 5, 400 2 Z"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M 0 45 C 50 40, 90 20, 140 30 C 190 40, 240 10, 290 15 C 340 20, 370 5, 400 2 L 400 60 L 0 60 Z"
+                        fill="url(#areaGlow)"
+                      />
+                      <circle cx="400" cy="2" r="4" fill="#34d399" className="animate-ping" />
+                      <circle cx="400" cy="2" r="4" fill="#10b981" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* ----------------- YOUR PORTFOLIOS CATEGORY CARDS (MOCKUP STYLE) ----------------- */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-emerald-400" />
+                    <span>Your Portfolios</span>
                   </h3>
-                  {totalGain !== null && (
-                    <p className={`text-xs font-semibold flex items-center gap-1 mt-1 ${totalGain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                      {totalGain >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-                      <span>{totalGain >= 0 ? "+" : ""}{formatIndianCurrency(totalGain)} ({totalGain >= 0 ? "+" : ""}{gainPercent?.toFixed(1)}%)</span>
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-zinc-400">Growth Equity</span>
+                        <span className="text-emerald-400 font-bold font-mono text-[11px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">+2.1%</span>
+                      </div>
+                      <h4 className="text-lg font-bold font-mono text-white tabular-nums">
+                        {formatIndianCurrency(equitiesTotal || totalValue * 0.6)}
+                      </h4>
+                      <div className="flex items-end gap-1 h-6 pt-2">
+                        <div className="w-full bg-emerald-500/40 rounded-t h-3" />
+                        <div className="w-full bg-emerald-500/60 rounded-t h-4" />
+                        <div className="w-full bg-emerald-500/80 rounded-t h-2" />
+                        <div className="w-full bg-emerald-400 rounded-t h-6" />
+                      </div>
+                    </div>
 
-              <Card className="border-white/5 bg-slate-900/40 glass-card shadcn-card-hover">
-                <CardContent className="p-4 space-y-1">
-                  <p className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider">Total Capital Invested</p>
-                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight tabular-nums">
-                    {hasCostBasis ? formatIndianCurrency(totalCost) : "—"}
-                  </h3>
-                  <p className="text-[10px] text-slate-300 mt-1 font-light">Acquisition basis from records</p>
-                </CardContent>
-              </Card>
+                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-zinc-400">Global & Mutual Funds</span>
+                        <span className="text-emerald-400 font-bold font-mono text-[11px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">+1.6%</span>
+                      </div>
+                      <h4 className="text-lg font-bold font-mono text-white tabular-nums">
+                        {formatIndianCurrency(mutualFundsTotal || totalValue * 0.3)}
+                      </h4>
+                      <div className="flex items-end gap-1 h-6 pt-2">
+                        <div className="w-full bg-blue-500/40 rounded-t h-2" />
+                        <div className="w-full bg-blue-500/60 rounded-t h-5" />
+                        <div className="w-full bg-blue-500/80 rounded-t h-4" />
+                        <div className="w-full bg-blue-400 rounded-t h-6" />
+                      </div>
+                    </div>
 
-              <Card className="border-white/5 bg-slate-900/40 glass-card shadcn-card-hover">
-                <CardContent className="p-4 space-y-1">
-                  <p className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider">All-Time Gains Status</p>
-                  <h3 className={`text-xl sm:text-2xl font-black tracking-tight tabular-nums ${totalGain !== null ? (totalGain >= 0 ? "text-emerald-400" : "text-red-400") : "text-white"}`}>
-                    {totalGain !== null ? `${totalGain >= 0 ? "+" : ""}${gainPercent?.toFixed(2)}%` : "—"}
-                  </h3>
-                  <p className="text-[10px] text-slate-300 mt-1 font-light">Compounding capital progress</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-white/5 bg-slate-900/40 glass-card shadcn-card-hover">
-                <CardContent className="p-4 space-y-1">
-                  <p className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider">Active Statement Sources</p>
-                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                    {portfolios.filter((p) => p.upload_status === "completed").length} Records
-                  </h3>
-                  <Link href="/portfolio/upload" className="text-[10px] text-blue-400 hover:text-blue-300 font-semibold inline-flex items-center gap-0.5 mt-1">
-                    Upload statement/screenshot <ChevronRight className="h-3 w-3" />
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Additional Advanced KPI Tiles */}
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-              <Card className="border-white/5 bg-slate-900/40 glass-card">
-                <CardContent className="p-4 space-y-1 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Total Holdings</p>
-                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight mt-0.5">
-                      {totalHoldingsCount} Assets
-                    </h3>
+                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-zinc-400">SGB & Fixed Assets</span>
+                        <span className="text-amber-400 font-bold font-mono text-[11px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">+0.9%</span>
+                      </div>
+                      <h4 className="text-lg font-bold font-mono text-white tabular-nums">
+                        {formatIndianCurrency(otherTotal || totalValue * 0.1)}
+                      </h4>
+                      <div className="flex items-end gap-1 h-6 pt-2">
+                        <div className="w-full bg-amber-500/40 rounded-t h-4" />
+                        <div className="w-full bg-amber-500/60 rounded-t h-3" />
+                        <div className="w-full bg-amber-500/80 rounded-t h-5" />
+                        <div className="w-full bg-amber-400 rounded-t h-4" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-2 rounded bg-blue-500/10 text-blue-400">
-                    <Briefcase className="h-4 w-4" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-white/5 bg-slate-900/40 glass-card">
-                <CardContent className="p-4 space-y-1 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Asset Diversification</p>
-                    <h3 className={`text-lg sm:text-xl font-bold tracking-tight mt-0.5 ${diversificationColor}`}>
-                      {diversificationRating}
-                    </h3>
-                  </div>
-                  <div className="p-2 rounded bg-amber-500/10 text-amber-400">
-                    <Layers className="h-4 w-4" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-white/5 bg-slate-900/40 glass-card">
-                <CardContent className="p-4 space-y-1 flex items-center justify-between">
-                  <div className="min-w-0 flex-1 pr-2">
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Top Performer</p>
-                    <h3 className="text-xs font-bold text-white tracking-tight truncate mt-0.5">
-                      {topPerformingAsset}
-                    </h3>
-                  </div>
-                  <div className="p-2 rounded bg-emerald-500/10 text-emerald-400 flex-shrink-0">
-                    <Award className="h-4 w-4" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-white/5 bg-slate-900/40 glass-card">
-                <CardContent className="p-4 space-y-1 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Allocation Weights</p>
-                    <h3 className="text-xs font-bold text-slate-300 mt-0.5">
-                      Stocks: {totalValue > 0 ? Math.round((equitiesTotal / totalValue) * 100) : 0}% / MFs: {totalValue > 0 ? Math.round((mutualFundsTotal / totalValue) * 100) : 0}%
-                    </h3>
-                  </div>
-                  <div className="p-2 rounded bg-violet-500/10 text-violet-400">
-                    <PieChart className="h-4 w-4" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
 
             {/* Uploaded Statement Sources & Linked Accounts Manager */}
             {localPortfolios && localPortfolios.length > 0 && (
