@@ -3,22 +3,9 @@
 import os
 from pathlib import Path
 
-# Redirect yfinance cache to a writable directory on Vercel to avoid Read-Only file system errors
-CACHE_DIR = "/tmp/.cache"
-Path(CACHE_DIR).mkdir(exist_ok=True, parents=True)
-
-try:
-    import platformdirs
-    platformdirs.user_cache_dir = lambda *args, **kwargs: CACHE_DIR
-    platformdirs.PlatformDirs.user_cache_dir = property(lambda *args, **kwargs: CACHE_DIR)
-except ImportError:
-    pass
-
-try:
-    import appdirs
-    appdirs.user_cache_dir = lambda *args, **kwargs: CACHE_DIR
-except ImportError:
-    pass
+# Set yfinance cache directory to writable location on serverless environments
+os.environ["YFINANCE_CACHE_DIR"] = "/tmp/.cache"
+Path("/tmp/.cache").mkdir(exist_ok=True, parents=True)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

@@ -2,9 +2,8 @@
 
 import logging
 import tempfile
+from datetime import datetime
 from decimal import Decimal
-
-import httpx
 
 from app.core.config import settings
 from app.parsers.cas_parser import parse_cas_pdf
@@ -17,11 +16,7 @@ logger = logging.getLogger(__name__)
 
 def _map_asset_type(name: str) -> str:
     n = name.lower()
-    if any(k in n for k in ("etf", "nifty bees", "junior bees", "bank bees", "gold bees")):
-        return "etf"
-    if any(k in n for k in ("equity", "shares", "stock", "ltd", "limited", "inc")):
-        return "equity"
-    return "mutual_fund"
+    return "etf" if any(k in n for k in ("etf", "bees")) else "equity" if any(k in n for k in ("equity", "shares", "stock", "ltd", "inc")) else "mutual_fund"
 
 
 def _consolidate_holdings(holdings: list[dict]) -> list[dict]:
@@ -213,23 +208,12 @@ def process_portfolio_pdf(
         }
 
         if result.get("as_of_date"):
-            import re
             d_str = result["as_of_date"]
-            if re.match(r"^\d{4}-\d{2}-\d{2}$", d_str):
+            try:
+                dt = datetime.strptime(d_str, "%Y-%m-%d") if "-" in d_str and len(d_str) == 10 else datetime.strptime(d_str.replace("-", "/"), "%d/%m/%Y")
+                update_data["as_of_date"] = dt.strftime("%Y-%m-%d")
+            except Exception:
                 update_data["as_of_date"] = d_str
-            else:
-                try:
-                    parts = d_str.replace("-", "/").split("/")
-                    if len(parts) == 3:
-                        d, m, y = parts
-                        if len(y) == 2:
-                            y = "20" + y
-                        if len(d) == 4:
-                            update_data["as_of_date"] = f"{d}-{m}-{y}"
-                        else:
-                            update_data["as_of_date"] = f"{y}-{m}-{d}"
-                except Exception:
-                    pass
 
         supabase.from_table("portfolios").eq("id", portfolio_id).update(update_data).execute()
 

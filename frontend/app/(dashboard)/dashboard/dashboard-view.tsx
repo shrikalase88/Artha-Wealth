@@ -368,7 +368,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 className="animate-marquee flex items-center gap-8 py-2.5 select-none hover:[animation-play-state:paused] cursor-pointer"
                 style={{ animation: "marquee-slide 30s linear infinite" }}
               >
-                {[...liveIndices, ...liveIndices, ...liveIndices, ...liveIndices].map((idx: any, index: number) => {
+                {Array(4).fill(liveIndices).flat().map((idx: any, index: number) => {
                   const change = idx.change ?? 0;
                   const positive = change >= 0;
                   const Icon = positive ? TrendingUp : TrendingDown;
