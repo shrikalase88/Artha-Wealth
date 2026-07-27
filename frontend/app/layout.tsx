@@ -7,9 +7,22 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Artha Wealth — Portfolio Tracker",
-  description: "Track your mutual funds and stock portfolio with precision. Real-time Indian market data, CAS PDF parsing, and Gemini AI screenshot extraction.",
-  keywords: "portfolio tracker, mutual funds, indian stocks, CAS statement, SIP calculator",
+  title: "Artha Wealth — Finance Hub",
+  description: "All-in-one Global Finance Hub. Live stock market analytics across India, US, Europe, China, Japan, and Arab markets, mutual funds aggregator, CAS statement parser, and currency exchange.",
+  keywords: "finance hub, wealth management, stock market analytics, mutual funds, portfolio tracker, CAS parser, currency exchange",
+  openGraph: {
+    title: "Artha Wealth — Finance Hub",
+    description: "All-in-one Global Finance Hub for live global markets, mutual funds, portfolio analytics, and currency exchange.",
+    url: "https://artha-wealth.vercel.app",
+    siteName: "Artha Wealth",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Artha Wealth — Finance Hub",
+    description: "All-in-one Global Finance Hub for live global markets, mutual funds, portfolio analytics, and currency exchange.",
+  },
   icons: {
     icon: "/icon?v=3",
     apple: "/apple-icon?v=3",
