@@ -13,8 +13,8 @@ def indices():
 
 
 @router.get("/summary")
-def summary():
-    return get_market_summary()
+def summary(region: str = "india"):
+    return get_market_summary(region)
 
 
 @router.get("/top-funds")

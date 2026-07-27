@@ -179,65 +179,134 @@ def sync_user_assets(user_id: UUID) -> list[dict]:
             if ticker and not ticker.startswith("EQ-"):
                 equities_to_fetch.append((asset, ticker))
 
-    # 3. Fetch latest values in parallel
-    # A. Fetch Mutual Fund NAVs
-    mf_navs = {}
-    
-    def fetch_mf_nav(code):
+    # 3. Fetch latest values in parallel using hybrid MFAPI + Yahoo Finance engine
+    # A. Fetch Mutual Fund NAVs (MFAPI Primary + Yahoo Finance Fallback)
+    mf_data_map = {}
+
+    def fetch_mf_nav(item):
+        asset, code = item
+        name = asset.get("name", "")
+        # Primary: MFAPI.in (official open-source AMFI API)
         try:
-            resp = http_get_with_retry(f"https://api.mfapi.in/mf/{code}", timeout=12, max_retries=3)
+            resp = http_get_with_retry(f"https://api.mfapi.in/mf/{code}", timeout=10, max_retries=2)
             if resp and resp.status_code == 200:
-                data = resp.json()
-                nav_data = data.get("data", [])
-                if nav_data:
-                    return code, float(nav_data[0].get("nav") or 0)
+                json_data = resp.json()
+                nav_series = json_data.get("data", [])
+                if nav_series and len(nav_series) > 0:
+                    curr_nav = float(nav_series[0].get("nav") or 0)
+                    prev_nav = float(nav_series[1].get("nav") or curr_nav) if len(nav_series) > 1 else curr_nav
+                    chg = curr_nav - prev_nav
+                    chg_pct = (chg / prev_nav * 100) if prev_nav > 0 else 0.0
+                    return code, {
+                        "nav": curr_nav,
+                        "change": chg,
+                        "change_pct": chg_pct,
+                        "source": "mfapi"
+                    }
         except Exception as e:
-            logger.error(f"Failed to fetch NAV for scheme {code}: {e}")
+            logger.warning(f"MFAPI lookup failed for scheme {code}: {e}")
+
+        # Secondary Fallback: Yahoo Finance for Mutual Fund
+        try:
+            headers = {"User-Agent": "Mozilla/5.0"}
+            search_url = f"https://query2.finance.yahoo.com/v1/finance/search?q={name}&newsCount=0"
+            resp = httpx.get(search_url, headers=headers, timeout=5)
+            if resp.status_code == 200:
+                quotes = resp.json().get("quotes", [])
+                if quotes:
+                    yf_symbol = quotes[0].get("symbol")
+                    if yf_symbol:
+                        t = yf.Ticker(yf_symbol)
+                        hist = t.history(period="5d")
+                        if not hist.empty and len(hist) > 0:
+                            curr_nav = float(hist["Close"].iloc[-1])
+                            prev_nav = float(hist["Close"].iloc[-2]) if len(hist) > 1 else curr_nav
+                            chg = curr_nav - prev_nav
+                            chg_pct = (chg / prev_nav * 100) if prev_nav > 0 else 0.0
+                            return code, {
+                                "nav": curr_nav,
+                                "change": chg,
+                                "change_pct": chg_pct,
+                                "source": "yahoo_finance"
+                            }
+        except Exception as e:
+            logger.error(f"Yahoo Finance fallback failed for MF scheme {code} ({name}): {e}")
+
         return code, None
 
-    unique_mf_codes = list(set(code for _, code in mf_to_fetch))
-    if unique_mf_codes:
-        with ThreadPoolExecutor(max_workers=min(10, len(unique_mf_codes))) as executor:
-            results = executor.map(fetch_mf_nav, unique_mf_codes)
-            for code, nav in results:
-                if nav is not None:
-                    mf_navs[code] = nav
+    if mf_to_fetch:
+        with ThreadPoolExecutor(max_workers=min(12, len(mf_to_fetch))) as executor:
+            results = executor.map(fetch_mf_nav, mf_to_fetch)
+            for code, data in results:
+                if data is not None:
+                    mf_data_map[code] = data
 
-    # B. Fetch Equity/ETF Prices
-    equity_prices = {}
-    unique_tickers = list(set(ticker for _, ticker in equities_to_fetch))
-    if unique_tickers:
+    # B. Fetch Equity/ETF Prices (Yahoo Finance Primary + MFAPI Fallback)
+    equity_data_map = {}
+
+    def fetch_equity_price(item):
+        asset, symbol = item
+        name = asset.get("name", "")
+        # Primary: Yahoo Finance
         try:
-            tickers_obj = yf.Tickers(" ".join(unique_tickers))
-            for symbol in unique_tickers:
-                t = tickers_obj.tickers.get(symbol)
-                price = None
-                if t:
-                    try:
-                        info = t.info
-                        price = info.get("currentPrice") or info.get("regularMarketPrice") or info.get("previousClose")
-                    except Exception:
-                        pass
-                    # Fallback to 1-day history if info fails
-                    if price is None:
-                        try:
-                            hist = t.history(period="1d")
-                            if not hist.empty:
-                                price = float(hist["Close"].iloc[-1])
-                        except Exception:
-                            pass
-                if price is not None:
-                    equity_prices[symbol] = price
+            t = yf.Ticker(symbol)
+            hist = t.history(period="5d")
+            if not hist.empty and len(hist) > 0:
+                curr_price = float(hist["Close"].iloc[-1])
+                prev_price = float(hist["Close"].iloc[-2]) if len(hist) > 1 else curr_price
+                chg = curr_price - prev_price
+                chg_pct = (chg / prev_price * 100) if prev_price > 0 else 0.0
+                return symbol, {
+                    "price": curr_price,
+                    "change": chg,
+                    "change_pct": chg_pct,
+                    "source": "yahoo_finance"
+                }
         except Exception as e:
-            logger.error(f"Failed to fetch equity prices via yfinance: {e}")
+            logger.warning(f"Yahoo Finance lookup failed for ticker {symbol}: {e}")
+
+        # Secondary Fallback: MFAPI search if it's an Indian fund / ETF scheme
+        try:
+            schemes = get_amfi_schemes()
+            clean_q = name.lower().replace(".ns", "").replace(".bo", "").strip()
+            for s in schemes:
+                if clean_q in s.get("schemeName", "").lower():
+                    code = s.get("schemeCode")
+                    resp = http_get_with_retry(f"https://api.mfapi.in/mf/{code}", timeout=5)
+                    if resp and resp.status_code == 200:
+                        nav_series = resp.json().get("data", [])
+                        if nav_series:
+                            curr_price = float(nav_series[0].get("nav") or 0)
+                            prev_price = float(nav_series[1].get("nav") or curr_price) if len(nav_series) > 1 else curr_price
+                            chg = curr_price - prev_price
+                            chg_pct = (chg / prev_price * 100) if prev_price > 0 else 0.0
+                            return symbol, {
+                                "price": curr_price,
+                                "change": chg,
+                                "change_pct": chg_pct,
+                                "source": "mfapi"
+                            }
+                    break
+        except Exception as e:
+            logger.error(f"MFAPI fallback failed for ticker {symbol}: {e}")
+
+        return symbol, None
+
+    if equities_to_fetch:
+        with ThreadPoolExecutor(max_workers=min(12, len(equities_to_fetch))) as executor:
+            results = executor.map(fetch_equity_price, equities_to_fetch)
+            for symbol, data in results:
+                if data is not None:
+                    equity_data_map[symbol] = data
 
     # 4. Update assets in Supabase and calculate portfolio changes
     updated_portfolios = set()
     now_iso = datetime.now(timezone.utc).isoformat()
 
     for asset, scheme_code in mf_to_fetch:
-        nav = mf_navs.get(scheme_code)
-        if nav is not None:
+        fund_res = mf_data_map.get(scheme_code)
+        if fund_res:
+            nav = fund_res["nav"]
             qty = Decimal(str(asset["quantity"]))
             mval = Decimal(str(nav)) * qty
             
@@ -253,8 +322,9 @@ def sync_user_assets(user_id: UUID) -> list[dict]:
                 logger.error(f"Failed to update asset {asset['id']} in db: {e}")
 
     for asset, ticker in equities_to_fetch:
-        price = equity_prices.get(ticker)
-        if price is not None:
+        eq_res = equity_data_map.get(ticker)
+        if eq_res:
+            price = eq_res["price"]
             qty = Decimal(str(asset["quantity"]))
             mval = Decimal(str(price)) * qty
             
