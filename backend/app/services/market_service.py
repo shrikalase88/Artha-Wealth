@@ -287,7 +287,7 @@ def get_market_summary(region: str = "india") -> dict:
     needs_refresh = False
     try:
         supabase = get_supabase()
-        res = supabase.from_table("market_cache").eq("key", cache_key).select().execute()
+        res = supabase.from_table("market_cache").eq("key", cache_key).select().execute(timeout=1.5)
         if res.data and len(res.data) > 0:
             row = res.data[0]
             data = row.get("data", {})
@@ -411,7 +411,7 @@ def get_top_funds() -> list[dict]:
     needs_refresh = False
     try:
         supabase = get_supabase()
-        res = supabase.from_table("market_cache").eq("key", "funds").select().execute()
+        res = supabase.from_table("market_cache").eq("key", "funds").select().execute(timeout=1.5)
         if res.data and len(res.data) > 0:
             row = res.data[0]
             data = row.get("data", [])
@@ -472,7 +472,7 @@ def get_currency_rates() -> dict:
     needs_refresh = False
     try:
         supabase = get_supabase()
-        res = supabase.from_table("market_cache").eq("key", "currency").select().execute()
+        res = supabase.from_table("market_cache").eq("key", "currency").select().execute(timeout=1.5)
         if res.data and len(res.data) > 0:
             row = res.data[0]
             data = row.get("data", {})
@@ -564,6 +564,37 @@ def _is_valid_num(val) -> bool:
         return False
 
 
+def fetch_batch_tickers_rest(symbols: list[str]) -> dict[str, dict]:
+    """Fetch real-time quotes in a single batch REST request from Yahoo Finance v7 quote endpoint."""
+    if not symbols:
+        return {}
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+    symbols_str = ",".join([s for s in symbols if s])
+    url = f"https://query2.finance.yahoo.com/v7/finance/quote?symbols={symbols_str}"
+    results_map = {}
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            if resp.status == 200:
+                data = json.loads(resp.read().decode('utf-8'))
+                quote_resp = data.get('quoteResponse', {})
+                items = quote_resp.get('result', [])
+                for item in items:
+                    sym = item.get('symbol')
+                    price = item.get('regularMarketPrice')
+                    change = item.get('regularMarketChange')
+                    change_pct = item.get('regularMarketChangePercent')
+                    if sym and _is_valid_num(price):
+                        results_map[sym] = {
+                            "price": round(float(price), 2),
+                            "change": round(float(change), 2) if _is_valid_num(change) else 0.0,
+                            "change_pct": round(float(change_pct), 2) if _is_valid_num(change_pct) else 0.0
+                        }
+    except Exception as e:
+        logger.debug(f"Batch ticker fetch failed: {e}")
+    return results_map
+
+
 def fetch_live_ticker_rest(symbol: str) -> dict | None:
     """Fetch real-time or last close market data directly from Yahoo Finance REST API query2 endpoint."""
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
@@ -625,10 +656,27 @@ def refresh_market_cache():
                 stocks_list = cfg["stocks"]
                 all_items = indices_list + sectors_list + stocks_list
 
+                # Attempt fast bulk ticker quote fetch for all region symbols in 1 HTTP call
+                all_symbols = [item["symbol"] for item in all_items if item.get("symbol")]
+                batch_quotes = fetch_batch_tickers_rest(all_symbols)
+
                 def fetch_item_price(item):
                     symbol = item.get("symbol", "")
                     
-                    # 1. Try Direct REST Chart Endpoint
+                    # 1. Check Batch REST response map
+                    if symbol in batch_quotes:
+                        res_data = batch_quotes[symbol]
+                        return {
+                            "name": item["name"],
+                            "short": item["short"],
+                            "symbol": item["symbol"],
+                            "price": res_data["price"],
+                            "change": res_data["change"],
+                            "change_pct": res_data["change_pct"],
+                            "type": "indices" if item in indices_list else ("sectors" if item in sectors_list else "stocks")
+                        }
+
+                    # 2. Try Direct REST Chart Endpoint
                     live_res = fetch_live_ticker_rest(symbol)
                     if live_res and live_res.get("price") is not None:
                         return {
@@ -641,27 +689,6 @@ def refresh_market_cache():
                             "type": "indices" if item in indices_list else ("sectors" if item in sectors_list else "stocks")
                         }
                     
-                    # 2. Try yfinance SDK fallback
-                    try:
-                        t = yf.Ticker(symbol)
-                        hist = t.history(period="2d")
-                        if not hist.empty and len(hist) >= 1:
-                            price = round(float(hist["Close"].iloc[-1]), 2)
-                            prev_close = round(float(hist["Open"].iloc[-1]), 2) if len(hist) == 1 else round(float(hist["Close"].iloc[-2]), 2)
-                            change = round(price - prev_close, 2)
-                            change_pct = round((change / prev_close) * 100, 2) if prev_close > 0 else 0.0
-                            return {
-                                "name": item["name"],
-                                "short": item["short"],
-                                "symbol": item["symbol"],
-                                "price": price,
-                                "change": change,
-                                "change_pct": change_pct,
-                                "type": "indices" if item in indices_list else ("sectors" if item in sectors_list else "stocks")
-                            }
-                    except Exception:
-                        pass
-
                     # 3. Fallback to default configured item
                     return {
                         "name": item["name"],

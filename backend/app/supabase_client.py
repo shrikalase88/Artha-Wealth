@@ -80,7 +80,7 @@ class SupabaseQuery:
         self._method = "DELETE"
         return self
 
-    def execute(self) -> SupabaseResponse:
+    def execute(self, timeout: float = 30.0) -> SupabaseResponse:
         url = f"{self._client.base_url}/rest/v1/{self._table}{self._path_suffix}"
         params = {k: v for k, v in self._params.items() if v != ""}
         clean_params = {}
@@ -102,13 +102,13 @@ class SupabaseQuery:
         }
 
         if self._method == "GET":
-            resp = self._client.http.get(url, headers=headers, params=clean_params, timeout=30)
+            resp = self._client.http.get(url, headers=headers, params=clean_params, timeout=timeout)
         elif self._method == "POST":
-            resp = self._client.http.post(url, headers=headers, params=clean_params, json=self._body, timeout=30)
+            resp = self._client.http.post(url, headers=headers, params=clean_params, json=self._body, timeout=timeout)
         elif self._method == "PATCH":
-            resp = self._client.http.patch(url, headers=headers, params=clean_params, json=self._body, timeout=30)
+            resp = self._client.http.patch(url, headers=headers, params=clean_params, json=self._body, timeout=timeout)
         elif self._method == "DELETE":
-            resp = self._client.http.delete(url, headers=headers, params=clean_params, timeout=30)
+            resp = self._client.http.delete(url, headers=headers, params=clean_params, timeout=timeout)
         else:
             raise ValueError(f"Unsupported method: {self._method}")
 

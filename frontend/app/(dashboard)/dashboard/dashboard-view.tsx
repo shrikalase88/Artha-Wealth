@@ -324,6 +324,9 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   const topFunds = topFundsData || [];
   const marketError = !!marketSummaryError;
 
+  // Compute comprehensive API loading state for Splash Screen
+  const isInitialDataLoading = (!marketSummary && !marketSummaryError) || (!currencyRates) || (fundsLoading && !topFundsData);
+
   const [currencyAmount, setCurrencyAmount] = useState<string>("1");
   const [currencyFrom, setCurrencyFrom] = useState<string>("USDINR=X");
 
@@ -537,7 +540,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
     <div className="space-y-6">
       {showSplash && (
         <SplashScreen
-          isLoading={!marketSummary}
+          isLoading={isInitialDataLoading}
           onComplete={() => setShowSplash(false)}
         />
       )}

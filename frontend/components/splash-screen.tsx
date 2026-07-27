@@ -34,42 +34,59 @@ export function SplashScreen({
 
   useEffect(() => {
     const startTime = Date.now();
-    const intervalMs = 30;
+    const intervalMs = 40;
+    const maxSafetyTimeoutMs = 8000;
 
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTime;
-      let calculated = Math.min(Math.round((elapsed / duration) * 100), 100);
 
-      // If externally told loading finished, speed up to 100%
-      if (!isLoading && calculated < 90) {
-        calculated = Math.min(calculated + 15, 100);
-      }
+      setProgress((prev) => {
+        let next = prev;
 
-      setProgress(calculated);
+        if (isLoading) {
+          // While APIs are fetching, cap automatic progress growth at 90%
+          if (elapsed > maxSafetyTimeoutMs) {
+            // Safety timeout: auto force 100% after 8 seconds
+            next = 100;
+          } else if (prev < 30) {
+            next = prev + 3;
+          } else if (prev < 60) {
+            next = prev + 2;
+          } else if (prev < 88) {
+            next = prev + 1;
+          }
+        } else {
+          // When all APIs finish fetching, rapidly complete progress to 100%
+          if (prev < 100) {
+            next = Math.min(prev + 12, 100);
+          }
+        }
 
-      // Find current step message based on progress threshold
-      const currentStep = [...LOADING_STEPS]
-        .reverse()
-        .find((step) => calculated >= step.threshold);
-      if (currentStep) {
-        setStatusMessage(currentStep.message);
-      }
+        // Update status message based on calculated progress
+        const currentStep = [...LOADING_STEPS]
+          .reverse()
+          .find((step) => next >= step.threshold);
+        if (currentStep) {
+          setStatusMessage(currentStep.message);
+        }
 
-      if (calculated >= 100) {
-        clearInterval(timer);
-        // Start smooth fade out after reaching 100%
-        setTimeout(() => {
-          setIsFadingOut(true);
+        if (next >= 100) {
+          clearInterval(timer);
           setTimeout(() => {
-            setIsDismissed(true);
-            if (onComplete) onComplete();
-          }, 600); // match transition duration
-        }, 250);
-      }
+            setIsFadingOut(true);
+            setTimeout(() => {
+              setIsDismissed(true);
+              if (onComplete) onComplete();
+            }, 600);
+          }, 200);
+        }
+
+        return next;
+      });
     }, intervalMs);
 
     return () => clearInterval(timer);
-  }, [duration, isLoading, onComplete]);
+  }, [isLoading, onComplete]);
 
   const handleSkip = () => {
     setProgress(100);
