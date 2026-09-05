@@ -23,6 +23,7 @@ interface ManualAssetModalProps {
   assetToEdit?: any;
   portfolios: any[];
   userId: string;
+  defaultPortfolioId?: string;
 }
 
 export function ManualAssetModal({
@@ -31,12 +32,14 @@ export function ManualAssetModal({
   assetToEdit,
   portfolios,
   userId,
+  defaultPortfolioId,
 }: ManualAssetModalProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
 
   // Form Fields
+  const [targetPortfolioId, setTargetPortfolioId] = useState("");
   const [name, setName] = useState("");
   const [assetType, setAssetType] = useState("equity");
   const [quantity, setQuantity] = useState("");
@@ -49,6 +52,7 @@ export function ManualAssetModal({
 
   useEffect(() => {
     if (assetToEdit) {
+      setTargetPortfolioId(assetToEdit.portfolio_id || portfolios[0]?.id || "");
       setName(assetToEdit.name || "");
       setAssetType(assetToEdit.asset_type || "equity");
       setQuantity(assetToEdit.quantity ? String(assetToEdit.quantity) : "");
@@ -61,7 +65,11 @@ export function ManualAssetModal({
       setIsin(assetToEdit.isin || "");
       setFolio(assetToEdit.metadata?.folio || "");
     } else {
-      // Reset
+      const initialId =
+        defaultPortfolioId && defaultPortfolioId !== "all"
+          ? defaultPortfolioId
+          : portfolios[0]?.id || "";
+      setTargetPortfolioId(initialId);
       setName("");
       setAssetType("equity");
       setQuantity("");
@@ -70,7 +78,7 @@ export function ManualAssetModal({
       setIsin("");
       setFolio("");
     }
-  }, [assetToEdit, isOpen]);
+  }, [assetToEdit, isOpen, defaultPortfolioId, portfolios]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +91,7 @@ export function ManualAssetModal({
     setLoading(true);
 
     try {
-      let portfolioId = portfolios[0]?.id;
+      let portfolioId = targetPortfolioId || portfolios[0]?.id;
 
       // 1. Create a default manual portfolio if none exists
       if (!portfolioId) {
@@ -91,7 +99,7 @@ export function ManualAssetModal({
           .from("portfolios")
           .insert({
             user_id: userId,
-            name: "My Portfolio",
+            name: "Primary Portfolio",
             upload_status: "completed",
             total_invested: 0,
             total_value: 0,
@@ -191,6 +199,23 @@ export function ManualAssetModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          {portfolios && portfolios.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs text-slate-300">Portfolio Section / Profile</Label>
+              <select
+                value={targetPortfolioId}
+                onChange={(e) => setTargetPortfolioId(e.target.value)}
+                className="w-full h-10 rounded-md bg-slate-950/60 border border-white/10 text-sm text-white px-3 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {portfolios.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.description ? `(${p.description})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="space-y-1">
             <Label className="text-xs text-slate-300">Asset Name</Label>
             <Input

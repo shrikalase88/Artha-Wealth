@@ -52,15 +52,15 @@ def _consolidate_holdings(holdings: list[dict]) -> list[dict]:
 
 
 def _upsert_consolidated_assets(user_id: str, portfolio_id: str, new_holdings: list[dict], source_type: str = "pdf") -> tuple[Decimal, Decimal]:
-    """Upsert assets for a user by intelligently reconciling holdings across statement uploads.
+    """Upsert assets for a specific portfolio profile/section by reconciling holdings.
     
-    If the same statement or identical holding snapshot is uploaded again, it updates current market prices 
-    without duplicating quantities or doubling total portfolio amounts.
+    Scoped strictly to portfolio_id so different vendor or financial profiles remain
+    completely isolated and accurate.
     """
     supabase = get_supabase()
     
-    # Fetch all existing assets for user across all portfolios
-    existing_assets_resp = supabase.from_table("assets").eq("user_id", user_id).select().execute()
+    # Fetch existing assets for THIS specific portfolio
+    existing_assets_resp = supabase.from_table("assets").eq("portfolio_id", portfolio_id).select().execute()
     existing_assets = existing_assets_resp.data if isinstance(existing_assets_resp.data, list) else []
     
     lookup: dict[str, dict] = {}
@@ -84,25 +84,21 @@ def _upsert_consolidated_assets(user_id: str, portfolio_id: str, new_holdings: l
         new_cb = Decimal(str(h["cost_basis"])) if h.get("cost_basis") else Decimal("0")
         
         if key in lookup:
-            # Reconcile existing holding
+            # Reconcile existing holding in this portfolio
             exist = lookup[key]
             old_qty = Decimal(str(exist.get("quantity") or 0))
             old_cb = Decimal(str(exist.get("cost_basis") or 0))
             
-            # Check if this is the same statement snapshot or an updated statement count
             if abs(new_units - old_qty) < Decimal("0.001"):
-                # Same quantity snapshot — update prices and cost basis without adding duplicate quantity
                 final_qty = old_qty
                 final_cb = new_cb if new_cb > 0 else old_cb
             else:
-                # Updated holding balance in statement (use statement's balance snapshot)
                 final_qty = new_units if new_units > 0 else old_qty
                 final_cb = new_cb if new_cb > 0 else old_cb
 
             final_mkt_val = final_qty * nav if nav > 0 else (new_mkt_val if new_mkt_val > 0 else Decimal(str(exist.get("market_value") or 0)))
 
             update_data = {
-                "portfolio_id": portfolio_id, # Link asset to latest statement portfolio
                 "quantity": str(final_qty),
                 "cost_basis": str(final_cb) if final_cb > 0 else None,
                 "current_price": str(nav) if nav > 0 else str(exist.get("current_price") or 0),
@@ -110,7 +106,7 @@ def _upsert_consolidated_assets(user_id: str, portfolio_id: str, new_holdings: l
             }
             supabase.from_table("assets").eq("id", exist["id"]).update(update_data).execute()
         else:
-            # Insert brand new asset
+            # Insert brand new asset into this portfolio
             mapped_type = h.get("asset_type")
             if not mapped_type or mapped_type not in ("equity", "mutual_fund", "etf", "bond", "cash", "other"):
                 mapped_type = _map_asset_type(name)
@@ -135,13 +131,13 @@ def _upsert_consolidated_assets(user_id: str, portfolio_id: str, new_holdings: l
             if inserted.data and isinstance(inserted.data, list) and len(inserted.data) > 0:
                 lookup[key] = inserted.data[0]
 
-    # Calculate global total value & invested cost for this user
-    all_user_assets = supabase.from_table("assets").eq("user_id", user_id).select().execute()
-    user_asset_list = all_user_assets.data if isinstance(all_user_assets.data, list) else []
+    # Calculate total value & invested cost specifically for this portfolio profile
+    pf_assets = supabase.from_table("assets").eq("portfolio_id", portfolio_id).select().execute()
+    pf_asset_list = pf_assets.data if isinstance(pf_assets.data, list) else []
     
     total_val = Decimal("0")
     total_cost = Decimal("0")
-    for a in user_asset_list:
+    for a in pf_asset_list:
         total_val += Decimal(str(a.get("market_value") or 0))
         if a.get("cost_basis"):
             total_cost += Decimal(str(a.get("cost_basis")))
@@ -212,8 +208,11 @@ def process_portfolio_pdf(
             try:
                 dt = datetime.strptime(d_str, "%Y-%m-%d") if "-" in d_str and len(d_str) == 10 else datetime.strptime(d_str.replace("-", "/"), "%d/%m/%Y")
                 update_data["as_of_date"] = dt.strftime("%Y-%m-%d")
-            except Exception:
-                update_data["as_of_date"] = d_str
+        if result.get("vendor"):
+            cur_p = supabase.from_table("portfolios").eq("id", portfolio_id).select("description").execute()
+            cur_p_data = cur_p.data[0] if cur_p.data and isinstance(cur_p.data, list) else {}
+            if not cur_p_data.get("description"):
+                update_data["description"] = f"{result['vendor']} Portfolio"
 
         supabase.from_table("portfolios").eq("id", portfolio_id).update(update_data).execute()
 
@@ -285,6 +284,12 @@ def process_portfolio_screenshot(
             "total_invested": str(total_cost),
             "parse_error": None,
         }
+
+        if result.get("vendor"):
+            cur_p = supabase.from_table("portfolios").eq("id", portfolio_id).select("description").execute()
+            cur_p_data = cur_p.data[0] if cur_p.data and isinstance(cur_p.data, list) else {}
+            if not cur_p_data.get("description"):
+                update_data["description"] = f"{result['vendor']} Portfolio"
 
         supabase.from_table("portfolios").eq("id", portfolio_id).update(update_data).execute()
 

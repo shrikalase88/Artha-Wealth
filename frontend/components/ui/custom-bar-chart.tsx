@@ -176,9 +176,13 @@ export function CustomBarChart({ data }: CustomBarChartProps) {
                   width={barWidth}
                   height={Math.max(1, investedHeight)}
                   fill="url(#barInvested)"
-                  rx="2"
-                  className="cursor-pointer transition-all duration-300"
-                  opacity={hoveredIndex === idx && hoveredBar !== "invested" ? 0.4 : 0.95}
+                  rx="3"
+                  className="chart-bar-anim cursor-pointer transition-all duration-200"
+                  style={{
+                    animationDelay: `${idx * 50}ms`,
+                    transformOrigin: `${investedX + barWidth / 2}px ${chartHeight - paddingBottom}px`,
+                  }}
+                  opacity={hoveredIndex === idx && hoveredBar !== "invested" ? 0.35 : 0.95}
                   onMouseMove={(e) => handleMouseMove(e, idx, "invested")}
                   onMouseLeave={handleMouseLeave}
                 />
@@ -190,9 +194,13 @@ export function CustomBarChart({ data }: CustomBarChartProps) {
                   width={barWidth}
                   height={Math.max(1, currentHeight)}
                   fill="url(#barCurrent)"
-                  rx="2"
-                  className="cursor-pointer transition-all duration-300"
-                  opacity={hoveredIndex === idx && hoveredBar !== "current" ? 0.4 : 0.95}
+                  rx="3"
+                  className="chart-bar-anim cursor-pointer transition-all duration-200"
+                  style={{
+                    animationDelay: `${idx * 50 + 25}ms`,
+                    transformOrigin: `${currentX + barWidth / 2}px ${chartHeight - paddingBottom}px`,
+                  }}
+                  opacity={hoveredIndex === idx && hoveredBar !== "current" ? 0.35 : 0.95}
                   onMouseMove={(e) => handleMouseMove(e, idx, "current")}
                   onMouseLeave={handleMouseLeave}
                 />
@@ -204,10 +212,10 @@ export function CustomBarChart({ data }: CustomBarChartProps) {
                     y={paddingTop}
                     width={sectionWidth - 8}
                     height={graphHeight}
-                    fill="rgba(59, 130, 246, 0.03)"
-                    stroke="rgba(59, 130, 246, 0.1)"
+                    fill="rgba(59, 130, 246, 0.04)"
+                    stroke="rgba(59, 130, 246, 0.15)"
                     strokeDasharray="2 2"
-                    className="pointer-events-none"
+                    className="pointer-events-none animate-fade-in-scale"
                     rx="4"
                   />
                 )}
@@ -219,7 +227,7 @@ export function CustomBarChart({ data }: CustomBarChartProps) {
                   fill="#cbd5e1"
                   fontSize="10"
                   textAnchor="middle"
-                  className="font-medium tracking-wide font-sans"
+                  className="font-medium tracking-wide font-sans select-none"
                 >
                   {item.Category}
                 </text>
@@ -231,18 +239,18 @@ export function CustomBarChart({ data }: CustomBarChartProps) {
         {/* Custom HTML Tooltip */}
         {hoveredIndex !== null && (
           <div
-            className="absolute z-30 pointer-events-none transition-all duration-100 ease-out"
+            className="absolute z-30 pointer-events-none transition-all duration-150 ease-out will-change-transform"
             style={{
               left: `${tooltipPos.x}px`,
               top: `${tooltipPos.y}px`,
-              transform: "translateX(-50%)",
+              transform: "translate3d(-50%, 0, 0)",
             }}
           >
-            <div className="glass-panel text-[11px] font-medium text-white px-3 py-1.5 rounded-lg shadow-xl border border-white/10 whitespace-nowrap bg-slate-900/90">
+            <div className="glass-panel text-[11px] font-medium text-white px-3 py-1.5 rounded-lg shadow-2xl border border-white/10 whitespace-nowrap bg-slate-900/90 animate-fade-in-scale">
               <span className="text-slate-400 block mb-0.5 text-[10px] font-semibold tracking-wider uppercase">
                 {data[hoveredIndex].Category}
               </span>
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-white font-mono">
                 {hoveredBar === "invested" ? "Invested: " : "Current Value: "}
                 ₹
                 {Math.round(

@@ -171,7 +171,8 @@ export function CustomDonutChart({ data, currencySymbol = "₹", className }: Cu
                   fill="none"
                   stroke={`url(#donut-grad-${i})`}
                   strokeWidth={currentStrokeWidth}
-                  className="transition-all duration-300 cursor-pointer"
+                  className="cursor-pointer will-change-[stroke-width,opacity,filter]"
+                  style={{ transition: "stroke-width 0.22s var(--ease-spring), opacity 0.18s ease, filter 0.22s ease" }}
                   opacity={opacity}
                   onMouseMove={(e) => handleMouseMove(e, i)}
                   onMouseLeave={() => setHoveredIndex(null)}
@@ -191,7 +192,8 @@ export function CustomDonutChart({ data, currencySymbol = "₹", className }: Cu
                 stroke={`url(#donut-grad-${i})`}
                 strokeWidth={currentStrokeWidth}
                 strokeLinecap="round"
-                className="transition-all duration-300 cursor-pointer"
+                className="cursor-pointer will-change-[stroke-width,opacity,filter]"
+                style={{ transition: "stroke-width 0.22s var(--ease-spring), opacity 0.18s ease, filter 0.22s ease" }}
                 opacity={opacity}
                 onMouseMove={(e) => handleMouseMove(e, i)}
                 onMouseLeave={() => setHoveredIndex(null)}
@@ -221,10 +223,10 @@ export function CustomDonutChart({ data, currencySymbol = "₹", className }: Cu
             <div
               key={i}
               className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all duration-200 cursor-pointer select-none",
+                "flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all duration-200 cursor-pointer select-none will-change-transform",
                 isHovered 
                   ? "bg-blue-500/20 border-blue-500/40 text-white shadow-lg shadow-blue-500/10 scale-105" 
-                  : "bg-slate-900/60 border-slate-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-slate-800/80"
+                  : "bg-slate-900/60 border-slate-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-slate-800/80 hover:scale-[1.02]"
               )}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -250,14 +252,14 @@ export function CustomDonutChart({ data, currencySymbol = "₹", className }: Cu
       {/* Floating Hover Tooltip */}
       {hoveredIndex !== null && (
         <div
-          className="absolute z-30 pointer-events-none transition-all duration-100 ease-out"
+          className="absolute z-30 pointer-events-none transition-all duration-150 ease-out will-change-transform"
           style={{
             left: `${tooltipPos.x}px`,
             top: `${tooltipPos.y}px`,
-            transform: "translateX(-50%)",
+            transform: "translate3d(-50%, 0, 0)",
           }}
         >
-          <div className="text-[11px] font-medium text-white px-3.5 py-2.5 rounded-xl shadow-2xl border border-white/10 bg-[#090e1d]/95 backdrop-blur-xl flex flex-col gap-1 min-w-[140px]">
+          <div className="text-[11px] font-medium text-white px-3.5 py-2.5 rounded-xl shadow-2xl border border-white/10 bg-[#090e1d]/95 backdrop-blur-xl flex flex-col gap-1 min-w-[140px] animate-fade-in-scale">
             <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-1">
               <span className="font-bold text-white tracking-wide">
                 {slices[hoveredIndex].name}

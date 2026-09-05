@@ -223,15 +223,26 @@
   animation-play-state: paused;
 }
 
-/* Shadcn.io Modern Financial Tracker Animations */
+/* Shadcn.io Modern Financial Tracker Animations (120Hz Fluid Physics) */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.985);
+    transform: translate3d(0, 14px, 0) scale(0.99);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
   }
 }
 
@@ -251,8 +262,98 @@
   100% { background-position: 200% 0; }
 }
 
+/* Fluid 120Hz Spring Timing */
+:root {
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes barGrowUp {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scaleY(1.03);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.page-transition {
+  animation: pageFadeIn 0.32s var(--ease-spring) both;
+  will-change: transform, opacity;
+}
+
 .animate-fade-in-up {
-  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.38s var(--ease-spring) both;
+  will-change: transform, opacity;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.35s var(--ease-spring) both;
+  will-change: transform, opacity;
+}
+
+/* Fluid Stagger delays for 120Hz cascading cards & table rows */
+.stagger-1 { animation-delay: 35ms; }
+.stagger-2 { animation-delay: 70ms; }
+.stagger-3 { animation-delay: 105ms; }
+.stagger-4 { animation-delay: 140ms; }
+.stagger-5 { animation-delay: 175ms; }
+.stagger-6 { animation-delay: 210ms; }
+.stagger-7 { animation-delay: 245ms; }
+.stagger-8 { animation-delay: 280ms; }
+
+/* 120Hz Ultra-smooth interactive states */
+.fluid-transition {
+  transition: all 0.22s var(--ease-smooth);
+  will-change: transform, opacity, box-shadow;
+}
+
+.fluid-hover:hover {
+  transform: translate3d(0, -2px, 0);
+}
+
+.fluid-card-hover {
+  transition: transform 0.22s var(--ease-spring), border-color 0.2s ease, box-shadow 0.22s var(--ease-spring), background-color 0.2s ease;
+  will-change: transform, box-shadow;
+}
+.fluid-card-hover:hover {
+  transform: translate3d(0, -3px, 0);
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 14px 30px -10px rgba(59, 130, 246, 0.18);
+}
+
+.fluid-row-hover {
+  transition: background-color 0.18s ease-out, transform 0.18s var(--ease-spring);
+  will-change: transform, background-color;
+}
+.fluid-row-hover:hover {
+  background-color: rgba(255, 255, 255, 0.045) !important;
+  transform: translate3d(2px, 0, 0);
+}
+
+.chart-bar-anim {
+  transform-origin: bottom;
+  animation: barGrowUp 0.55s var(--ease-spring) both;
+  will-change: height, y, transform;
+  transition: height 0.35s var(--ease-spring), y 0.35s var(--ease-spring), opacity 0.2s ease;
 }
 
 .animate-pulse-glow {
@@ -266,12 +367,13 @@
 }
 
 .shadcn-card-hover {
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s var(--ease-spring), border-color 0.25s ease, box-shadow 0.25s var(--ease-spring);
+  will-change: transform, box-shadow;
 }
 .shadcn-card-hover:hover {
-  transform: translateY(-4px) scale(1.01);
+  transform: translate3d(0, -3px, 0) scale(1.008);
   border-color: rgba(59, 130, 246, 0.4) !important;
-  box-shadow: 0 16px 40px -10px rgba(59, 130, 246, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 16px 36px -10px rgba(59, 130, 246, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 .glass-panel {

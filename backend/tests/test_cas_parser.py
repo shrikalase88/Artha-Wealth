@@ -236,3 +236,32 @@ class TestCASParser(unittest.TestCase):
         self.assertEqual(h2["market_value"], Decimal("253052"))
         self.assertEqual(h2["cost_basis"], Decimal("253052") - Decimal("39829"))
 
+
+def test_classify_header_detects_cost_and_qty():
+    from app.parsers.generic_parser import _classify_header
+    headers = ["Stock Name", "ISIN", "Quantity", "Avg Price", "Total Cost", "Current Value", "LTP"]
+    mapping = _classify_header(headers)
+    assert mapping["name"] == 0
+    assert mapping["isin"] == 1
+    assert mapping["qty"] == 2
+    assert mapping["avg_price"] == 3
+    assert mapping["cost"] == 4
+    assert mapping["val"] == 5
+    assert mapping["nav"] == 6
+
+
+def test_detect_vendor():
+    from app.parsers.generic_parser import _detect_vendor
+    assert _detect_vendor("Zerodha Broking Limited Statement of Holdings") == "Zerodha"
+    assert _detect_vendor("Groww Invest Tech Pvt Ltd Portfolio Report") == "Groww"
+    assert _detect_vendor("Consolidated Account Statement by CAMS") == "CAMS"
+    assert _detect_vendor("Unknown broker document") is None
+
+
+def test_screenshot_parser_fallback():
+    from app.parsers.screenshot_parser import parse_screenshot_image
+    res = parse_screenshot_image(b"fake_image_bytes", "image/png", api_key=None)
+    assert len(res["holdings"]) > 0
+    assert res["total_value"] > Decimal("0")
+    assert res["vendor"] == "Zerodha"
+

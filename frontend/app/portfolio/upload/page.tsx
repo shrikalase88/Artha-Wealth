@@ -12,6 +12,14 @@ export default async function UploadPage() {
 
   if (!user) redirect("/login");
 
+  const { data: portfoliosData } = await supabase
+    .from("portfolios")
+    .select("id, name, description, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const portfolios = portfoliosData ?? [];
+
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 relative overflow-hidden">
       {/* Background Liquid Glass Ambient Glows */}
@@ -43,7 +51,7 @@ export default async function UploadPage() {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white">Upload Statement</h1>
           <p className="mt-1.5 text-sm text-slate-300 font-light">
-            Upload your CAS (Consolidated Account Statement) or brokerage PDF to sync your holdings
+            Upload your CAS (Consolidated Account Statement), broker PDF, or dashboard screenshot to sync your portfolio section
           </p>
         </div>
 
@@ -53,11 +61,11 @@ export default async function UploadPage() {
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg font-bold text-white">Portfolio Statement</CardTitle>
                 <CardDescription className="text-slate-400 font-light">
-                  Accepted formats: PDF. Maximum file size: 10MB.
+                  Accepted formats: PDF or Screenshot (PNG/JPG).
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <UploadDropzone userId={user.id} />
+                <UploadDropzone userId={user.id} portfolios={portfolios} />
               </CardContent>
             </Card>
           </div>

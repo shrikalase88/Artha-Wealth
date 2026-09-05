@@ -1,11 +1,12 @@
-"""Screenshot holdings parser using Gemini API or demo mock extraction."""
-
+import os
 import base64
 import json
 import logging
 from decimal import Decimal
 from typing import TypedDict
 import httpx
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class ScreenshotParseResult(TypedDict):
     total_invested: Decimal
     total_value: Decimal
     as_of_date: str | None
+    vendor: str | None
 
 
 def parse_screenshot_image(
@@ -32,11 +34,17 @@ def parse_screenshot_image(
 ) -> ScreenshotParseResult:
     """Parse a portfolio/stock dashboard screenshot.
 
-    Uses Gemini 2.5 Flash if api_key is provided, else falls back to mock demo data.
+    Uses Gemini 2.0 Flash (with 1.5 fallback) if an API key is available, else falls back to mock demo data.
     """
-    if api_key:
+    effective_key = (
+        (api_key or "").strip()
+        or getattr(settings, "gemini_api_key", "").strip()
+        or os.environ.get("GEMINI_API_KEY", "").strip()
+    )
+
+    if effective_key:
         try:
-            return _parse_with_gemini(image_bytes, mime_type, api_key)
+            return _parse_with_gemini(image_bytes, mime_type, effective_key)
         except Exception as e:
             logger.error("Gemini screenshot parsing failed, falling back to mock: %s", e)
 
@@ -50,15 +58,13 @@ def _parse_with_gemini(
     """Call Gemini REST API to extract holdings text/values from image."""
     base64_data = base64.b64encode(image_bytes).decode("utf-8")
 
-    # API Endpoint (Key passed in header x-goog-api-key to avoid URL logging leakage)
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
-
     prompt = (
         "You are an expert financial OCR assistant. Analyze this screenshot of a "
-        "stock or mutual fund investment dashboard (e.g., Zerodha Coin, Kite, Groww, INDmoney) "
+        "stock or mutual fund investment dashboard (e.g., Zerodha Kite/Coin, Groww, INDmoney, Angel One, Upstox) "
         "and extract the active holdings list.\n\n"
         "Extract the following values for each holding and output a raw JSON object matching this schema:\n"
         "{\n"
+        "  \"vendor\": \"Zerodha\", // Name of broker/app if visible, else null\n"
         "  \"holdings\": [\n"
         "    {\n"
         "      \"scheme_name\": \"Name of Stock or Mutual Fund\",\n"
@@ -106,10 +112,26 @@ def _parse_with_gemini(
         "x-goog-api-key": api_key
     }
 
+    # Try gemini-2.0-flash first, fallback to gemini-1.5-flash
+    models = ["gemini-2.0-flash", "gemini-1.5-flash"]
+    last_err = None
+    resp_json = None
+
     with httpx.Client() as client:
-        resp = client.post(url, headers=headers, json=payload, timeout=60)
-        resp.raise_for_status()
-        resp_json = resp.json()
+        for model in models:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+            try:
+                resp = client.post(url, headers=headers, json=payload, timeout=60)
+                if resp.status_code == 200:
+                    resp_json = resp.json()
+                    break
+                else:
+                    last_err = Exception(f"{model} returned {resp.status_code}: {resp.text}")
+            except Exception as ex:
+                last_err = ex
+
+    if not resp_json:
+        raise last_err or Exception("All Gemini models failed")
 
     text_response = resp_json["candidates"][0]["content"]["parts"][0]["text"].strip()
 
@@ -148,6 +170,7 @@ def _parse_with_gemini(
         total_invested=total_inv,
         total_value=total_val,
         as_of_date=None,
+        vendor=data.get("vendor"),
     )
 
 
@@ -195,4 +218,5 @@ def _get_mock_screenshot_data() -> ScreenshotParseResult:
         total_invested=Decimal("133100.00"),
         total_value=Decimal("150314.20"),
         as_of_date=None,
+        vendor="Zerodha",
     )

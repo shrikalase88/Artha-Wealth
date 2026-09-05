@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,6 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BarChart, DonutChart } from "@tremor/react";
@@ -38,7 +47,13 @@ import {
   ArrowDownRight,
   Lock,
   FileText,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FolderPlus,
+  Building2,
+  Tag,
+  ExternalLink,
+  Check,
+  Copy,
 } from "lucide-react";
 import { formatIndianCurrency } from "@/lib/utils";
 import { CustomBarChart } from "@/components/ui/custom-bar-chart";
@@ -81,6 +96,28 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   }, [tabParam]);
 
   const [localPortfolios, setLocalPortfolios] = useState<any[]>(portfolios || []);
+  const sectionParam = searchParams ? searchParams.get("section") : null;
+  const [selectedPortfolioId, setSelectedPortfolioId] = useState<string>(sectionParam || "all");
+
+  useEffect(() => {
+    if (sectionParam) {
+      setSelectedPortfolioId(sectionParam);
+    }
+  }, [sectionParam]);
+
+  // Create section modal states
+  const [createSectionOpen, setCreateSectionOpen] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
+  const [newSectionVendor, setNewSectionVendor] = useState("Zerodha");
+  const [newSectionDesc, setNewSectionDesc] = useState("");
+  const [createSectionLoading, setCreateSectionLoading] = useState(false);
+
+  // Edit section modal states
+  const [editSectionOpen, setEditSectionOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState<any>(null);
+  const [editSectionName, setEditSectionName] = useState("");
+  const [editSectionDesc, setEditSectionDesc] = useState("");
+  const [editSectionLoading, setEditSectionLoading] = useState(false);
 
   useEffect(() => {
     setLocalPortfolios(portfolios || []);
@@ -92,38 +129,39 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   const [fundFilterCategory, setFundFilterCategory] = useState<string>("all");
   const [selectedMarketRegion, setSelectedMarketRegion] = useState<"india" | "us" | "europe" | "china" | "japan" | "arab">("india");
 
-  // Detect user's timezone location to auto-set regional market ticker & currency
+  // Detect user's preferred or timezone location to set regional market ticker & default currency
   useEffect(() => {
     try {
+      const savedBase = localStorage.getItem("artha_base_currency");
+      const savedTarget = localStorage.getItem("artha_target_currency");
+      if (savedBase) setBaseCurrency(savedBase);
+      if (savedTarget) setTargetCurrency(savedTarget);
+
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
       if (tz.includes("America/")) {
         setSelectedMarketRegion("us");
-        setCurrencyFrom("USDINR=X");
+        if (!savedBase) setBaseCurrency("USD");
       } else if (tz.includes("Europe/") || tz.includes("Atlantic/")) {
         setSelectedMarketRegion("europe");
-        if (tz.includes("London")) {
-          setCurrencyFrom("GBPINR=X");
-        } else {
-          setCurrencyFrom("EURINR=X");
-        }
+        if (!savedBase) setBaseCurrency(tz.includes("London") ? "GBP" : "EUR");
       } else if (tz.includes("Shanghai") || tz.includes("Hong_Kong") || tz.includes("Beijing")) {
         setSelectedMarketRegion("china");
-        setCurrencyFrom("USDINR=X");
+        if (!savedBase) setBaseCurrency("USD");
       } else if (tz.includes("Tokyo") || tz.includes("Japan")) {
         setSelectedMarketRegion("japan");
-        setCurrencyFrom("JPYINR=X");
+        if (!savedBase) setBaseCurrency("JPY");
       } else if (tz.includes("Riyadh") || tz.includes("Dubai") || tz.includes("Muscat") || tz.includes("Qatar")) {
         setSelectedMarketRegion("arab");
-        setCurrencyFrom("AEDINR=X");
+        if (!savedBase) setBaseCurrency("AED");
       } else if (tz.includes("Australia/")) {
-        setCurrencyFrom("AUDINR=X");
+        if (!savedBase) setBaseCurrency("AUD");
       } else if (tz.includes("Singapore")) {
-        setCurrencyFrom("SGDINR=X");
+        if (!savedBase) setBaseCurrency("SGD");
       } else if (tz.includes("Canada/")) {
-        setCurrencyFrom("CADINR=X");
+        if (!savedBase) setBaseCurrency("CAD");
       }
     } catch (e) {
-      // Default to India
+      // Default to user settings
     }
   }, []);
 
@@ -153,9 +191,96 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
     }
   };
 
+  const handleCreateSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    if (!newSectionName.trim()) {
+      toast.error("Please enter a section name");
+      return;
+    }
+    setCreateSectionLoading(true);
+    try {
+      const description = newSectionDesc.trim() || `${newSectionVendor} Profile`;
+      const { data: newPf, error } = await supabase
+        .from("portfolios")
+        .insert({
+          user_id: user.id,
+          name: newSectionName.trim(),
+          description,
+          upload_status: "completed",
+          total_invested: 0,
+          total_value: 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setLocalPortfolios((prev) => [newPf, ...prev]);
+      setSelectedPortfolioId(newPf.id);
+      setCreateSectionOpen(false);
+      setNewSectionName("");
+      setNewSectionDesc("");
+      toast.success(`Portfolio section "${newPf.name}" created!`);
+      router.refresh();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to create portfolio section");
+    } finally {
+      setCreateSectionLoading(false);
+    }
+  };
+
+  const handleOpenEditSection = (pf: any) => {
+    setEditingSection(pf);
+    setEditSectionName(pf.name || "");
+    setEditSectionDesc(pf.description || "");
+    setEditSectionOpen(true);
+  };
+
+  const handleUpdateSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSection) return;
+    if (!editSectionName.trim()) {
+      toast.error("Please enter a section name");
+      return;
+    }
+    setEditSectionLoading(true);
+    try {
+      const { error } = await supabase
+        .from("portfolios")
+        .update({
+          name: editSectionName.trim(),
+          description: editSectionDesc.trim() || null,
+        })
+        .eq("id", editingSection.id);
+
+      if (error) throw error;
+
+      setLocalPortfolios((prev) =>
+        prev.map((p) =>
+          p.id === editingSection.id
+            ? { ...p, name: editSectionName.trim(), description: editSectionDesc.trim() || null }
+            : p
+        )
+      );
+      setEditSectionOpen(false);
+      toast.success("Section updated successfully!");
+      router.refresh();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to update section");
+    } finally {
+      setEditSectionLoading(false);
+    }
+  };
+
   const handleDeleteStatement = async (portfolioId: string) => {
     // Optimistically update UI instantly for mobile responsiveness
     setLocalPortfolios((prev) => prev.filter((p) => p.id !== portfolioId));
+    if (selectedPortfolioId === portfolioId) {
+      setSelectedPortfolioId("all");
+    }
     const toastId = toast.loading("Removing statement source & updating database...");
     
     try {
@@ -173,7 +298,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
         }).catch(() => {});
       }
 
-      toast.success("Statement source removed and database updated!", { id: toastId });
+      toast.success("Portfolio section removed and database updated!", { id: toastId });
       router.refresh();
     } catch (err: any) {
       console.error("Delete error:", err);
@@ -328,7 +453,10 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   const isInitialDataLoading = (!marketSummary && !marketSummaryError) || (!currencyRates) || (fundsLoading && !topFundsData);
 
   const [currencyAmount, setCurrencyAmount] = useState<string>("1");
-  const [currencyFrom, setCurrencyFrom] = useState<string>("USDINR=X");
+  const [baseCurrency, setBaseCurrency] = useState<string>("USD");
+  const [targetCurrency, setTargetCurrency] = useState<string>("INR");
+  const [currencySearch, setCurrencySearch] = useState<string>("");
+  const [copiedRate, setCopiedRate] = useState<boolean>(false);
 
   const checkMarketStatus = () => {
     const now = new Date();
@@ -344,10 +472,23 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   };
   const isMarketOpen = checkMarketStatus();
 
-  // Calculated Portfolio totals
-  const totalValue = assets.reduce((s, a) => s + Number(a.market_value ?? 0), 0);
-  const totalCost = assets.reduce((s, a) => s + Number(a.cost_basis ?? 0), 0);
-  const hasCostBasis = assets.some((a) => a.cost_basis && Number(a.cost_basis) > 0);
+  // Active Assets scoped to selected portfolio profile or all portfolios
+  const activeAssets = useMemo(() => {
+    if (!selectedPortfolioId || selectedPortfolioId === "all") {
+      return assets;
+    }
+    return assets.filter((a) => a.portfolio_id === selectedPortfolioId);
+  }, [assets, selectedPortfolioId]);
+
+  const activePortfolio = useMemo(() => {
+    if (!selectedPortfolioId || selectedPortfolioId === "all") return null;
+    return localPortfolios.find((p) => p.id === selectedPortfolioId) || null;
+  }, [localPortfolios, selectedPortfolioId]);
+
+  // Calculated Portfolio totals (scoped to active section or aggregated)
+  const totalValue = activeAssets.reduce((s, a) => s + Number(a.market_value ?? 0), 0);
+  const totalCost = activeAssets.reduce((s, a) => s + Number(a.cost_basis ?? 0), 0);
+  const hasCostBasis = activeAssets.some((a) => a.cost_basis && Number(a.cost_basis) > 0);
   const totalGain = hasCostBasis ? totalValue - totalCost : null;
   const gainPercent = hasCostBasis && totalCost > 0 ? (totalGain! / totalCost) * 100 : null;
 
@@ -385,16 +526,16 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   const periodData = getPeriodPerformance(portfolioTimeRange);
 
   // Additional dynamic KPI calculations
-  const totalHoldingsCount = assets.length;
+  const totalHoldingsCount = activeAssets.length;
   
-  const uniqueTypes = new Set(assets.map((a) => a.asset_type)).size;
+  const uniqueTypes = new Set(activeAssets.map((a) => a.asset_type)).size;
   const diversificationRating = uniqueTypes >= 3 ? "High" : uniqueTypes === 2 ? "Medium" : "Low";
   const diversificationColor = uniqueTypes >= 3 ? "text-emerald-400" : uniqueTypes === 2 ? "text-amber-400" : "text-red-400";
 
   // Top Performer holding search
   let topPerformingAsset = "None";
   let topPerformingGainPct = 0;
-  assets.forEach((a) => {
+  activeAssets.forEach((a) => {
     if (a.cost_basis && Number(a.cost_basis) > 0) {
       const gain = Number(a.market_value) - Number(a.cost_basis);
       const gainPct = (gain / Number(a.cost_basis)) * 100;
@@ -406,19 +547,17 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   });
 
   // Split calculations by asset types
-  const mutualFundsTotal = assets.filter(a => a.asset_type === "mutual_fund").reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
-  const equitiesTotal = assets.filter(a => a.asset_type === "equity").reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
-  const otherTotal = assets.filter(a => !["mutual_fund", "equity"].includes(a.asset_type)).reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
+  const mutualFundsTotal = activeAssets.filter(a => a.asset_type === "mutual_fund").reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
+  const equitiesTotal = activeAssets.filter(a => a.asset_type === "equity").reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
+  const otherTotal = activeAssets.filter(a => !["mutual_fund", "equity"].includes(a.asset_type)).reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
   
   // Filtered Assets
-  const filteredAssets = assets.filter((asset) => {
+  const filteredAssets = activeAssets.filter((asset) => {
     const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (asset.isin && asset.isin.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = assetTypeFilter === "all" || asset.asset_type === assetTypeFilter;
     return matchesSearch && matchesType;
   });
-
-
 
   // Helper to dynamically categorize assets based on name and type
   const getFundCategory = (asset: any) => {
@@ -439,7 +578,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   // Group asset class allocations for DonutChart
   const getChartAllocation = () => {
     const categories: Record<string, number> = {};
-    assets.forEach((a) => {
+    activeAssets.forEach((a) => {
       const typeLabel = getFundCategory(a);
       categories[typeLabel] = (categories[typeLabel] || 0) + Number(a.market_value ?? 0);
     });
@@ -452,7 +591,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   const chartAllocation = getChartAllocation();
 
   const getTopMovers = () => {
-    const assetsWithReturns = assets.map(a => {
+    const assetsWithReturns = activeAssets.map(a => {
       const invested = Number(a.cost_basis ?? a.average_buy_price ?? 0);
       const current = Number(a.market_value ?? 0);
       const absoluteReturn = current - invested;
@@ -472,7 +611,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   // Get Invested vs Current value by asset class for the BarChart
   const getBarChartData = () => {
     const dataMap: Record<string, { Invested: number; Current: number }> = {};
-    assets.forEach((a) => {
+    activeAssets.forEach((a) => {
       const typeLabel = getFundCategory(a);
       if (!dataMap[typeLabel]) {
         dataMap[typeLabel] = { Invested: 0, Current: 0 };
@@ -489,25 +628,23 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
   const barChartData = getBarChartData();
 
-
-
   const failedPortfolios = portfolios.filter((p) => p.upload_status === "failed");
   const processingPortfolios = portfolios.filter((p) => p.upload_status === "processing");
 
-  const handleDeleteAsset = async (assetId: string) => {
+  const handleDeleteAsset = async (assetId: string, assetPortfolioId?: string) => {
     if (!confirm("Are you sure you want to delete this holding?")) return;
     try {
       const { error } = await supabase.from("assets").delete().eq("id", assetId);
       if (error) throw error;
       toast.success("Holding deleted successfully");
 
-      // Recalculate portfolio totals
-      const portfolioId = portfolios[0]?.id;
-      if (portfolioId) {
+      // Recalculate portfolio totals for this specific portfolio
+      const targetPfId = assetPortfolioId || (selectedPortfolioId !== "all" ? selectedPortfolioId : portfolios[0]?.id);
+      if (targetPfId) {
         const { data: remainingAssets } = await supabase
           .from("assets")
           .select("market_value, cost_basis")
-          .eq("portfolio_id", portfolioId);
+          .eq("portfolio_id", targetPfId);
 
         const totalVal = remainingAssets?.reduce((sum, a) => sum + Number(a.market_value || 0), 0) || 0;
         const totalCost = remainingAssets?.reduce((sum, a) => sum + Number(a.cost_basis || 0), 0) || 0;
@@ -518,7 +655,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
             total_value: totalVal,
             total_invested: totalCost,
           })
-          .eq("id", portfolioId);
+          .eq("id", targetPfId);
       }
       router.refresh();
     } catch (err: any) {
@@ -695,7 +832,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
         {/* -------------------- TAB 1: PORTFOLIO VIEW -------------------- */}
         {activeTab === "portfolio" && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in-up">
             {user && (
               <div className="lg:hidden flex items-center justify-between gap-2 p-3 bg-[#090e1d]/90 border border-white/15 rounded-2xl backdrop-blur-2xl shadow-xl">
                 <div className="flex items-center gap-2 min-w-0">
@@ -754,8 +891,138 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               </div>
             ) : (
               <>
+                {/* ----------------- PORTFOLIO PROFILES / SECTIONS BAR ----------------- */}
+                <div className="rounded-2xl border border-[#27272a] bg-zinc-950/80 backdrop-blur-xl p-3 sm:p-4 shadow-xl space-y-3 animate-fade-in-up stagger-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        <Layers className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
+                          Portfolio Profiles & Sections
+                          <span className="text-[10px] font-normal text-zinc-400 font-mono">({localPortfolios.length})</span>
+                        </h3>
+                        <p className="text-[10px] text-zinc-400 hidden sm:block">
+                          Maintain distinct broker accounts, vendors, or financial profiles independently.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button
+                      size="sm"
+                      onClick={() => setCreateSectionOpen(true)}
+                      className="h-8 px-3 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md gap-1.5 shrink-0"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>New Section</span>
+                    </Button>
+                  </div>
+
+                  {/* Horizontal scrolling pill tabs for portfolio sections */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
+                    {/* All Portfolios (Consolidated) */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPortfolioId("all")}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+                        selectedPortfolioId === "all"
+                          ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                          : "bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 border border-[#27272a]"
+                      }`}
+                    >
+                      <Layers className="h-3.5 w-3.5" />
+                      <span>All Portfolios</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${selectedPortfolioId === "all" ? "bg-white/20 text-white" : "bg-zinc-800 text-zinc-400"}`}>
+                        {assets.length}
+                      </span>
+                    </button>
+
+                    {/* Individual Portfolio Sections */}
+                    {localPortfolios.map((p) => {
+                      const isSelected = selectedPortfolioId === p.id;
+                      const pfAssetsCount = assets.filter((a) => a.portfolio_id === p.id).length;
+
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSelectedPortfolioId(p.id)}
+                          className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+                            isSelected
+                              ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                              : "bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-800 border border-[#27272a]"
+                          }`}
+                        >
+                          <Briefcase className={`h-3.5 w-3.5 ${isSelected ? "text-white" : "text-blue-400"}`} />
+                          <span className="truncate max-w-[130px]">{p.name}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${isSelected ? "bg-white/20 text-white" : "bg-zinc-800 text-zinc-400"}`}>
+                            {pfAssetsCount}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Section Context Bar (when a specific section is selected) */}
+                  {activePortfolio && (
+                    <div className="pt-2 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-zinc-400 font-medium">Viewing Section:</span>
+                        <span className="font-bold text-white truncate">{activePortfolio.name}</span>
+                        {activePortfolio.description && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 truncate max-w-[180px]">
+                            {activePortfolio.description}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <Link href={`/portfolio/upload?portfolio_id=${activePortfolio.id}`}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/10 gap-1 rounded-lg"
+                            title="Upload statement into this section"
+                          >
+                            <Upload className="h-3 w-3" />
+                            <span>Upload Source</span>
+                          </Button>
+                        </Link>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleOpenAddModal()}
+                          className="h-7 px-2 text-[11px] font-semibold text-blue-400 hover:bg-blue-500/10 gap-1 rounded-lg"
+                        >
+                          <Plus className="h-3 w-3" />
+                          <span>Add Holding</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleOpenEditSection(activePortfolio)}
+                          className="h-7 px-2 text-[11px] font-semibold text-zinc-300 hover:bg-white/10 gap-1 rounded-lg"
+                        >
+                          <Pencil className="h-3 w-3" />
+                          <span>Rename</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteStatement(activePortfolio.id)}
+                          className="h-7 px-2 text-[11px] font-semibold text-red-400 hover:bg-red-500/10 gap-1 rounded-lg"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          <span>Delete Section</span>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* ----------------- MOCKUP MATCHING HERO GLASS CARD ----------------- */}
-                <div className="rounded-3xl border border-[#27272a] bg-gradient-to-b from-[#18181b]/95 via-[#121215]/90 to-[#09090b]/95 p-6 shadow-2xl backdrop-blur-2xl relative overflow-hidden space-y-6">
+                <div className="rounded-3xl border border-[#27272a] bg-gradient-to-b from-[#18181b]/95 via-[#121215]/90 to-[#09090b]/95 p-6 shadow-2xl backdrop-blur-2xl relative overflow-hidden space-y-6 animate-fade-in-up stagger-2 fluid-card-hover">
                   {/* Subtle ambient lighting background blur */}
                   <div className="absolute -top-24 -right-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
                   <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -843,13 +1110,13 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 </div>
 
                 {/* ----------------- YOUR PORTFOLIOS CATEGORY CARDS (MOCKUP STYLE) ----------------- */}
-                <div className="space-y-3">
+                <div className="space-y-3 animate-fade-in-up stagger-3">
                   <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
                     <Layers className="h-4 w-4 text-emerald-400" />
                     <span>Your Portfolios</span>
                   </h3>
                   <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
-                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2">
+                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2 fluid-card-hover">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-zinc-400">Growth Equity</span>
                         <span className="text-emerald-400 font-bold font-mono text-[11px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">+2.1%</span>
@@ -865,7 +1132,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2">
+                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2 fluid-card-hover">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-zinc-400">Global & Mutual Funds</span>
                         <span className="text-emerald-400 font-bold font-mono text-[11px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">+1.6%</span>
@@ -881,7 +1148,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2">
+                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2 fluid-card-hover">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-zinc-400">SGB & Fixed Assets</span>
                         <span className="text-amber-400 font-bold font-mono text-[11px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">+0.9%</span>
@@ -901,7 +1168,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
             {/* Uploaded Statement Sources & Linked Accounts Manager */}
             {localPortfolios && localPortfolios.length > 0 && (
-              <Card className="border-[#27272a] bg-[#121215]/90 glass-card">
+              <Card className="border-[#27272a] bg-[#121215]/90 glass-card animate-fade-in-up stagger-4">
                 <CardHeader className="pb-3 flex flex-row items-center justify-between border-b border-[#27272a]">
                   <div className="space-y-1">
                     <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
@@ -929,7 +1196,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       const isPdf = fileName.toLowerCase().endsWith(".pdf");
 
                       return (
-                        <div key={p.id} className="flex flex-col justify-between p-3.5 rounded-xl bg-zinc-950/80 border border-[#27272a] hover:border-zinc-700 transition-all space-y-3">
+                        <div key={p.id} className="flex flex-col justify-between p-3.5 rounded-xl bg-zinc-950/80 border border-[#27272a] hover:border-zinc-700 transition-all space-y-3 fluid-card-hover">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <div className={`p-2 rounded-lg shrink-0 ${isPdf ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20"}`}>
@@ -973,7 +1240,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
             {/* Portfolio Insights & Health Analysis */}
             {assets.length > 0 && (
-              <Card className="border border-white/10 bg-[#0c101d]/90 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden">
+              <Card className="border border-white/10 bg-[#0c101d]/90 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden animate-fade-in-up stagger-5">
                 <CardHeader className="pb-3 border-b border-white/5 bg-slate-900/40 px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
@@ -993,7 +1260,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 <CardContent className="p-5">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Insight 1: Asset Allocation & Health */}
-                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5">
+                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5 fluid-card-hover">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Asset Allocation</span>
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
@@ -1012,7 +1279,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                     </div>
 
                     {/* Insight 2: Diversification & Risk Profile */}
-                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5">
+                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5 fluid-card-hover">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Diversification</span>
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
@@ -1035,7 +1302,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                     </div>
 
                     {/* Insight 3: Performance & Wealth Strategy */}
-                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5">
+                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5 fluid-card-hover">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Growth Outlook</span>
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
@@ -1059,9 +1326,9 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
             {/* Charts section */}
             {assets.length > 0 && (
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-5">
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-5 animate-fade-in-up stagger-6">
                 {/* Line chart: net worth timeline */}
-                <Card className="md:col-span-3 border-white/5 bg-slate-900/40 glass-card">
+                <Card className="md:col-span-3 border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Invested Capital vs Current Value</CardTitle>
                     <CardDescription className="text-[10px] text-slate-400 font-light">Real-time asset value compared to purchase cost</CardDescription>
@@ -1072,7 +1339,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 </Card>
 
                 {/* Redesigned Asset Class Allocation Visual */}
-                <Card className="md:col-span-2 border-white/5 bg-slate-900/40 glass-card">
+                <Card className="md:col-span-2 border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Asset Class Allocation</CardTitle>
                     <CardDescription className="text-[10px] text-slate-400 font-light">Distribution across asset classes</CardDescription>
@@ -1086,9 +1353,9 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
             {/* Top Movers Section */}
               {(topGainers.length > 0 || topLosers.length > 0) && (
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 mt-6">
+                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 mt-6 animate-fade-in-up stagger-7">
                   {/* Top Gainers */}
-                  <Card className="border-emerald-500/10 bg-slate-900/40 glass-card">
+                  <Card className="border-emerald-500/10 bg-slate-900/40 glass-card fluid-card-hover">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
@@ -1102,7 +1369,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                         <div className="text-xs text-slate-500 py-2">No gainers found.</div>
                       ) : (
                         topGainers.map((asset, i) => (
-                          <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/30 border border-white/5 hover:border-emerald-500/30 transition-colors">
+                          <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/30 border border-white/5 hover:border-emerald-500/30 fluid-row-hover">
                             <div className="flex flex-col">
                               <span className="text-sm font-semibold text-slate-200 truncate max-w-[180px]">{asset.name}</span>
                               <span className="text-[10px] text-slate-400">{asset.asset_type === "mutual_fund" ? "Mutual Fund" : "Direct Equity"}</span>
@@ -1121,7 +1388,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                   </Card>
 
                   {/* Top Losers */}
-                  <Card className="border-red-500/10 bg-slate-900/40 glass-card">
+                  <Card className="border-red-500/10 bg-slate-900/40 glass-card fluid-card-hover">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-md bg-red-500/10 border border-red-500/20">
@@ -1135,7 +1402,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                         <div className="text-xs text-slate-500 py-2">No assets in loss! 🎉</div>
                       ) : (
                         topLosers.filter(a => a.pctReturn < 0).map((asset, i) => (
-                          <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/30 border border-white/5 hover:border-red-500/30 transition-colors">
+                          <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/30 border border-white/5 hover:border-red-500/30 fluid-row-hover">
                             <div className="flex flex-col">
                               <span className="text-sm font-semibold text-slate-200 truncate max-w-[180px]">{asset.name}</span>
                               <span className="text-[10px] text-slate-400">{asset.asset_type === "mutual_fund" ? "Mutual Fund" : "Direct Equity"}</span>
@@ -1179,7 +1446,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 </div>
               </div>
             ) : (
-              <Card className="border-white/5 bg-slate-900/40 glass-card overflow-hidden">
+              <Card className="border-white/5 bg-slate-900/40 glass-card overflow-hidden animate-fade-in-up stagger-8">
                 <CardHeader className="p-4 sm:p-6 border-b border-white/5 bg-slate-950/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <CardTitle className="text-base font-bold text-white">Holdings List</CardTitle>
@@ -1238,9 +1505,16 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                             ? (gain / Number(asset.cost_basis)) * 100
                             : null;
                           return (
-                            <tr key={asset.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                            <tr key={asset.id} className="border-b border-white/5 last:border-0 fluid-row-hover transition-colors">
                               <td className="px-4 sm:px-6 py-4">
-                                <p className="font-semibold text-white text-xs sm:text-sm">{asset.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-white text-xs sm:text-sm">{asset.name}</p>
+                                  {selectedPortfolioId === "all" && asset.portfolio_id && (
+                                    <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono font-normal">
+                                      {localPortfolios.find(p => p.id === asset.portfolio_id)?.name || "Section"}
+                                    </span>
+                                  )}
+                                </div>
                                 {asset.isin && (
                                   <p className="text-[10px] text-slate-500 font-mono mt-0.5 tracking-wider uppercase">{asset.isin}</p>
                                 )}
@@ -1282,7 +1556,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                                     <Pencil className="h-3.5 w-3.5" />
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteAsset(asset.id)}
+                                    onClick={() => handleDeleteAsset(asset.id, asset.portfolio_id)}
                                     className="p-1.5 rounded hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-all"
                                     title="Delete asset"
                                   >
@@ -1311,10 +1585,17 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                         ? (gain / Number(asset.cost_basis)) * 100
                         : null;
                       return (
-                        <div key={asset.id} className="px-4 py-4 hover:bg-white/5 transition-colors">
+                        <div key={asset.id} className="px-4 py-4 fluid-row-hover transition-colors">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-white text-sm leading-snug truncate">{asset.name}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-white text-sm leading-snug truncate">{asset.name}</p>
+                                {selectedPortfolioId === "all" && asset.portfolio_id && (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono font-normal">
+                                    {localPortfolios.find(p => p.id === asset.portfolio_id)?.name || "Section"}
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                                   asset.asset_type === "mutual_fund" ? "bg-emerald-500/10 text-emerald-400" :
@@ -1335,7 +1616,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                                 <Pencil className="h-3.5 w-3.5" />
                               </button>
                               <button
-                                onClick={() => handleDeleteAsset(asset.id)}
+                                onClick={() => handleDeleteAsset(asset.id, asset.portfolio_id)}
                                 className="p-1.5 rounded hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-all"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -1420,8 +1701,8 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 <>
                   {/* Sector Performance Bar Chart & Top 5 Movers Donut Chart */}
                   {marketSummary && marketSummary.sectors && (
-                    <div className="grid gap-4 md:grid-cols-2 pt-2">
-                      <Card className="border-white/5 bg-slate-900/40 glass-card">
+                    <div className="grid gap-4 md:grid-cols-2 pt-2 animate-fade-in-up stagger-1">
+                      <Card className="border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
                         <CardHeader className="pb-2">
                           <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                             <div className="h-px w-4 bg-slate-400/30" /> Sector Performance (% Change)
@@ -1440,7 +1721,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                         </CardContent>
                       </Card>
                       
-                      <Card className="border-white/5 bg-slate-900/40 glass-card">
+                      <Card className="border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
                         <CardHeader className="pb-2">
                           <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -1621,7 +1902,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                             const change = stock.change ?? 0;
                             const positive = change >= 0;
                             return (
-                              <div key={stock.symbol} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-all duration-200 border-b border-white/5 last:border-0">
+                              <div key={stock.symbol} className="grid grid-cols-12 gap-4 p-4 items-center fluid-row-hover border-b border-white/5 last:border-0">
                                 {/* Company Name */}
                                 <div className="col-span-5 sm:col-span-4 min-w-0">
                                   <p className="text-sm font-bold text-white tracking-wide truncate">{stock.short}</p>
@@ -1810,7 +2091,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                             href={searchUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group relative flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 transition-all duration-300 hover:border-slate-700 hover:bg-slate-900/60 hover:shadow-xl hover:shadow-black/20 block focus:outline-none"
+                            className="group relative flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 fluid-card-hover block focus:outline-none"
                           >
                             <div className="space-y-3">
                               <div className="flex items-center justify-between gap-2">
@@ -1869,173 +2150,410 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
           </div>
         )}
 
-        {/* -------------------- TAB 4: CURRENCY -------------------- */}
-        {activeTab === "currency" && (
-          <div className="space-y-6 animate-fade-in-up">
-            {/* Main Grid: Interactive Converter + Rate Cards */}
-            <div className="grid gap-6 lg:grid-cols-12">
-              {/* Left Column: Interactive Converter Card (lg:col-span-5) */}
-              <div className="lg:col-span-5 space-y-4">
-                <Card className="border-white/10 bg-[#0c101d]/90 glass-card shadow-2xl overflow-hidden relative">
-                  <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-                  <CardHeader className="pb-3 border-b border-white/5">
-                    <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        <ArrowRightLeft className="h-4 w-4 text-blue-400" /> Interactive Converter
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-500">Base Currency</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-5 sm:p-6 space-y-5">
-                    {/* Amount Input */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-                        <label>Convert Amount</label>
-                        <span className="text-[10px] font-mono text-slate-500">Default: 1 unit</span>
-                      </div>
-                      <div className="relative flex items-center">
-                        <input
-                          type="number"
-                          min="0"
-                          step="any"
-                          value={currencyAmount}
-                          onChange={(e) => setCurrencyAmount(e.target.value)}
-                          className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-lg font-bold font-mono text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner"
-                          placeholder="1"
-                        />
-                        <div className="absolute right-3 px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-bold font-mono text-slate-300 border border-white/5">
-                          {currencyRates?.rates?.find((r: any) => r.symbol === currencyFrom)?.short || "USD"}
-                        </div>
-                      </div>
-                    </div>
+        {/* -------------------- TAB 4: CURRENCY REVAMPED (ANY BASE & TARGET CURRENCY) -------------------- */}
+        {activeTab === "currency" && (() => {
+          // List of all supported global currencies with their INR base rates
+          // Cross rates: 1 Base = (Base_INR_rate / Target_INR_rate) Target
+          const CURRENCIES: { short: string; name: string; symbol: string; flag: string; inrPrice: number; change_pct: number }[] = [
+            { short: "USD", name: "US Dollar", symbol: "$", flag: "🇺🇸", inrPrice: 83.75, change_pct: 0.10 },
+            { short: "EUR", name: "Euro", symbol: "€", flag: "🇪🇺", inrPrice: 91.20, change_pct: -0.16 },
+            { short: "GBP", name: "British Pound", symbol: "£", flag: "🇬🇧", inrPrice: 108.45, change_pct: 0.20 },
+            { short: "INR", name: "Indian Rupee", symbol: "₹", flag: "🇮🇳", inrPrice: 1.00, change_pct: 0.00 },
+            { short: "AED", name: "UAE Dirham", symbol: "د.إ", flag: "🇦🇪", inrPrice: 22.80, change_pct: 0.09 },
+            { short: "JPY", name: "Japanese Yen", symbol: "¥", flag: "🇯🇵", inrPrice: 0.552, change_pct: 0.36 },
+            { short: "CAD", name: "Canadian Dollar", symbol: "C$", flag: "🇨🇦", inrPrice: 61.35, change_pct: 0.08 },
+            { short: "AUD", name: "Australian Dollar", symbol: "A$", flag: "🇦🇺", inrPrice: 55.40, change_pct: -0.18 },
+            { short: "SGD", name: "Singapore Dollar", symbol: "S$", flag: "🇸🇬", inrPrice: 62.10, change_pct: 0.13 },
+            { short: "CHF", name: "Swiss Franc", symbol: "CHF", flag: "🇨🇭", inrPrice: 93.80, change_pct: 0.05 },
+            { short: "SAR", name: "Saudi Riyal", symbol: "﷼", flag: "🇸🇦", inrPrice: 22.33, change_pct: 0.02 },
+          ];
 
-                    {/* Quick Preset Amount Buttons */}
-                    <div className="space-y-1.5">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Quick Presets</p>
-                      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                        {["1", "10", "50", "100", "500", "1000"].map((preset) => (
-                          <button
-                            key={preset}
-                            type="button"
-                            onClick={() => setCurrencyAmount(preset)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all duration-200 cursor-pointer ${
-                              currencyAmount === preset
-                                ? "bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/40"
-                                : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800"
-                            }`}
-                          >
-                            {preset}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+          // Override inrPrice with live API rates if available
+          if (currencyRates?.rates && Array.isArray(currencyRates.rates)) {
+            currencyRates.rates.forEach((liveR: any) => {
+              const matched = CURRENCIES.find((c) => c.short === liveR.short);
+              if (matched && liveR.price) {
+                matched.inrPrice = Number(liveR.price);
+                if (typeof liveR.change_pct === "number") matched.change_pct = liveR.change_pct;
+              }
+            });
+          }
 
-                    {/* From Currency Selector */}
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-slate-400 font-medium block">Source Currency</label>
-                      <select
-                        value={currencyFrom}
-                        onChange={(e) => setCurrencyFrom(e.target.value)}
-                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
-                      >
-                        {currencyRates?.rates?.map((rate: any) => (
-                          <option key={rate.symbol} value={rate.symbol} className="bg-slate-900 text-white">
-                            {rate.short === "USD" ? "🇺🇸" : rate.short === "EUR" ? "🇪🇺" : rate.short === "GBP" ? "🇬🇧" : rate.short === "JPY" ? "🇯🇵" : rate.short === "AED" ? "🇦🇪" : rate.short === "CAD" ? "🇨🇦" : rate.short === "AUD" ? "🇦🇺" : "🇸🇬"} {rate.name} ({rate.short})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+          const baseCurrObj = CURRENCIES.find((c) => c.short === baseCurrency) || CURRENCIES[0];
+          const targetCurrObj = CURRENCIES.find((c) => c.short === targetCurrency) || CURRENCIES[3];
 
-                    {/* Conversion Result Card */}
-                    <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-600/15 via-cyan-500/10 to-indigo-600/15 border border-blue-500/30 text-center space-y-1 shadow-lg">
-                      <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Calculated Equivalent (INR)</p>
-                      <h3 className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
-                        ₹{
-                          currencyRates?.rates
-                            ? (Number(currencyAmount || 0) * (currencyRates.rates.find((r: any) => r.symbol === currencyFrom)?.price || 0)).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                            : "0.00"
-                        }
-                      </h3>
-                      <p className="text-[11px] text-slate-400 font-mono pt-1">
-                        1 {currencyRates?.rates?.find((r: any) => r.symbol === currencyFrom)?.short || "USD"} = ₹{(currencyRates?.rates?.find((r: any) => r.symbol === currencyFrom)?.price || 0).toFixed(2)} INR
+          // Cross rate: 1 Base = X Target
+          const crossRate = targetCurrObj.inrPrice > 0 ? baseCurrObj.inrPrice / targetCurrObj.inrPrice : 1;
+          const inverseRate = crossRate > 0 ? 1 / crossRate : 0;
+          const parsedAmount = Math.max(0, Number(currencyAmount) || 0);
+          const convertedTotal = parsedAmount * crossRate;
+
+          const swapCurrencies = () => {
+            const oldBase = baseCurrency;
+            const oldTarget = targetCurrency;
+            setBaseCurrency(oldTarget);
+            setTargetCurrency(oldBase);
+            localStorage.setItem("artha_base_currency", oldTarget);
+            localStorage.setItem("artha_target_currency", oldBase);
+          };
+
+          const handleSelectBase = (short: string) => {
+            if (short === targetCurrency) {
+              setTargetCurrency(baseCurrency);
+              localStorage.setItem("artha_target_currency", baseCurrency);
+            }
+            setBaseCurrency(short);
+            localStorage.setItem("artha_base_currency", short);
+          };
+
+          const handleSelectTarget = (short: string) => {
+            if (short === baseCurrency) {
+              setBaseCurrency(targetCurrency);
+              localStorage.setItem("artha_base_currency", targetCurrency);
+            }
+            setTargetCurrency(short);
+            localStorage.setItem("artha_target_currency", short);
+          };
+
+          const copyConversionToClipboard = () => {
+            const text = `${parsedAmount.toLocaleString()} ${baseCurrObj.short} = ${convertedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ${targetCurrObj.short} (Exchange rate: 1 ${baseCurrObj.short} = ${crossRate.toFixed(4)} ${targetCurrObj.short})`;
+            navigator.clipboard.writeText(text);
+            setCopiedRate(true);
+            toast.success("Conversion copied to clipboard!");
+            setTimeout(() => setCopiedRate(false), 2000);
+          };
+
+          const filteredCurrencies = CURRENCIES.filter((c) => {
+            if (!currencySearch.trim()) return true;
+            const q = currencySearch.toLowerCase();
+            return (
+              c.name.toLowerCase().includes(q) ||
+              c.short.toLowerCase().includes(q)
+            );
+          });
+
+          return (
+            <div className="space-y-6 animate-fade-in-up">
+              {/* Header Hero Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-blue-900/20 via-slate-900/60 to-cyan-900/20 border border-white/10 shadow-xl backdrop-blur-md">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                      <Coins className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                        Universal Currency & Forex Hub
+                      </h2>
+                      <p className="text-xs text-slate-400">
+                        Choose any base currency (USD, EUR, GBP, INR, JPY, AED, etc.) and convert across global market pairs with real-time cross rates.
                       </p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Right Column: Live FX Exchange Rates Grid (lg:col-span-7) */}
-              <div className="lg:col-span-7 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <div className="h-px w-4 bg-slate-400/30" /> Live Exchange Rate Cards
-                  </h3>
-                  <span className="text-[11px] font-mono text-slate-500">Tap card to select</span>
+                  </div>
                 </div>
 
-                <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2">
-                  {currencyRates?.rates ? (
-                    currencyRates.rates.map((rate: any) => {
-                      const positive = rate.change_pct >= 0;
-                      const isSelected = currencyFrom === rate.symbol;
-                      const flag = rate.short === "USD" ? "🇺🇸" : rate.short === "EUR" ? "🇪🇺" : rate.short === "GBP" ? "🇬🇧" : rate.short === "JPY" ? "🇯🇵" : rate.short === "AED" ? "🇦🇪" : rate.short === "CAD" ? "🇨🇦" : rate.short === "AUD" ? "🇦🇺" : "🇸🇬";
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-mono text-slate-300">
+                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Base: <span className="font-bold text-white ml-0.5">{baseCurrObj.flag} {baseCurrObj.short}</span>
+                  </div>
+                </div>
+              </div>
 
-                      return (
-                        <Card
-                          key={rate.symbol}
-                          onClick={() => setCurrencyFrom(rate.symbol)}
-                          className={`border transition-all duration-300 cursor-pointer overflow-hidden group shadow-lg ${
-                            isSelected
-                              ? "bg-gradient-to-br from-blue-900/40 via-slate-900/90 to-cyan-900/40 border-blue-500/50 shadow-blue-500/10 ring-1 ring-blue-500/30"
-                              : "bg-[#090e1d]/90 border-white/10 hover:bg-white/[0.06] hover:border-white/20"
-                          }`}
-                        >
-                          <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                            <div className="flex justify-between items-start">
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-xl">{flag}</span>
-                                <div>
-                                  <p className="text-xs font-bold text-white group-hover:text-blue-300 transition-colors">
-                                    {rate.name}
-                                  </p>
-                                  <p className="text-[10px] text-slate-500 font-mono">{rate.short} / INR</p>
+              {/* Main 2-Column Grid */}
+              <div className="grid gap-6 lg:grid-cols-12">
+                {/* Left Column: Any-to-Any Currency Converter (5 cols) */}
+                <div className="lg:col-span-5 space-y-4">
+                  <Card className="border-white/10 bg-[#0c101d]/95 glass-card shadow-2xl overflow-hidden relative fluid-card-hover">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+                    
+                    <CardHeader className="pb-3 border-b border-white/5 flex flex-row items-center justify-between">
+                      <div>
+                        <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                          <ArrowRightLeft className="h-4 w-4 text-blue-400" /> Currency Calculator
+                        </CardTitle>
+                        <CardDescription className="text-[11px] text-slate-500 mt-0.5">
+                          Universal cross-currency converter
+                        </CardDescription>
+                      </div>
+
+                      {/* Swap Button */}
+                      <button
+                        type="button"
+                        onClick={swapCurrencies}
+                        className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 border border-blue-500/20 transition-all cursor-pointer"
+                        title="Swap Base & Target Currencies"
+                      >
+                        <ArrowRightLeft className="w-3.5 h-3.5" />
+                        <span>Swap</span>
+                      </button>
+                    </CardHeader>
+
+                    <CardContent className="p-5 sm:p-6 space-y-5">
+                      {/* Currency Pair Selector: From -> To */}
+                      <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-slate-950/60 border border-white/5">
+                        {/* Base Currency Selector */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                            Base (From)
+                          </label>
+                          <select
+                            value={baseCurrency}
+                            onChange={(e) => handleSelectBase(e.target.value)}
+                            className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                          >
+                            {CURRENCIES.map((c) => (
+                              <option key={c.short} value={c.short} className="bg-slate-900 text-white">
+                                {c.flag} {c.short} - {c.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Target Currency Selector */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                            Target (To)
+                          </label>
+                          <select
+                            value={targetCurrency}
+                            onChange={(e) => handleSelectTarget(e.target.value)}
+                            className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                          >
+                            {CURRENCIES.map((c) => (
+                              <option key={c.short} value={c.short} className="bg-slate-900 text-white">
+                                {c.flag} {c.short} - {c.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Quick Base Currency Selector Chips */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
+                          <span>Quick Base Currency</span>
+                          <span className="text-[10px] font-mono text-slate-500">Tap to set base</span>
+                        </div>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5">
+                          {CURRENCIES.slice(0, 6).map((r) => (
+                            <button
+                              key={r.short}
+                              type="button"
+                              onClick={() => handleSelectBase(r.short)}
+                              className={`p-1.5 rounded-xl text-center border transition-all cursor-pointer ${
+                                baseCurrency === r.short
+                                  ? "bg-blue-600 text-white border-blue-400/50 shadow-md shadow-blue-600/20 font-bold ring-1 ring-blue-400/50"
+                                  : "bg-slate-900/80 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                              }`}
+                            >
+                              <div className="text-sm leading-none mb-0.5">{r.flag}</div>
+                              <div className="text-[10.5px] font-mono font-bold">{r.short}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Input Field with Unit Badge */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
+                          <label>Amount in {baseCurrObj.name} ({baseCurrObj.short})</label>
+                          <span className="text-[10px] font-mono text-slate-500">You Enter</span>
+                        </div>
+
+                        <div className="relative flex items-center">
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={currencyAmount}
+                            onChange={(e) => setCurrencyAmount(e.target.value)}
+                            className="w-full bg-slate-950/90 border border-white/10 rounded-xl pl-4 pr-24 py-3.5 text-xl font-bold font-mono text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner"
+                            placeholder="1"
+                          />
+                          <div className="absolute right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/90 text-xs font-bold font-mono text-slate-200 border border-white/10 pointer-events-none">
+                            <span>{baseCurrObj.flag}</span>
+                            <span>{baseCurrObj.short}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Presets */}
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Quick Presets</p>
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                          {["1", "10", "50", "100", "500", "1,000", "5,000", "10,000"].map((preset) => {
+                            const rawVal = preset.replace(",", "");
+                            return (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => setCurrencyAmount(rawVal)}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all duration-150 cursor-pointer ${
+                                  currencyAmount === rawVal
+                                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/40"
+                                    : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800"
+                                }`}
+                              >
+                                {preset}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Result Box with Copy action */}
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-900/30 via-slate-900/90 to-cyan-900/30 border border-blue-500/30 text-center space-y-2 shadow-lg relative group">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
+                            Calculated Equivalent ({targetCurrObj.short})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={copyConversionToClipboard}
+                            className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            title="Copy conversion"
+                          >
+                            {copiedRate ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+
+                        <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                          {targetCurrObj.symbol}{" "}
+                          {convertedTotal.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 4,
+                          })}{" "}
+                          <span className="text-base font-normal text-slate-400 font-sans">{targetCurrObj.short}</span>
+                        </h3>
+
+                        <div className="pt-1 text-[11px] text-slate-400 font-mono flex items-center justify-center gap-2">
+                          <span>1 {baseCurrObj.short} = {crossRate.toFixed(4)} {targetCurrObj.short}</span>
+                          <span>•</span>
+                          <span>1 {targetCurrObj.short} = {inverseRate.toFixed(4)} {baseCurrObj.short}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Right Column: Live Global Exchange Rates vs Selected Base Currency (7 cols) */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-px w-4 bg-slate-400/30" /> Exchange Rates Relative to {baseCurrObj.flag} {baseCurrObj.short}
+                      </h3>
+                      <p className="text-[11px] text-slate-500">
+                        Click any card to set it as your Target currency ({targetCurrObj.short}).
+                      </p>
+                    </div>
+
+                    {/* Search Input for currencies */}
+                    <div className="relative w-full sm:w-56">
+                      <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                      <Input
+                        placeholder="Search currency..."
+                        value={currencySearch}
+                        onChange={(e) => setCurrencySearch(e.target.value)}
+                        className="pl-8 h-8 text-xs bg-slate-900/80 border-white/10 text-white placeholder:text-slate-600 focus:border-blue-500/50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Currencies Grid */}
+                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                    {filteredCurrencies.length === 0 ? (
+                      <div className="col-span-full p-8 text-center text-sm text-slate-500 border border-white/5 bg-slate-900/30 rounded-2xl">
+                        No currencies match "{currencySearch}".
+                      </div>
+                    ) : (
+                      filteredCurrencies.map((item) => {
+                        const isTarget = targetCurrency === item.short;
+                        const isBase = baseCurrency === item.short;
+                        const positive = (item.change_pct ?? 0) >= 0;
+
+                        // Rate of 1 Base in terms of this Item currency
+                        const rateForCard = item.inrPrice > 0 ? baseCurrObj.inrPrice / item.inrPrice : 1;
+                        const inverseForCard = rateForCard > 0 ? 1 / rateForCard : 0;
+
+                        return (
+                          <Card
+                            key={item.short}
+                            onClick={() => {
+                              if (!isBase) {
+                                handleSelectTarget(item.short);
+                              }
+                            }}
+                            className={`border transition-all duration-200 cursor-pointer overflow-hidden group shadow-lg fluid-card-hover ${
+                              isTarget
+                                ? "bg-gradient-to-br from-blue-900/40 via-slate-900/95 to-cyan-900/40 border-blue-500/60 ring-2 ring-blue-500/30 shadow-blue-500/10"
+                                : isBase
+                                ? "bg-slate-900/90 border-emerald-500/30 opacity-80"
+                                : "bg-[#090e1d]/90 border-white/10 hover:bg-white/[0.06] hover:border-white/20"
+                            }`}
+                          >
+                            <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
+                              <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-2xl">{item.flag}</span>
+                                  <div>
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="text-xs font-bold text-white group-hover:text-blue-300 transition-colors">
+                                        {item.name}
+                                      </p>
+                                      {isBase && (
+                                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
+                                          Current Base
+                                        </span>
+                                      )}
+                                      {isTarget && (
+                                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold">
+                                          Target
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 font-mono">{baseCurrObj.short} / {item.short}</p>
+                                  </div>
+                                </div>
+
+                                <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
+                                  positive ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-red-500/15 text-red-400 border border-red-500/30"
+                                }`}>
+                                  {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                  {positive ? "+" : ""}{item.change_pct}%
                                 </div>
                               </div>
-                              <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
-                                positive ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-red-500/15 text-red-400 border border-red-500/30"
-                              }`}>
-                                {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                                {positive ? "+" : ""}{rate.change_pct}%
-                              </div>
-                            </div>
 
-                            <div className="flex items-baseline justify-between pt-1">
-                              <div>
-                                <span className="text-[10px] text-slate-500 font-medium block">1 {rate.short} =</span>
-                                <h4 className="text-xl font-black text-white font-mono tracking-tight">
-                                  ₹{Number(rate.price).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                                </h4>
+                              <div className="flex items-baseline justify-between pt-1 border-t border-white/5">
+                                <div>
+                                  <span className="text-[10px] text-slate-500 font-medium block">
+                                    1 {baseCurrObj.short} =
+                                  </span>
+                                  <h4 className="text-lg font-black text-white font-mono tracking-tight">
+                                    {item.symbol} {rateForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                                  </h4>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-[10px] text-slate-500 font-medium block">
+                                    1 {item.short} =
+                                  </span>
+                                  <p className="text-xs font-mono font-semibold text-slate-300">
+                                    {baseCurrObj.symbol} {inverseForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                                  </p>
+                                </div>
                               </div>
-                              <span className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${
-                                isSelected ? "bg-blue-500/20 text-blue-300 border-blue-500/30" : "bg-slate-800 text-slate-400 border-white/5 group-hover:text-white"
-                              }`}>
-                                {isSelected ? "Selected" : "Select"}
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })
-                  ) : (
-                    <div className="col-span-full p-12 text-center text-sm text-slate-500 animate-pulse border border-white/5 bg-slate-900/30 rounded-2xl">
-                      Loading live currency rates...
-                    </div>
-                  )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Manual Input modal dialog */}
@@ -2043,9 +2561,157 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         assetToEdit={editingAsset}
-        portfolios={portfolios}
+        portfolios={localPortfolios}
+        defaultPortfolioId={selectedPortfolioId !== "all" ? selectedPortfolioId : undefined}
         userId={user?.id || ""}
       />
+
+      {/* Create Section Dialog */}
+      <Dialog open={createSectionOpen} onOpenChange={setCreateSectionOpen}>
+        <DialogContent className="sm:max-w-[460px] bg-[#0c121e] border-white/10 text-white shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
+              <FolderPlus className="w-5 h-5 text-emerald-400" />
+              Create Portfolio Profile / Section
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              Create an isolated profile to track different vendors (e.g., Zerodha, Groww, CAMS) or financial buckets.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="sec-name" className="text-xs text-slate-300">
+                Profile / Section Name <span className="text-red-400">*</span>
+              </Label>
+              <Input
+                id="sec-name"
+                placeholder="e.g., Zerodha Kite, Groww MF, Retirement 2040"
+                value={newSectionName}
+                onChange={(e) => setNewSectionName(e.target.value)}
+                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-emerald-500/50"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="sec-vendor" className="text-xs text-slate-300">
+                Vendor / Broker (Optional)
+              </Label>
+              <Input
+                id="sec-vendor"
+                placeholder="e.g., Zerodha, Groww, CAMS, KFintech, Angel One"
+                value={newSectionVendor}
+                onChange={(e) => setNewSectionVendor(e.target.value)}
+                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-emerald-500/50"
+              />
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {["Zerodha", "Groww", "CAMS", "KFintech", "Angel One", "Upstox"].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setNewSectionVendor(v)}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-white/5 transition-colors"
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="sec-desc" className="text-xs text-slate-300">
+                Notes / Strategy (Optional)
+              </Label>
+              <Input
+                id="sec-desc"
+                placeholder="e.g., Direct equity long term, Tax saving ELSS"
+                value={newSectionDesc}
+                onChange={(e) => setNewSectionDesc(e.target.value)}
+                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-emerald-500/50"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCreateSectionOpen(false)}
+              className="border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={createSectionLoading || !newSectionName.trim()}
+              onClick={handleCreateSection}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white"
+            >
+              {createSectionLoading ? "Creating..." : "Create Section"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Section Dialog */}
+      <Dialog open={editSectionOpen} onOpenChange={setEditSectionOpen}>
+        <DialogContent className="sm:max-w-[460px] bg-[#0c121e] border-white/10 text-white shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-blue-400" />
+              Edit Portfolio Profile
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              Update name or notes for this portfolio profile.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-sec-name" className="text-xs text-slate-300">
+                Profile / Section Name <span className="text-red-400">*</span>
+              </Label>
+              <Input
+                id="edit-sec-name"
+                value={editSectionName}
+                onChange={(e) => setEditSectionName(e.target.value)}
+                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-blue-500/50"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-sec-desc" className="text-xs text-slate-300">
+                Notes / Vendor / Description
+              </Label>
+              <Input
+                id="edit-sec-desc"
+                value={editSectionDesc}
+                onChange={(e) => setEditSectionDesc(e.target.value)}
+                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-blue-500/50"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditSectionOpen(false)}
+              className="border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={editSectionLoading || !editSectionName.trim()}
+              onClick={handleUpdateSection}
+              className="bg-blue-600 hover:bg-blue-500 text-white"
+            >
+              {editSectionLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

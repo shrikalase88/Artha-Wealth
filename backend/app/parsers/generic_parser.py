@@ -26,6 +26,7 @@ class ParsedHolding(TypedDict):
 class ParseResult(TypedDict):
     holder_name: str | None
     pan: str | None
+    vendor: str | None
     holdings: list[ParsedHolding]
     total_invested: Decimal
     total_value: Decimal
@@ -46,36 +47,50 @@ def _dec(text: str) -> Decimal:
 
 # Column-label patterns for identifying table structure
 _NAME_KEYS = re.compile(
-    r"scheme|fund|security|instrument|script|stock|name|description|holding",
+    r"scheme|fund|security|instrument|script|scrip|stock|name|description|holding|symbol",
     re.IGNORECASE,
 )
-_QTY_KEYS = re.compile(r"unit|quantity|qty|shares|nos|amount", re.IGNORECASE)
-_NAV_KEYS = re.compile(r"nav|price|ltp|rate|cost\s*per", re.IGNORECASE)
+_QTY_KEYS = re.compile(r"unit|quantity|qty|shares|nos(?:\.|\b)|balance\s*units?", re.IGNORECASE)
+_COST_KEYS = re.compile(
+    r"cost\s*basis|total\s*cost|cost\s*value|invested|investment|buy\s*value|purchase\s*value|purchase\s*cost",
+    re.IGNORECASE,
+)
+_AVG_PRICE_KEYS = re.compile(
+    r"avg(?:\.|\s*)?(?:cost|price|buy|rate)|buy\s*(?:price|rate)|purchase\s*price|average",
+    re.IGNORECASE,
+)
+_NAV_KEYS = re.compile(r"nav|ltp|cmp|market\s*price|closing\s*price|last\s*price|rate|price", re.IGNORECASE)
 _VAL_KEYS = re.compile(
-    r"value|amount|market\s*value|total|valuation|curr(\s*\.)?val",
+    r"market\s*value|current\s*value|valuation|curr(?:\.|\s*)?val|total\s*value|amount|value",
     re.IGNORECASE,
 )
-_ISIN_KEYS = re.compile(r"^isin$", re.IGNORECASE)
+_ISIN_KEYS = re.compile(r"^isin$|isin\s*code", re.IGNORECASE)
 _FOLIO_KEYS = re.compile(r"folio", re.IGNORECASE)
 
 
 def _classify_header(cells: list[str]) -> dict[str, int]:
-    """Map column names to indices."""
+    """Map column names to indices with priority."""
     mapping: dict[str, int] = {}
-    for i, c in enumerate(cells):
-        c = c.strip().lower()
-        if _NAME_KEYS.match(c) and "name" not in mapping:
-            mapping["name"] = i
-        elif _QTY_KEYS.match(c) and "qty" not in mapping:
-            mapping["qty"] = i
-        elif _NAV_KEYS.match(c) and "nav" not in mapping:
-            mapping["nav"] = i
-        elif _VAL_KEYS.match(c) and "val" not in mapping:
-            mapping["val"] = i
-        elif _ISIN_KEYS.match(c):
+    for i, raw_c in enumerate(cells):
+        c = raw_c.strip().lower()
+        if not c:
+            continue
+        if _ISIN_KEYS.search(c) and "isin" not in mapping:
             mapping["isin"] = i
-        elif _FOLIO_KEYS.match(c):
+        elif _FOLIO_KEYS.search(c) and "folio" not in mapping:
             mapping["folio"] = i
+        elif _COST_KEYS.search(c) and "cost" not in mapping:
+            mapping["cost"] = i
+        elif _AVG_PRICE_KEYS.search(c) and "avg_price" not in mapping:
+            mapping["avg_price"] = i
+        elif _VAL_KEYS.search(c) and "val" not in mapping:
+            mapping["val"] = i
+        elif _NAV_KEYS.search(c) and "nav" not in mapping:
+            mapping["nav"] = i
+        elif _QTY_KEYS.search(c) and "qty" not in mapping:
+            mapping["qty"] = i
+        elif _NAME_KEYS.search(c) and "name" not in mapping:
+            mapping["name"] = i
     return mapping
 
 
@@ -121,11 +136,21 @@ def _try_extract_tables(pdf: pdfplumber.PDF) -> list[ParsedHolding]:
                     else Decimal("0")
                 )
                 isin = (
-                    cells[col_map["isin"]]
+                    cells[col_map["isin"]].strip().upper()
                     if "isin" in col_map
-                    and re.match(r"^[A-Z0-9]{12}$", cells[col_map["isin"]])
+                    and re.match(r"^[A-Z0-9]{12}$", cells[col_map["isin"]].strip().upper())
                     else ""
                 )
+
+                cost_basis: Decimal | None = None
+                if "cost" in col_map and cells[col_map["cost"]]:
+                    cb = _dec(cells[col_map["cost"]])
+                    if cb > 0:
+                        cost_basis = cb
+                elif "avg_price" in col_map and cells[col_map["avg_price"]]:
+                    avg_p = _dec(cells[col_map["avg_price"]])
+                    if avg_p > 0 and qty > 0:
+                        cost_basis = qty * avg_p
 
                 key = (name, str(val))
                 if key in seen:
@@ -136,10 +161,10 @@ def _try_extract_tables(pdf: pdfplumber.PDF) -> list[ParsedHolding]:
                     folio="",
                     scheme_name=name,
                     isin=isin or None,
-                    units=qty if qty > 0 else val / nav if nav > 0 else Decimal("1"),
-                    nav=nav,
+                    units=qty if qty > 0 else (val / nav if nav > 0 else Decimal("1")),
+                    nav=nav if nav > 0 else (val / qty if qty > 0 else val),
                     market_value=val,
-                    cost_basis=None,
+                    cost_basis=cost_basis,
                 ))
 
     return holdings
@@ -219,10 +244,42 @@ def _try_extract_by_lines(pdf: pdfplumber.PDF) -> list[ParsedHolding]:
     return holdings
 
 
-def _extract_header_info(text: str) -> tuple[str | None, str | None, str | None]:
+def _detect_vendor(text: str) -> str | None:
+    t = text.lower()
+    vendors = [
+        ("zerodha", "Zerodha"),
+        ("groww", "Groww"),
+        ("cams", "CAMS"),
+        ("kfintech", "KFintech"),
+        ("karvy", "KFintech"),
+        ("cdsl", "CDSL"),
+        ("nsdl", "NSDL"),
+        ("icici direct", "ICICI Direct"),
+        ("hdfc sky", "HDFC Sky"),
+        ("hdfc securities", "HDFC Securities"),
+        ("upstox", "Upstox"),
+        ("angel one", "Angel One"),
+        ("angel broking", "Angel One"),
+        ("motilal oswal", "Motilal Oswal"),
+        ("paytm money", "Paytm Money"),
+        ("indmoney", "INDmoney"),
+        ("kotak securities", "Kotak Securities"),
+        ("axis direct", "Axis Direct"),
+        ("sharekhan", "Sharekhan"),
+        ("dhan", "Dhan"),
+        ("5paisa", "5paisa"),
+    ]
+    for key, name in vendors:
+        if key in t:
+            return name
+    return None
+
+
+def _extract_header_info(text: str) -> tuple[str | None, str | None, str | None, str | None]:
     name: str | None = None
     pan: str | None = None
     as_of_date: str | None = None
+    vendor = _detect_vendor(text)
 
     m = re.search(r"(?:Name|Investor|Client)\s*:?\s*(.+)", text, re.IGNORECASE)
     if m:
@@ -240,25 +297,26 @@ def _extract_header_info(text: str) -> tuple[str | None, str | None, str | None]
     if m:
         as_of_date = m.group(1).strip()
 
-    return name, pan, as_of_date
+    return name, pan, as_of_date, vendor
 
 
 def parse_generic_pdf(file_path: str) -> ParseResult:
     """Parse any portfolio PDF — tries table extraction first, then line-by-line."""
     with pdfplumber.open(file_path) as pdf:
         full_text = "\n".join((page.extract_text() or "") for page in pdf.pages)
-        name, pan, as_of_date = _extract_header_info(full_text)
+        name, pan, as_of_date, vendor = _extract_header_info(full_text)
 
         holdings = _try_extract_tables(pdf)
         if not holdings:
             holdings = _try_extract_by_lines(pdf)
 
         total_value = sum(h["market_value"] for h in holdings)
-        total_invested = Decimal("0")
+        total_invested = sum(h["cost_basis"] for h in holdings if h.get("cost_basis") is not None)
 
     return ParseResult(
         holder_name=name,
         pan=pan,
+        vendor=vendor,
         holdings=holdings,
         total_invested=total_invested,
         total_value=total_value,

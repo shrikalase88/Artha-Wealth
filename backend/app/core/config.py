@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     supabase_storage_bucket: str = "statements"
 
     llamaparse_api_key: str = ""
+    gemini_api_key: str = ""
     mfapi_base_url: str = "https://api.mfapi.in/mf"
 
 
