@@ -272,11 +272,9 @@
 @keyframes pageFadeIn {
   from {
     opacity: 0;
-    transform: translate3d(0, 10px, 0) scale(0.995);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
@@ -296,8 +294,7 @@
 }
 
 .page-transition {
-  animation: pageFadeIn 0.32s var(--ease-spring) both;
-  will-change: transform, opacity;
+  animation: pageFadeIn 0.22s ease-out both;
 }
 
 .animate-fade-in-up {

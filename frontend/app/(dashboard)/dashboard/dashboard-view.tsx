@@ -61,7 +61,6 @@ import { CustomDonutChart } from "@/components/ui/custom-donut-chart";
 import { ManualAssetModal } from "@/components/manual-asset-modal";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { SplashScreen } from "@/components/splash-screen";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -82,11 +81,6 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
       return tabParam;
     }
     return "market";
-  });
-
-  const [showSplash, setShowSplash] = useState<boolean>(() => {
-    // Show splash screen when landing on or viewing market tab
-    return !tabParam || tabParam === "market";
   });
 
   useEffect(() => {
@@ -685,12 +679,6 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
 
   return (
     <div className="space-y-6">
-      {showSplash && (
-        <SplashScreen
-          isLoading={isInitialDataLoading}
-          onComplete={() => setShowSplash(false)}
-        />
-      )}
       {/* Live Market indices ticker at the top */}
       {(() => {
         const liveIndices = (marketSummary && marketSummary.indices && marketSummary.indices.length > 0)
@@ -2243,348 +2231,261 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
           });
 
           return (
-            <div className="space-y-4 sm:space-y-6 animate-fade-in-up w-full max-w-full overflow-hidden">
-              {/* Header Hero Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-900/20 via-slate-900/60 to-cyan-900/20 border border-white/10 shadow-xl backdrop-blur-md">
-                <div className="space-y-1">
+            <div className="space-y-6 animate-fade-in-up">
+              {/* Regional/Base Currency Quick Selector Bar - Edge to Edge on Mobile (Matching Markets & Funds) */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none select-none -mx-4 px-4 sm:mx-0 sm:px-0">
+                {CURRENCIES.map((c) => {
+                  const isActive = baseCurrency === c.short;
+                  return (
+                    <button
+                      key={c.short}
+                      type="button"
+                      onClick={() => handleSelectBase(c.short)}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer touch-manipulation ${
+                        isActive
+                          ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/40"
+                          : "bg-slate-900/60 border border-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-800/80"
+                      }`}
+                    >
+                      <span className="text-base leading-none">{c.flag}</span>
+                      <span>{c.short}</span>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                        isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
+                      }`}>
+                        {c.symbol}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Currency Converter Card: Glass-card matching Markets & Funds */}
+              <div className="rounded-2xl border border-white/5 bg-slate-900/40 glass-card p-4 sm:p-5 space-y-4">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
-                      <Coins className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <ArrowRightLeft className="w-4 h-4" />
                     </div>
                     <div>
-                      <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                        Universal Currency & Forex Hub
-                      </h2>
-                      <p className="text-xs text-slate-400">
-                        Convert across global market pairs with real-time cross rates.
-                      </p>
+                      <h3 className="text-sm font-bold text-white tracking-tight">Currency Converter</h3>
+                      <p className="text-[11px] text-slate-400">Live multi-currency cross rates</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={swapCurrencies}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 text-xs font-semibold transition-all active:scale-95 cursor-pointer touch-manipulation"
+                    title="Swap base & target currencies"
+                  >
+                    <ArrowRightLeft className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Swap</span>
+                  </button>
+                </div>
+
+                {/* Input Fields Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                  {/* Amount in Base Currency */}
+                  <div className="sm:col-span-5 space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      You Convert ({baseCurrObj.short})
+                    </label>
+                    <div className="relative flex items-center">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="any"
+                        value={currencyAmount}
+                        onChange={(e) => setCurrencyAmount(e.target.value)}
+                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-3 pr-20 py-2.5 text-base sm:text-lg font-bold font-mono text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        placeholder="1"
+                      />
+                      <div className="absolute right-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 text-xs font-bold font-mono text-slate-200 pointer-events-none">
+                        <span>{baseCurrObj.flag}</span>
+                        <span>{baseCurrObj.short}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Swap Button Divider */}
+                  <div className="sm:col-span-2 flex justify-center items-center py-1 sm:py-0 sm:pt-4">
+                    <button
+                      type="button"
+                      onClick={swapCurrencies}
+                      className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 active:scale-90 transition-all cursor-pointer touch-manipulation"
+                      title="Swap Currencies"
+                    >
+                      <ArrowRightLeft className="w-4 h-4 text-blue-400" />
+                    </button>
+                  </div>
+
+                  {/* Target Currency Selector */}
+                  <div className="sm:col-span-5 space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Target Currency ({targetCurrObj.short})
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={targetCurrency}
+                        onChange={(e) => handleSelectTarget(e.target.value)}
+                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer appearance-none"
+                      >
+                        {CURRENCIES.map((c) => (
+                          <option key={c.short} value={c.short} className="bg-slate-900 text-white">
+                            {c.flag} {c.short} — {c.name} ({c.symbol})
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-mono text-slate-300 shadow-sm">
-                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Base: <span className="font-bold text-white ml-0.5">{baseCurrObj.flag} {baseCurrObj.short}</span>
+                {/* Conversion Result Banner */}
+                <div className="p-4 rounded-xl bg-gradient-to-r from-blue-950/40 via-slate-900/60 to-cyan-950/40 border border-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">
+                      Converted Total ({targetCurrObj.short})
+                    </span>
+                    <div className="text-xl sm:text-2xl font-black text-white font-mono tracking-tight tabular-nums mt-0.5">
+                      {targetCurrObj.symbol}{" "}
+                      {convertedTotal.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 4,
+                      })}{" "}
+                      <span className="text-xs font-normal text-slate-400 font-sans">{targetCurrObj.short}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-mono mt-1">
+                      1 {baseCurrObj.short} = {crossRate.toFixed(4)} {targetCurrObj.short} • 1 {targetCurrObj.short} = {inverseRate.toFixed(4)} {baseCurrObj.short}
+                    </p>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={copyConversionToClipboard}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-xs font-semibold text-slate-200 border border-white/10 transition-colors cursor-pointer self-start sm:self-auto shrink-0 touch-manipulation"
+                  >
+                    {copiedRate ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedRate ? "Copied!" : "Copy"}</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Main Layout Grid */}
-              <div className="grid gap-5 lg:gap-6 lg:grid-cols-12 w-full">
-                {/* Left Column: Any-to-Any Currency Converter (5 cols on lg) */}
-                <div className="lg:col-span-5 space-y-4 w-full">
-                  <Card className="border-white/10 bg-[#0c101d]/95 glass-card shadow-2xl overflow-hidden relative fluid-card-hover w-full">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-                    
-                    <CardHeader className="pb-3 border-b border-white/5 flex flex-row items-center justify-between p-4 sm:p-5">
-                      <div>
-                        <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <ArrowRightLeft className="h-4 w-4 text-blue-400" /> Currency Calculator
-                        </CardTitle>
-                        <CardDescription className="text-[11px] text-slate-500 mt-0.5">
-                          Universal cross-currency converter
-                        </CardDescription>
-                      </div>
+              {/* Live Global Rates Section: Matching Funds Grid Layout */}
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <div className="h-px w-4 bg-slate-400/30" /> Rates vs {baseCurrObj.flag} {baseCurrObj.short}
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Tap any card to set it as target currency
+                    </p>
+                  </div>
 
-                      {/* Swap Button */}
-                      <button
-                        type="button"
-                        onClick={swapCurrencies}
-                        className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 active:scale-95 border border-blue-500/20 transition-all cursor-pointer touch-manipulation"
-                        title="Swap Base & Target Currencies"
-                      >
-                        <ArrowRightLeft className="w-3.5 h-3.5" />
-                        <span>Swap</span>
-                      </button>
-                    </CardHeader>
-
-                    <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-5">
-                      {/* Currency Pair Selector: Stacked cleanly on mobile without truncation */}
-                      <div className="p-3 sm:p-4 rounded-2xl bg-slate-950/70 border border-white/5 space-y-2.5 sm:space-y-3">
-                        {/* Base Currency Selector */}
-                        <div className="space-y-1">
-                          <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                            From (Base Currency)
-                          </label>
-                          <div className="relative">
-                            <select
-                              value={baseCurrency}
-                              onChange={(e) => handleSelectBase(e.target.value)}
-                              className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer appearance-none pr-8"
-                            >
-                              {CURRENCIES.map((c) => (
-                                <option key={c.short} value={c.short} className="bg-slate-900 text-white">
-                                  {c.flag} {c.short} — {c.name} ({c.symbol})
-                                </option>
-                              ))}
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                          </div>
-                        </div>
-
-                        {/* Centered Swap Pill */}
-                        <div className="flex justify-center -my-0.5">
-                          <button
-                            type="button"
-                            onClick={swapCurrencies}
-                            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 hover:bg-blue-500/25 active:scale-95 border border-blue-500/30 text-[11px] font-semibold transition-all cursor-pointer touch-manipulation shadow-sm"
-                          >
-                            <ArrowRightLeft className="w-3.5 h-3.5" />
-                            <span>Swap From / To</span>
-                          </button>
-                        </div>
-
-                        {/* Target Currency Selector */}
-                        <div className="space-y-1">
-                          <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                            To (Target Currency)
-                          </label>
-                          <div className="relative">
-                            <select
-                              value={targetCurrency}
-                              onChange={(e) => handleSelectTarget(e.target.value)}
-                              className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer appearance-none pr-8"
-                            >
-                              {CURRENCIES.map((c) => (
-                                <option key={c.short} value={c.short} className="bg-slate-900 text-white">
-                                  {c.flag} {c.short} — {c.name} ({c.symbol})
-                                </option>
-                              ))}
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Quick Base Currency Selector Chips: Horizontal swipe showing all 11 global currencies */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-                          <span>Quick Base Currency</span>
-                          <span className="text-[10px] font-mono text-slate-500">Scroll & tap</span>
-                        </div>
-                        <div className="flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-none touch-pan-x">
-                          {CURRENCIES.map((r) => (
-                            <button
-                              key={r.short}
-                              type="button"
-                              onClick={() => handleSelectBase(r.short)}
-                              className={`shrink-0 min-w-[56px] p-2 rounded-xl text-center border transition-all duration-150 active:scale-95 cursor-pointer touch-manipulation ${
-                                baseCurrency === r.short
-                                  ? "bg-blue-600 text-white border-blue-400/50 shadow-md shadow-blue-600/20 font-bold ring-1 ring-blue-400/50"
-                                  : "bg-slate-900/80 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                              }`}
-                            >
-                              <div className="text-base leading-none mb-1">{r.flag}</div>
-                              <div className="text-[11px] font-mono font-bold">{r.short}</div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Input Field with Unit Badge */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-                          <label>Amount in {baseCurrObj.short}</label>
-                          <span className="text-[10px] font-mono text-slate-500">Enter Value</span>
-                        </div>
-
-                        <div className="relative flex items-center">
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            min="0"
-                            step="any"
-                            value={currencyAmount}
-                            onChange={(e) => setCurrencyAmount(e.target.value)}
-                            className="w-full bg-slate-950/90 border border-white/10 rounded-xl pl-3.5 pr-28 py-3 text-lg sm:text-xl font-bold font-mono text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner"
-                            placeholder="1"
-                          />
-                          <div className="absolute right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 text-xs font-bold font-mono text-slate-200 border border-white/10 pointer-events-none">
-                            <span>{baseCurrObj.flag}</span>
-                            <span>{baseCurrObj.short}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Quick Presets */}
-                      <div className="space-y-1.5">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Quick Presets</p>
-                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none touch-pan-x">
-                          {["1", "10", "50", "100", "500", "1,000", "5,000", "10,000"].map((preset) => {
-                            const rawVal = preset.replace(",", "");
-                            return (
-                              <button
-                                key={preset}
-                                type="button"
-                                onClick={() => setCurrencyAmount(rawVal)}
-                                className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all duration-150 active:scale-95 cursor-pointer touch-manipulation ${
-                                  currencyAmount === rawVal
-                                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/40"
-                                    : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800"
-                                }`}
-                              >
-                                {preset}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Result Box with Copy action */}
-                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-900/30 via-slate-900/90 to-cyan-900/30 border border-blue-500/30 text-center space-y-2 shadow-lg relative group">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] sm:text-xs font-bold text-blue-400 uppercase tracking-widest">
-                            Converted Result ({targetCurrObj.short})
-                          </span>
-                          <button
-                            type="button"
-                            onClick={copyConversionToClipboard}
-                            className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0 touch-manipulation"
-                            title="Copy conversion"
-                          >
-                            {copiedRate ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                          </button>
-                        </div>
-
-                        <div className="py-1">
-                          <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white font-mono tracking-tight tabular-nums break-words">
-                            {targetCurrObj.symbol}{" "}
-                            {convertedTotal.toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 4,
-                            })}{" "}
-                            <span className="text-sm sm:text-base font-normal text-slate-400 font-sans">{targetCurrObj.short}</span>
-                          </h3>
-                        </div>
-
-                        <div className="pt-2 border-t border-white/5 text-[11px] text-slate-400 font-mono flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-                          <span>1 {baseCurrObj.short} = {crossRate.toFixed(4)} {targetCurrObj.short}</span>
-                          <span>•</span>
-                          <span>1 {targetCurrObj.short} = {inverseRate.toFixed(4)} {baseCurrObj.short}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {/* Search Input for currencies */}
+                  <div className="relative w-full sm:w-56">
+                    <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                    <Input
+                      placeholder="Search currency..."
+                      value={currencySearch}
+                      onChange={(e) => setCurrencySearch(e.target.value)}
+                      className="pl-8 h-8 text-xs bg-slate-900/80 border-white/10 text-white placeholder:text-slate-600 focus:border-blue-500/50 rounded-xl"
+                    />
+                  </div>
                 </div>
 
-                {/* Right Column: Live Global Exchange Rates vs Selected Base Currency (7 cols on lg) */}
-                <div className="lg:col-span-7 space-y-4 w-full">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
-                    <div>
-                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <div className="h-px w-4 bg-slate-400/30" /> Rates vs {baseCurrObj.flag} {baseCurrObj.short}
-                      </h3>
-                      <p className="text-[11px] text-slate-500">
-                        Tap any card to set it as Target ({targetCurrObj.short}).
-                      </p>
+                {/* Currencies Grid: 1 col on mobile, 2 on tablet, 3 on desktop (Exact match with Funds) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredCurrencies.length === 0 ? (
+                    <div className="col-span-full p-8 text-center text-sm text-slate-500 border border-white/5 bg-slate-900/30 rounded-2xl">
+                      No currencies match "{currencySearch}".
                     </div>
+                  ) : (
+                    filteredCurrencies.map((item) => {
+                      const isTarget = targetCurrency === item.short;
+                      const isBase = baseCurrency === item.short;
+                      const positive = (item.change_pct ?? 0) >= 0;
 
-                    {/* Search Input for currencies */}
-                    <div className="relative w-full sm:w-56">
-                      <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
-                      <Input
-                        placeholder="Search currency..."
-                        value={currencySearch}
-                        onChange={(e) => setCurrencySearch(e.target.value)}
-                        className="pl-8 h-8 text-xs bg-slate-900/80 border-white/10 text-white placeholder:text-slate-600 focus:border-blue-500/50"
-                      />
-                    </div>
-                  </div>
+                      const rateForCard = item.inrPrice > 0 ? baseCurrObj.inrPrice / item.inrPrice : 1;
+                      const inverseForCard = rateForCard > 0 ? 1 / rateForCard : 0;
 
-                  {/* Currencies Grid: Single column on mobile (<640px) to prevent cramping/truncation, 2 columns on tablet/desktop */}
-                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-                    {filteredCurrencies.length === 0 ? (
-                      <div className="col-span-full p-8 text-center text-sm text-slate-500 border border-white/5 bg-slate-900/30 rounded-2xl">
-                        No currencies match "{currencySearch}".
-                      </div>
-                    ) : (
-                      filteredCurrencies.map((item) => {
-                        const isTarget = targetCurrency === item.short;
-                        const isBase = baseCurrency === item.short;
-                        const positive = (item.change_pct ?? 0) >= 0;
-
-                        // Rate of 1 Base in terms of this Item currency
-                        const rateForCard = item.inrPrice > 0 ? baseCurrObj.inrPrice / item.inrPrice : 1;
-                        const inverseForCard = rateForCard > 0 ? 1 / rateForCard : 0;
-
-                        return (
-                          <Card
-                            key={item.short}
-                            onClick={() => {
-                              if (!isBase) {
-                                handleSelectTarget(item.short);
-                              }
-                            }}
-                            className={`border transition-all duration-150 active:scale-98 cursor-pointer overflow-hidden group shadow-lg touch-manipulation ${
-                              isTarget
-                                ? "bg-gradient-to-br from-blue-900/40 via-slate-900/95 to-cyan-900/40 border-blue-500/60 ring-2 ring-blue-500/30 shadow-blue-500/10"
-                                : isBase
-                                ? "bg-slate-900/90 border-emerald-500/30 opacity-85"
-                                : "bg-[#090e1d]/90 border-white/10 hover:bg-white/[0.06] hover:border-white/20"
-                            }`}
-                          >
-                            <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-                              {/* Top Row: Flag, Full Currency Name, Badges, and 24h Change */}
-                              <div className="flex justify-between items-start gap-2">
-                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                  <span className="text-2xl sm:text-3xl shrink-0">{item.flag}</span>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      <span className="text-sm font-bold text-white group-hover:text-blue-300 transition-colors">
-                                        {item.name}
-                                      </span>
-                                      {isBase && (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold shrink-0">
-                                          Base
-                                        </span>
-                                      )}
-                                      {isTarget && (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold shrink-0">
-                                          Target
-                                        </span>
-                                      )}
-                                    </div>
-                                    <p className="text-xs text-slate-400 font-mono mt-0.5">
-                                      {baseCurrObj.short} / {item.short} ({item.symbol})
-                                    </p>
-                                  </div>
+                      return (
+                        <div
+                          key={item.short}
+                          onClick={() => {
+                            if (!isBase) handleSelectTarget(item.short);
+                          }}
+                          className={`rounded-2xl border p-4 transition-all duration-200 cursor-pointer active:scale-[0.99] touch-manipulation flex flex-col justify-between gap-3 ${
+                            isTarget
+                              ? "bg-blue-600/10 border-blue-500/50 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/30"
+                              : isBase
+                              ? "bg-emerald-500/5 border-emerald-500/30 opacity-90"
+                              : "bg-slate-900/40 border-white/5 hover:bg-slate-900/70 hover:border-white/15"
+                          }`}
+                        >
+                          {/* Top: Flag, Name, Code, Badges */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <span className="text-2xl shrink-0">{item.flag}</span>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-xs sm:text-sm font-bold text-white tracking-tight">
+                                    {item.name}
+                                  </span>
+                                  {isBase && (
+                                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold shrink-0">
+                                      Base
+                                    </span>
+                                  )}
+                                  {isTarget && (
+                                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 font-semibold shrink-0">
+                                      Target
+                                    </span>
+                                  )}
                                 </div>
-
-                                <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold shrink-0 ${
-                                  positive ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-red-500/15 text-red-400 border border-red-500/30"
-                                }`}>
-                                  {positive ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-                                  {positive ? "+" : ""}{item.change_pct}%
-                                </div>
+                                <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                                  {baseCurrObj.short} / {item.short}
+                                </p>
                               </div>
+                            </div>
 
-                              {/* Rates Row: Spacious, tabular numbers without ellipsis or truncation */}
-                              <div className="flex items-center justify-between pt-3 border-t border-white/5 gap-2">
-                                <div className="min-w-0">
-                                  <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider block">
-                                    1 {baseCurrObj.short} =
-                                  </span>
-                                  <span className="text-base sm:text-lg font-black text-white font-mono tracking-tight tabular-nums block">
-                                    {item.symbol} {rateForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                                  </span>
-                                </div>
+                            {/* 24h Change Pill */}
+                            <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold shrink-0 ${
+                              positive
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : "bg-red-500/10 text-red-400 border border-red-500/20"
+                            }`}>
+                              {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                              {positive ? "+" : ""}{item.change_pct}%
+                            </div>
+                          </div>
 
-                                <div className="text-right shrink-0">
-                                  <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider block">
-                                    1 {item.short} =
-                                  </span>
-                                  <span className="text-xs sm:text-sm font-mono font-semibold text-slate-300 tabular-nums block">
-                                    {baseCurrObj.symbol} {inverseForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                                  </span>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })
-                    )}
-                  </div>
+                          {/* Bottom: 2-column metrics */}
+                          <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-white/5">
+                            <div>
+                              <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-medium">
+                                1 {baseCurrObj.short} =
+                              </span>
+                              <span className="text-sm sm:text-base font-black font-mono text-white tabular-nums block mt-0.5">
+                                {item.symbol} {rateForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                              </span>
+                            </div>
+
+                            <div className="text-right">
+                              <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-medium">
+                                1 {item.short} =
+                              </span>
+                              <span className="text-xs sm:text-sm font-semibold font-mono text-slate-300 tabular-nums block mt-0.5">
+                                {baseCurrObj.symbol} {inverseForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>

@@ -7,13 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default function DashboardPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#09090b] text-white">
-          <SplashScreen isLoading={true} />
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       <DashboardDataFetcher />
     </Suspense>
   );
