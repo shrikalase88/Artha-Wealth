@@ -1,54 +1,51 @@
 "use client";
 
+import { Activity, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { UserMenu } from "@/components/user-menu";
 
-interface TopBarProps {
-  user?: any;
-}
-
-export function TopBar({ user: initialUser }: TopBarProps) {
-  const supabase = createClient();
-  const [user, setUser] = useState<any>(initialUser || null);
+export function TopBar() {
+  const [mounted, setMounted] = useState(false);
+  const [dateStr, setDateStr] = useState("");
 
   useEffect(() => {
-    if (initialUser) {
-      setUser(initialUser);
-      return;
-    }
-
-    async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    }
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [initialUser, supabase]);
-
-  if (!user) return null;
+    setMounted(true);
+    const updateTime = () => {
+      const now = new Date();
+      setDateStr(
+        now.toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      );
+    };
+    updateTime();
+  }, []);
 
   return (
-    <header className="hidden lg:flex h-16 border-b border-[#27272a] bg-[#09090b]/95 backdrop-blur-xl px-8 items-center justify-between sticky top-0 z-40 w-full">
-      {/* Left side: Empty placeholder for flex-between layout */}
-      <div className="flex items-center gap-2"></div>
+    <header className="hidden lg:flex h-14 border-b border-[#27272a] bg-[#09090b]/80 backdrop-blur-xl px-8 items-center justify-between sticky top-0 z-40 w-full select-none">
+      {/* Left side: Live Engine Badge */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Live Quant Engine</span>
+        </div>
+        <span className="text-zinc-500 text-xs font-mono">•</span>
+        <span className="text-xs text-zinc-400 font-medium">Global Markets, Funds & Forex</span>
+      </div>
 
-      {/* Right side: User Menu */}
+      {/* Right side: Current Date & System Status */}
       <div className="flex items-center gap-4">
-        {/* User Profile Menu */}
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-xs font-semibold text-white">
-              {user.user_metadata?.full_name || user.email?.split("@")[0]}
-            </p>
-            <p className="text-[10px] text-zinc-400 font-light truncate max-w-[150px]">{user.email}</p>
+        {mounted && (
+          <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono">
+            <Clock className="h-3.5 w-3.5 text-zinc-400" />
+            <span>{dateStr}</span>
           </div>
-          <UserMenu user={user} />
+        )}
+        <div className="flex items-center gap-1.5 text-xs text-blue-400 font-mono bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-lg">
+          <Activity className="h-3.5 w-3.5" />
+          <span>AMFI & NSE FEED</span>
         </div>
       </div>
     </header>

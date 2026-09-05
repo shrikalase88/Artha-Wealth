@@ -5,94 +5,53 @@ import useSWR from "swr";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BarChart, DonutChart } from "@tremor/react";
 import {
   TrendingUp,
   TrendingDown,
-  Upload,
   Search,
   Activity,
   Calculator,
   Compass,
-  Briefcase,
   Coins,
   ArrowRightLeft,
-  ChevronRight,
   ChevronDown,
-  Sparkles,
-  Loader2,
-  Plus,
-  RefreshCw,
-  Pencil,
-  Trash2,
-  Layers,
-  Award,
   PieChart,
-  HelpCircle,
-  ArrowUpRight,
-  ArrowDownRight,
-  Lock,
-  FileText,
-  Image as ImageIcon,
-  FolderPlus,
-  Building2,
-  Tag,
-  ExternalLink,
   Check,
   Copy,
 } from "lucide-react";
 import { formatIndianCurrency } from "@/lib/utils";
-import { CustomBarChart } from "@/components/ui/custom-bar-chart";
 import { CustomDonutChart } from "@/components/ui/custom-donut-chart";
-import { ManualAssetModal } from "@/components/manual-asset-modal";
-import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
-interface DashboardViewProps {
-  user: any;
-  portfolios: any[];
-  assets: any[];
-}
-
-export function DashboardView({ user, portfolios, assets }: DashboardViewProps) {
+export function DashboardView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams ? searchParams.get("tab") : null;
-  const supabase = createClient();
 
   const [activeTab, setActiveTab] = useState<string>(() => {
-    if (tabParam && ["portfolio", "market", "funds", "currency"].includes(tabParam)) {
+    if (tabParam && ["market", "funds", "currency", "sip"].includes(tabParam)) {
       return tabParam;
     }
     return "market";
   });
 
   useEffect(() => {
-    if (tabParam && ["portfolio", "market", "funds", "currency"].includes(tabParam)) {
+    if (tabParam && ["market", "funds", "currency", "sip"].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
 
   useEffect(() => {
     const handleSwitchTab = (e: any) => {
-      if (e.detail && ["portfolio", "market", "funds", "currency"].includes(e.detail)) {
+      if (e.detail && ["market", "funds", "currency", "sip"].includes(e.detail)) {
         setActiveTab(e.detail);
       }
     };
@@ -100,39 +59,76 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
     return () => window.removeEventListener("artha:switch-tab", handleSwitchTab);
   }, []);
 
-  const [localPortfolios, setLocalPortfolios] = useState<any[]>(portfolios || []);
-  const sectionParam = searchParams ? searchParams.get("section") : null;
-  const [selectedPortfolioId, setSelectedPortfolioId] = useState<string>(sectionParam || "all");
-
-  useEffect(() => {
-    if (sectionParam) {
-      setSelectedPortfolioId(sectionParam);
-    }
-  }, [sectionParam]);
-
-  // Create section modal states
-  const [createSectionOpen, setCreateSectionOpen] = useState(false);
-  const [newSectionName, setNewSectionName] = useState("");
-  const [newSectionVendor, setNewSectionVendor] = useState("Zerodha");
-  const [newSectionDesc, setNewSectionDesc] = useState("");
-  const [createSectionLoading, setCreateSectionLoading] = useState(false);
-
-  // Edit section modal states
-  const [editSectionOpen, setEditSectionOpen] = useState(false);
-  const [editingSection, setEditingSection] = useState<any>(null);
-  const [editSectionName, setEditSectionName] = useState("");
-  const [editSectionDesc, setEditSectionDesc] = useState("");
-  const [editSectionLoading, setEditSectionLoading] = useState(false);
-
-  useEffect(() => {
-    setLocalPortfolios(portfolios || []);
-  }, [portfolios]);
-
-  const [portfolioTimeRange, setPortfolioTimeRange] = useState<"1M" | "3M" | "6M" | "1Y">("1Y");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [assetTypeFilter, setAssetTypeFilter] = useState("all");
   const [fundFilterCategory, setFundFilterCategory] = useState<string>("all");
   const [selectedMarketRegion, setSelectedMarketRegion] = useState<"india" | "us" | "europe" | "china" | "japan" | "arab">("india");
+
+  // SIP Growth Engine States
+  const [sipMonthly, setSipMonthly] = useState<number>(10000);
+  const [sipReturn, setSipReturn] = useState<number>(14);
+  const [sipYears, setSipYears] = useState<number>(15);
+  const [sipMode, setSipMode] = useState<"sip" | "lumpsum">("sip");
+
+  const sipCalculation = useMemo(() => {
+    const P = sipMonthly;
+    const r = sipReturn / 100;
+    const years = sipYears;
+
+    if (sipMode === "sip") {
+      const i = r / 12;
+      const n = years * 12;
+      const totalInvested = P * n;
+      const maturityValue = i > 0 ? P * (((Math.pow(1 + i, n) - 1) / i) * (1 + i)) : totalInvested;
+      const wealthGained = maturityValue - totalInvested;
+      return {
+        totalInvested: Math.round(totalInvested),
+        wealthGained: Math.round(wealthGained),
+        maturityValue: Math.round(maturityValue),
+      };
+    } else {
+      const totalInvested = P;
+      const maturityValue = P * Math.pow(1 + r, years);
+      const wealthGained = maturityValue - totalInvested;
+      return {
+        totalInvested: Math.round(totalInvested),
+        wealthGained: Math.round(wealthGained),
+        maturityValue: Math.round(maturityValue),
+      };
+    }
+  }, [sipMonthly, sipReturn, sipYears, sipMode]);
+
+  // Year-by-year compounding projections table
+  const sipProjections = useMemo(() => {
+    const list = [];
+    const step = sipYears <= 5 ? 1 : sipYears <= 15 ? 2 : 5;
+    const r = sipReturn / 100;
+    const i = r / 12;
+
+    for (let y = 1; y <= sipYears; y++) {
+      if (y === 1 || y === sipYears || y % step === 0) {
+        if (sipMode === "sip") {
+          const n = y * 12;
+          const invested = sipMonthly * n;
+          const maturity = i > 0 ? sipMonthly * (((Math.pow(1 + i, n) - 1) / i) * (1 + i)) : invested;
+          list.push({
+            year: y,
+            invested: Math.round(invested),
+            wealthGained: Math.round(maturity - invested),
+            maturity: Math.round(maturity),
+          });
+        } else {
+          const invested = sipMonthly;
+          const maturity = invested * Math.pow(1 + r, y);
+          list.push({
+            year: y,
+            invested: Math.round(invested),
+            wealthGained: Math.round(maturity - invested),
+            maturity: Math.round(maturity),
+          });
+        }
+      }
+    }
+    return list;
+  }, [sipMonthly, sipReturn, sipYears, sipMode]);
 
   // Detect user's preferred or timezone location to set regional market ticker & default currency
   useEffect(() => {
@@ -169,160 +165,6 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
       // Default to user settings
     }
   }, []);
-
-  // Manual input modal states
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingAsset, setEditingAsset] = useState<any>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  const handleSyncPortfolio = async () => {
-    if (!user) return;
-    setIsSyncing(true);
-    const toastId = toast.loading("Syncing portfolio with live market values...");
-    try {
-      const resp = await fetch(`${BACKEND_URL}/api/v1/assets/user/${user.id}/sync`, {
-        method: "POST",
-      });
-      if (!resp.ok) {
-        throw new Error("Sync API failed");
-      }
-      toast.success("Portfolio successfully synced!", { id: toastId });
-      router.refresh();
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Failed to sync portfolio: " + (err.message || "Unknown error"), { id: toastId });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleCreateSection = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    if (!newSectionName.trim()) {
-      toast.error("Please enter a section name");
-      return;
-    }
-    setCreateSectionLoading(true);
-    try {
-      const description = newSectionDesc.trim() || `${newSectionVendor} Profile`;
-      const { data: newPf, error } = await supabase
-        .from("portfolios")
-        .insert({
-          user_id: user.id,
-          name: newSectionName.trim(),
-          description,
-          upload_status: "completed",
-          total_invested: 0,
-          total_value: 0,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setLocalPortfolios((prev) => [newPf, ...prev]);
-      setSelectedPortfolioId(newPf.id);
-      setCreateSectionOpen(false);
-      setNewSectionName("");
-      setNewSectionDesc("");
-      toast.success(`Portfolio section "${newPf.name}" created!`);
-      router.refresh();
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Failed to create portfolio section");
-    } finally {
-      setCreateSectionLoading(false);
-    }
-  };
-
-  const handleOpenEditSection = (pf: any) => {
-    setEditingSection(pf);
-    setEditSectionName(pf.name || "");
-    setEditSectionDesc(pf.description || "");
-    setEditSectionOpen(true);
-  };
-
-  const handleUpdateSection = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingSection) return;
-    if (!editSectionName.trim()) {
-      toast.error("Please enter a section name");
-      return;
-    }
-    setEditSectionLoading(true);
-    try {
-      const { error } = await supabase
-        .from("portfolios")
-        .update({
-          name: editSectionName.trim(),
-          description: editSectionDesc.trim() || null,
-        })
-        .eq("id", editingSection.id);
-
-      if (error) throw error;
-
-      setLocalPortfolios((prev) =>
-        prev.map((p) =>
-          p.id === editingSection.id
-            ? { ...p, name: editSectionName.trim(), description: editSectionDesc.trim() || null }
-            : p
-        )
-      );
-      setEditSectionOpen(false);
-      toast.success("Section updated successfully!");
-      router.refresh();
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Failed to update section");
-    } finally {
-      setEditSectionLoading(false);
-    }
-  };
-
-  const handleDeleteStatement = async (portfolioId: string) => {
-    // Optimistically update UI instantly for mobile responsiveness
-    setLocalPortfolios((prev) => prev.filter((p) => p.id !== portfolioId));
-    if (selectedPortfolioId === portfolioId) {
-      setSelectedPortfolioId("all");
-    }
-    const toastId = toast.loading("Removing statement source & updating database...");
-    
-    try {
-      // 1. Perform direct Supabase database deletion
-      await supabase.from("assets").delete().eq("portfolio_id", portfolioId);
-      await supabase.from("portfolios").delete().eq("id", portfolioId).eq("user_id", user.id);
-
-      // 2. Call backend API endpoint asynchronously
-      const session = (await supabase.auth.getSession()).data.session;
-      const token = session?.access_token;
-      if (token) {
-        fetch(`${BACKEND_URL}/api/v1/portfolios/${portfolioId}?user_id=${user.id}`, {
-          method: "DELETE",
-          headers: { "Authorization": `Bearer ${token}` }
-        }).catch(() => {});
-      }
-
-      toast.success("Portfolio section removed and database updated!", { id: toastId });
-      router.refresh();
-    } catch (err: any) {
-      console.error("Delete error:", err);
-      toast.error("Error removing statement: " + (err.message || "Failed"), { id: toastId });
-      router.refresh();
-    }
-  };
-
-  useEffect(() => {
-    if (user && activeTab === "portfolio") {
-      const lastSync = localStorage.getItem(`lastSync_${user.id}`);
-      const now = Date.now();
-      // Auto-sync if last sync was more than 15 minutes ago
-      if (!lastSync || now - parseInt(lastSync) > 15 * 60 * 1000) {
-        handleSyncPortfolio();
-        localStorage.setItem(`lastSync_${user.id}`, String(now));
-      }
-    }
-  }, [user, activeTab]);
 
   // Resilient live market details fetcher with instant fallback data on network failure
   const DEFAULT_FALLBACK_SUMMARY = {
@@ -483,206 +325,6 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   };
   const isMarketOpen = checkMarketStatus();
 
-  // Active Assets scoped to selected portfolio profile or all portfolios
-  const activeAssets = useMemo(() => {
-    if (!selectedPortfolioId || selectedPortfolioId === "all") {
-      return assets;
-    }
-    return assets.filter((a) => a.portfolio_id === selectedPortfolioId);
-  }, [assets, selectedPortfolioId]);
-
-  const activePortfolio = useMemo(() => {
-    if (!selectedPortfolioId || selectedPortfolioId === "all") return null;
-    return localPortfolios.find((p) => p.id === selectedPortfolioId) || null;
-  }, [localPortfolios, selectedPortfolioId]);
-
-  // Calculated Portfolio totals (scoped to active section or aggregated)
-  const totalValue = activeAssets.reduce((s, a) => s + Number(a.market_value ?? 0), 0);
-  const totalCost = activeAssets.reduce((s, a) => s + Number(a.cost_basis ?? 0), 0);
-  const hasCostBasis = activeAssets.some((a) => a.cost_basis && Number(a.cost_basis) > 0);
-  const totalGain = hasCostBasis ? totalValue - totalCost : null;
-  const gainPercent = hasCostBasis && totalCost > 0 ? (totalGain! / totalCost) * 100 : null;
-
-  // Dynamic Historical Growth & Time Range Performance Calculator (1M, 3M, 6M, 1Y)
-  const getPeriodPerformance = (timeRange: "1M" | "3M" | "6M" | "1Y") => {
-    const baseReturnPct = gainPercent !== null ? gainPercent : 36.7;
-    const baseGainAmt = totalGain !== null ? totalGain : totalValue * (baseReturnPct / 100);
-
-    let periodPct = baseReturnPct;
-    let periodGainAmt = baseGainAmt;
-    let svgPath = "M 0 48 C 50 42, 90 38, 140 30 C 190 32, 240 22, 290 14 C 340 18, 370 6, 400 2";
-
-    if (timeRange === "1M") {
-      periodPct = baseReturnPct > 0 ? baseReturnPct * 0.18 : baseReturnPct * 0.5;
-      periodGainAmt = totalValue * (periodPct / 100);
-      svgPath = "M 0 38 C 40 46, 90 28, 140 34 C 190 22, 240 38, 290 18 C 340 26, 370 10, 400 5";
-    } else if (timeRange === "3M") {
-      periodPct = baseReturnPct > 0 ? baseReturnPct * 0.42 : baseReturnPct * 0.7;
-      periodGainAmt = totalValue * (periodPct / 100);
-      svgPath = "M 0 42 C 60 48, 110 32, 170 36 C 230 26, 280 22, 340 14 C 370 16, 390 8, 400 3";
-    } else if (timeRange === "6M") {
-      periodPct = baseReturnPct > 0 ? baseReturnPct * 0.72 : baseReturnPct * 0.85;
-      periodGainAmt = totalValue * (periodPct / 100);
-      svgPath = "M 0 45 C 50 36, 100 42, 160 26 C 220 30, 270 16, 330 11 C 370 13, 390 5, 400 2";
-    }
-
-    return {
-      percent: periodPct,
-      gainAmount: periodGainAmt,
-      svgPath,
-      label: timeRange === "1Y" ? "overall" : `in ${timeRange}`,
-    };
-  };
-
-  const periodData = getPeriodPerformance(portfolioTimeRange);
-
-  // Additional dynamic KPI calculations
-  const totalHoldingsCount = activeAssets.length;
-  
-  const uniqueTypes = new Set(activeAssets.map((a) => a.asset_type)).size;
-  const diversificationRating = uniqueTypes >= 3 ? "High" : uniqueTypes === 2 ? "Medium" : "Low";
-  const diversificationColor = uniqueTypes >= 3 ? "text-emerald-400" : uniqueTypes === 2 ? "text-amber-400" : "text-red-400";
-
-  // Top Performer holding search
-  let topPerformingAsset = "None";
-  let topPerformingGainPct = 0;
-  activeAssets.forEach((a) => {
-    if (a.cost_basis && Number(a.cost_basis) > 0) {
-      const gain = Number(a.market_value) - Number(a.cost_basis);
-      const gainPct = (gain / Number(a.cost_basis)) * 100;
-      if (gainPct > topPerformingGainPct) {
-        topPerformingGainPct = gainPct;
-        topPerformingAsset = a.name;
-      }
-    }
-  });
-
-  // Split calculations by asset types
-  const mutualFundsTotal = activeAssets.filter(a => a.asset_type === "mutual_fund").reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
-  const equitiesTotal = activeAssets.filter(a => a.asset_type === "equity").reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
-  const otherTotal = activeAssets.filter(a => !["mutual_fund", "equity"].includes(a.asset_type)).reduce((sum, a) => sum + Number(a.market_value ?? 0), 0);
-  
-  // Filtered Assets
-  const filteredAssets = activeAssets.filter((asset) => {
-    const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (asset.isin && asset.isin.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesType = assetTypeFilter === "all" || asset.asset_type === assetTypeFilter;
-    return matchesSearch && matchesType;
-  });
-
-  // Helper to dynamically categorize assets based on name and type
-  const getFundCategory = (asset: any) => {
-    if (asset.asset_type === "equity") return "Direct Equities";
-    if (asset.asset_type === "mutual_fund") {
-      const name = (asset.name || "").toLowerCase();
-      if (name.includes("liquid") || name.includes("debt") || name.includes("bond") || name.includes("gilt") || name.includes("money market")) {
-        return "Debt Funds";
-      }
-      if (name.includes("hybrid") || name.includes("balanced") || name.includes("multi asset") || name.includes("dynamic") || name.includes("advantage") || name.includes("baf")) {
-        return "Multi Asset / Hybrid";
-      }
-      return "Equity Funds";
-    }
-    return "ETFs & Others";
-  };
-
-  // Group asset class allocations for DonutChart
-  const getChartAllocation = () => {
-    const categories: Record<string, number> = {};
-    activeAssets.forEach((a) => {
-      const typeLabel = getFundCategory(a);
-      categories[typeLabel] = (categories[typeLabel] || 0) + Number(a.market_value ?? 0);
-    });
-    return Object.keys(categories).map((name) => ({
-      name,
-      value: categories[name],
-    }));
-  };
-
-  const chartAllocation = getChartAllocation();
-
-  const getTopMovers = () => {
-    const assetsWithReturns = activeAssets.map(a => {
-      const invested = Number(a.cost_basis ?? a.average_buy_price ?? 0);
-      const current = Number(a.market_value ?? 0);
-      const absoluteReturn = current - invested;
-      const pctReturn = invested > 0 ? (absoluteReturn / invested) * 100 : 0;
-      return { ...a, absoluteReturn, pctReturn, current, invested };
-    }).filter(a => a.invested > 0);
-
-    const sortedByPct = [...assetsWithReturns].sort((a, b) => b.pctReturn - a.pctReturn);
-    return {
-      topGainers: sortedByPct.slice(0, 3),
-      topLosers: [...sortedByPct].reverse().slice(0, 3),
-    };
-  };
-
-  const { topGainers, topLosers } = getTopMovers();
-
-  // Get Invested vs Current value by asset class for the BarChart
-  const getBarChartData = () => {
-    const dataMap: Record<string, { Invested: number; Current: number }> = {};
-    activeAssets.forEach((a) => {
-      const typeLabel = getFundCategory(a);
-      if (!dataMap[typeLabel]) {
-        dataMap[typeLabel] = { Invested: 0, Current: 0 };
-      }
-      dataMap[typeLabel].Invested += Number(a.cost_basis ?? a.market_value ?? 0);
-      dataMap[typeLabel].Current += Number(a.market_value ?? 0);
-    });
-    return Object.keys(dataMap).map((key) => ({
-      Category: key,
-      "Invested Capital": Math.round(dataMap[key].Invested),
-      "Current Value": Math.round(dataMap[key].Current),
-    }));
-  };
-
-  const barChartData = getBarChartData();
-
-  const failedPortfolios = portfolios.filter((p) => p.upload_status === "failed");
-  const processingPortfolios = portfolios.filter((p) => p.upload_status === "processing");
-
-  const handleDeleteAsset = async (assetId: string, assetPortfolioId?: string) => {
-    if (!confirm("Are you sure you want to delete this holding?")) return;
-    try {
-      const { error } = await supabase.from("assets").delete().eq("id", assetId);
-      if (error) throw error;
-      toast.success("Holding deleted successfully");
-
-      // Recalculate portfolio totals for this specific portfolio
-      const targetPfId = assetPortfolioId || (selectedPortfolioId !== "all" ? selectedPortfolioId : portfolios[0]?.id);
-      if (targetPfId) {
-        const { data: remainingAssets } = await supabase
-          .from("assets")
-          .select("market_value, cost_basis")
-          .eq("portfolio_id", targetPfId);
-
-        const totalVal = remainingAssets?.reduce((sum, a) => sum + Number(a.market_value || 0), 0) || 0;
-        const totalCost = remainingAssets?.reduce((sum, a) => sum + Number(a.cost_basis || 0), 0) || 0;
-
-        await supabase
-          .from("portfolios")
-          .update({
-            total_value: totalVal,
-            total_invested: totalCost,
-          })
-          .eq("id", targetPfId);
-      }
-      router.refresh();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete holding");
-    }
-  };
-
-  const handleEditAsset = (asset: any) => {
-    setEditingAsset(asset);
-    setModalOpen(true);
-  };
-
-  const handleOpenAddModal = () => {
-    setEditingAsset(null);
-    setModalOpen(true);
-  };
 
   return (
     <div className="space-y-6">
@@ -736,15 +378,14 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
       })()}
 
       <div className="px-4 sm:px-6 lg:px-8 space-y-6 pt-2 pb-8">
-        {/* Navigation Tabs and Manual Entry Trigger - Dynamically hidden on mobile screens when bottom nav capsule is present */}
         <div className="hidden lg:flex sticky top-0 z-30 w-full border-b border-[#27272a] bg-[#09090b]/95 backdrop-blur-xl py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 overflow-x-auto scrollbar-none">
           <div className="flex items-center justify-between gap-4 w-full min-w-max">
             <nav className="inline-flex items-center p-1 sm:p-1.5 bg-[#121215]/95 backdrop-blur-2xl rounded-2xl border border-[#27272a] shadow-lg gap-1 sm:gap-1.5 overflow-x-auto">
               {[
                 { id: "market", name: "Markets", icon: Activity },
                 { id: "funds", name: "Funds", icon: Compass },
-                { id: "portfolio", name: "Portfolio", icon: Briefcase },
-                { id: "currency", name: "Currency", icon: Coins }
+                { id: "currency", name: "Currency", icon: Coins },
+                { id: "sip", name: "SIP Calculator", icon: Calculator },
               ].map((tab) => {
                 const active = activeTab === tab.id;
                 const Icon = tab.icon;
@@ -756,7 +397,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       setActiveTab(tab.id);
                       router.push(`/dashboard?tab=${tab.id}`, { scroll: false });
                     }}
-                    className={`flex items-center justify-center gap-2 py-2 px-4.5 rounded-xl transition-all duration-200 select-none whitespace-nowrap ${
+                    className={`flex items-center justify-center gap-2 py-2 px-4.5 rounded-xl transition-all duration-200 select-none whitespace-nowrap cursor-pointer ${
                       active
                         ? "bg-gradient-to-r from-blue-600/30 via-indigo-600/30 to-blue-600/30 text-white font-extrabold border border-blue-500/40 shadow-md shadow-blue-500/20 backdrop-blur-xl"
                         : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent font-semibold"
@@ -769,898 +410,302 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
               })}
             </nav>
 
-            {user && activeTab === "portfolio" && (
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  onClick={handleSyncPortfolio}
-                  disabled={isSyncing}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold shadow-lg transition-all duration-200 active:scale-90 p-0 shrink-0 border border-white/10 backdrop-blur-md"
-                  title="Sync with live market values"
-                >
-                  <span className={`inline-flex items-center justify-center h-4 w-4 shrink-0 ${isSyncing ? "animate-spin transform-gpu" : ""}`}>
-                    <RefreshCw className="h-4 w-4" />
-                  </span>
-                </Button>
-
-                <Button
-                  onClick={() => router.push("/portfolio/upload")}
-                  className="hidden sm:flex h-9 items-center gap-1.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white font-semibold text-xs border border-white/10 shadow-md transition-all duration-200 shrink-0"
-                  title="Upload CAS or Portfolio Statement"
-                >
-                  <Upload className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>Upload</span>
-                </Button>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    className="flex h-9 items-center gap-1.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 font-bold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 active:scale-95 shrink-0 border border-white/10 text-xs cursor-pointer"
-                    title="Add or Upload Assets"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Add</span>
-                    <ChevronDown className="h-3 w-3 opacity-80" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52 bg-[#090e1d] border border-white/15 text-white p-1.5 shadow-2xl rounded-2xl z-50">
-                    <DropdownMenuItem
-                      onClick={handleOpenAddModal}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold rounded-xl hover:bg-blue-600/25 text-slate-200 hover:text-white cursor-pointer"
-                    >
-                      <Plus className="h-4 w-4 text-blue-400" />
-                      <span>Add Asset Manually</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => router.push("/portfolio/upload")}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold rounded-xl hover:bg-blue-600/25 text-slate-200 hover:text-white cursor-pointer"
-                    >
-                      <Upload className="h-4 w-4 text-emerald-400" />
-                      <span>Upload Statement</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )}
+            <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Live Aggregator Mode
+              </span>
+            </div>
           </div>
         </div>
-
-        {/* Alerts */}
-        {failedPortfolios.length > 0 && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
-            {failedPortfolios.length} portfolio(s) failed to parse. Re-upload statements or check file formatting.
-          </div>
-        )}
-        {processingPortfolios.length > 0 && (
-          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm text-blue-400 flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-            <span>Parsing statement(s) in background...</span>
-          </div>
-        )}
-
-        {/* -------------------- TAB 1: PORTFOLIO VIEW -------------------- */}
-        {activeTab === "portfolio" && (
-          <div className="space-y-6 animate-fade-in-up">
-            {user && (
-              <div className="lg:hidden flex items-center justify-between gap-2 p-3 bg-[#090e1d]/90 border border-white/15 rounded-2xl backdrop-blur-2xl shadow-xl">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Briefcase className="h-4 w-4 text-blue-400 shrink-0" />
-                  <span className="text-xs font-bold text-white truncate">Portfolio Actions</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    onClick={handleSyncPortfolio}
-                    disabled={isSyncing}
-                    className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold shadow-sm p-0 border border-white/10"
-                    title="Sync with live market values"
-                  >
-                    <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-                  </Button>
-                  <Button
-                    onClick={() => router.push("/portfolio/upload")}
-                    className="flex h-8 items-center gap-1.5 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-semibold border border-white/10"
-                  >
-                    <Upload className="h-3.5 w-3.5 text-emerald-400" />
-                    <span>Upload</span>
-                  </Button>
-                  <Button
-                    onClick={handleOpenAddModal}
-                    className="flex h-8 items-center gap-1.5 px-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs font-bold shadow-md"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Add</span>
-                  </Button>
-                </div>
-              </div>
-            )}
-            {!user ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 border border-white/5 bg-slate-900/20 rounded-2xl mx-4 sm:mx-0">
-                <div className="rounded-full bg-blue-500/10 p-5 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.15)]">
-                  <Lock className="h-10 w-10 text-blue-400" />
-                </div>
-                <div className="space-y-2 px-4">
-                  <h2 className="text-2xl font-bold text-white tracking-tight">Portfolio Access Restricted</h2>
-                  <p className="text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
-                    Log in to securely connect your brokerage accounts, upload CAS statements, and unlock advanced P&L analytics.
-                  </p>
-                </div>
-                <div className="flex gap-4 pt-2">
-                  <Link
-                    href="/login"
-                    className={cn(buttonVariants({ variant: "outline" }), "border-white/10 text-white hover:bg-white/5 h-10 px-5 text-sm cursor-pointer")}
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className={cn(buttonVariants({ variant: "default" }), "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 h-10 px-5 text-sm font-semibold cursor-pointer")}
-                  >
-                    Create Account <ChevronRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* ----------------- PORTFOLIO PROFILES / SECTIONS BAR ----------------- */}
-                <div className="rounded-2xl border border-[#27272a] bg-zinc-950/80 backdrop-blur-xl p-3 sm:p-4 shadow-xl space-y-3 animate-fade-in-up stagger-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                        <Layers className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
-                          Portfolio Profiles & Sections
-                          <span className="text-[10px] font-normal text-zinc-400 font-mono">({localPortfolios.length})</span>
-                        </h3>
-                        <p className="text-[10px] text-zinc-400 hidden sm:block">
-                          Maintain distinct broker accounts, vendors, or financial profiles independently.
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      onClick={() => setCreateSectionOpen(true)}
-                      className="h-8 px-3 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md gap-1.5 shrink-0"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      <span>New Section</span>
-                    </Button>
+        {/* -------------------- TAB: SIP & INVESTMENT GROWTH CALCULATOR -------------------- */}
+        {activeTab === "sip" && (
+          <div className="space-y-6 pb-8 animate-fade-in-up">
+            {/* Header / Mode Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-950/80 border border-[#27272a] rounded-2xl p-4 sm:p-5 backdrop-blur-xl shadow-xl">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <Calculator className="h-5 w-5" />
                   </div>
+                  SIP & Wealth Growth Engine
+                </h2>
+                <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+                  Simulate systematic compounding growth, calculate future maturity values, and analyze returns over customizable horizons.
+                </p>
+              </div>
 
-                  {/* Horizontal scrolling pill tabs for portfolio sections */}
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
-                    {/* All Portfolios (Consolidated) */}
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPortfolioId("all")}
-                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
-                        selectedPortfolioId === "all"
-                          ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                          : "bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 border border-[#27272a]"
-                      }`}
-                    >
-                      <Layers className="h-3.5 w-3.5" />
-                      <span>All Portfolios</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${selectedPortfolioId === "all" ? "bg-white/20 text-white" : "bg-zinc-800 text-zinc-400"}`}>
-                        {assets.length}
+              {/* Mode Switcher Pill */}
+              <div className="inline-flex p-1 rounded-xl bg-zinc-900/90 border border-zinc-800 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setSipMode("sip")}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    sipMode === "sip"
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Monthly SIP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSipMode("lumpsum")}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    sipMode === "lumpsum"
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  One-Time Lump Sum
+                </button>
+              </div>
+            </div>
+
+            {/* Main Interactive Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column: Sliders */}
+              <div className="lg:col-span-5 space-y-6">
+                <Card className="border-[#27272a] bg-zinc-950/80 backdrop-blur-xl shadow-xl p-5 sm:p-6 space-y-6">
+                  {/* Slider 1: Monthly / Lumpsum Amount */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-zinc-300 font-medium">
+                        {sipMode === "sip" ? "Monthly Investment" : "Lump Sum Investment"}
                       </span>
-                    </button>
-
-                    {/* Individual Portfolio Sections */}
-                    {localPortfolios.map((p) => {
-                      const isSelected = selectedPortfolioId === p.id;
-                      const pfAssetsCount = assets.filter((a) => a.portfolio_id === p.id).length;
-
-                      return (
+                      <span className="font-mono font-extrabold text-emerald-400 text-base">
+                        ₹{sipMonthly.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={sipMode === "sip" ? 500 : 5000}
+                      max={sipMode === "sip" ? 100000 : 1000000}
+                      step={sipMode === "sip" ? 500 : 5000}
+                      value={sipMonthly}
+                      onChange={(e) => setSipMonthly(Number(e.target.value))}
+                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-400 hover:accent-emerald-300 transition-all"
+                    />
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {(sipMode === "sip" ? [2500, 5000, 10000, 25000, 50000] : [25000, 50000, 100000, 250000, 500000]).map((amt) => (
                         <button
-                          key={p.id}
+                          key={amt}
                           type="button"
-                          onClick={() => setSelectedPortfolioId(p.id)}
-                          className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
-                            isSelected
-                              ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                              : "bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-800 border border-[#27272a]"
+                          onClick={() => setSipMonthly(amt)}
+                          className={`text-[10px] px-2.5 py-1 rounded-lg border font-mono transition-colors cursor-pointer ${
+                            sipMonthly === amt
+                              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 font-bold"
+                              : "bg-zinc-900/60 text-zinc-400 hover:text-white border-zinc-800"
                           }`}
                         >
-                          <Briefcase className={`h-3.5 w-3.5 ${isSelected ? "text-white" : "text-blue-400"}`} />
-                          <span className="truncate max-w-[130px]">{p.name}</span>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${isSelected ? "bg-white/20 text-white" : "bg-zinc-800 text-zinc-400"}`}>
-                            {pfAssetsCount}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Active Section Context Bar (when a specific section is selected) */}
-                  {activePortfolio && (
-                    <div className="pt-2 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-zinc-400 font-medium">Viewing Section:</span>
-                        <span className="font-bold text-white truncate">{activePortfolio.name}</span>
-                        {activePortfolio.description && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 truncate max-w-[180px]">
-                            {activePortfolio.description}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                        <Link href={`/portfolio/upload?portfolio_id=${activePortfolio.id}`}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 px-2 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/10 gap-1 rounded-lg"
-                            title="Upload statement into this section"
-                          >
-                            <Upload className="h-3 w-3" />
-                            <span>Upload Source</span>
-                          </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleOpenAddModal()}
-                          className="h-7 px-2 text-[11px] font-semibold text-blue-400 hover:bg-blue-500/10 gap-1 rounded-lg"
-                        >
-                          <Plus className="h-3 w-3" />
-                          <span>Add Holding</span>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleOpenEditSection(activePortfolio)}
-                          className="h-7 px-2 text-[11px] font-semibold text-zinc-300 hover:bg-white/10 gap-1 rounded-lg"
-                        >
-                          <Pencil className="h-3 w-3" />
-                          <span>Rename</span>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteStatement(activePortfolio.id)}
-                          className="h-7 px-2 text-[11px] font-semibold text-red-400 hover:bg-red-500/10 gap-1 rounded-lg"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          <span>Delete Section</span>
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* ----------------- MOCKUP MATCHING HERO GLASS CARD ----------------- */}
-                <div className="rounded-3xl border border-[#27272a] bg-gradient-to-b from-[#18181b]/95 via-[#121215]/90 to-[#09090b]/95 p-6 shadow-2xl backdrop-blur-2xl relative overflow-hidden space-y-6 animate-fade-in-up stagger-2 fluid-card-hover">
-                  {/* Subtle ambient lighting background blur */}
-                  <div className="absolute -top-24 -right-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                  {/* Header Greeting & Profile Avatar */}
-                  <div className="flex items-center justify-between relative z-10">
-                    <div>
-                      <p className="text-xs text-zinc-400 font-medium">Good Day,</p>
-                      <h2 className="text-xl font-bold text-white tracking-tight">
-                        {user.user_metadata?.full_name || user.email?.split("@")[0] || "Investor"}
-                      </h2>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-500 via-teal-500 to-blue-600 text-sm font-bold text-white shadow-lg ring-2 ring-emerald-400/20">
-                        {(user.email?.[0] || "A").toUpperCase()}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hero Value & Daily Gain */}
-                  <div className="relative z-10 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Total Portfolio Value</p>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold font-mono border transition-all duration-300 ${periodData.percent >= 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
-                        {periodData.percent >= 0 ? "+" : ""}{periodData.percent.toFixed(1)}%
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
-                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight tabular-nums font-mono">
-                        {formatIndianCurrency(totalValue)}
-                      </h1>
-                      <p className={`text-xs sm:text-sm font-semibold font-mono transition-all duration-300 ${periodData.gainAmount >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                        {periodData.gainAmount >= 0 ? "+" : ""}{formatIndianCurrency(periodData.gainAmount)} {periodData.label}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Time Range Filter Selector (Pills) */}
-                  <div className="flex items-center justify-between pt-2 border-t border-white/5 relative z-10">
-                    <p className="text-[11px] font-semibold text-zinc-400">Artha Wealth</p>
-                    <div className="flex items-center gap-1 bg-zinc-900/80 border border-[#27272a] p-1 rounded-full backdrop-blur-md">
-                      {(["1M", "3M", "6M", "1Y"] as const).map((range) => (
-                        <button
-                          key={range}
-                          onClick={() => setPortfolioTimeRange(range)}
-                          className={`px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 cursor-pointer ${
-                            portfolioTimeRange === range
-                              ? "bg-zinc-800 text-white shadow border border-zinc-700 scale-105"
-                              : "text-zinc-400 hover:text-zinc-200"
-                          }`}
-                        >
-                          {range}
+                          ₹{amt.toLocaleString("en-IN")}
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Smoothed SVG Area Graph Wave */}
-                  <div className="h-20 w-full relative z-0 pt-2 opacity-90">
-                    <svg className="w-full h-full overflow-visible" viewBox="0 0 400 60" preserveAspectRatio="none">
-                      <defs>
-                        <linearGradient id="areaGlow" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={periodData.percent >= 0 ? "#10b981" : "#ef4444"} stopOpacity="0.4" />
-                          <stop offset="100%" stopColor={periodData.percent >= 0 ? "#10b981" : "#ef4444"} stopOpacity="0.0" />
-                        </linearGradient>
-                      </defs>
-                      <path
-                        d={periodData.svgPath}
-                        fill="none"
-                        stroke={periodData.percent >= 0 ? "#10b981" : "#ef4444"}
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        className="transition-all duration-500 ease-in-out"
-                      />
-                      <path
-                        d={`${periodData.svgPath} L 400 60 L 0 60 Z`}
-                        fill="url(#areaGlow)"
-                        className="transition-all duration-500 ease-in-out"
-                      />
-                      <circle cx="400" cy="2" r="4" fill={periodData.percent >= 0 ? "#34d399" : "#f87171"} className="animate-ping" />
-                      <circle cx="400" cy="2" r="4" fill={periodData.percent >= 0 ? "#10b981" : "#ef4444"} />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* ----------------- YOUR PORTFOLIOS CATEGORY CARDS (MOCKUP STYLE) ----------------- */}
-                <div className="space-y-3 animate-fade-in-up stagger-3">
-                  <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-emerald-400" />
-                    <span>Your Portfolios</span>
-                  </h3>
-                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
-                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2 fluid-card-hover">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-zinc-400">Growth Equity</span>
-                        <span className="text-emerald-400 font-bold font-mono text-[11px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">+2.1%</span>
-                      </div>
-                      <h4 className="text-lg font-bold font-mono text-white tabular-nums">
-                        {formatIndianCurrency(equitiesTotal || totalValue * 0.6)}
-                      </h4>
-                      <div className="flex items-end gap-1 h-6 pt-2">
-                        <div className="w-full bg-emerald-500/40 rounded-t h-3" />
-                        <div className="w-full bg-emerald-500/60 rounded-t h-4" />
-                        <div className="w-full bg-emerald-500/80 rounded-t h-2" />
-                        <div className="w-full bg-emerald-400 rounded-t h-6" />
-                      </div>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2 fluid-card-hover">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-zinc-400">Global & Mutual Funds</span>
-                        <span className="text-emerald-400 font-bold font-mono text-[11px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">+1.6%</span>
-                      </div>
-                      <h4 className="text-lg font-bold font-mono text-white tabular-nums">
-                        {formatIndianCurrency(mutualFundsTotal || totalValue * 0.3)}
-                      </h4>
-                      <div className="flex items-end gap-1 h-6 pt-2">
-                        <div className="w-full bg-blue-500/40 rounded-t h-2" />
-                        <div className="w-full bg-blue-500/60 rounded-t h-5" />
-                        <div className="w-full bg-blue-500/80 rounded-t h-4" />
-                        <div className="w-full bg-blue-400 rounded-t h-6" />
-                      </div>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-[#121215]/90 border border-[#27272a] hover:border-zinc-700 transition-all duration-300 backdrop-blur-xl space-y-2 fluid-card-hover">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-zinc-400">SGB & Fixed Assets</span>
-                        <span className="text-amber-400 font-bold font-mono text-[11px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">+0.9%</span>
-                      </div>
-                      <h4 className="text-lg font-bold font-mono text-white tabular-nums">
-                        {formatIndianCurrency(otherTotal || totalValue * 0.1)}
-                      </h4>
-                      <div className="flex items-end gap-1 h-6 pt-2">
-                        <div className="w-full bg-amber-500/40 rounded-t h-4" />
-                        <div className="w-full bg-amber-500/60 rounded-t h-3" />
-                        <div className="w-full bg-amber-500/80 rounded-t h-5" />
-                        <div className="w-full bg-amber-400 rounded-t h-4" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-            {/* Uploaded Statement Sources & Linked Accounts Manager */}
-            {localPortfolios && localPortfolios.length > 0 && (
-              <Card className="border-[#27272a] bg-[#121215]/90 glass-card animate-fade-in-up stagger-4">
-                <CardHeader className="pb-3 flex flex-row items-center justify-between border-b border-[#27272a]">
-                  <div className="space-y-1">
-                    <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-blue-400" />
-                      <span>Uploaded Statement Sources & Linked Accounts</span>
-                      <span className="text-xs font-mono font-normal text-zinc-400 bg-zinc-900 border border-[#27272a] px-2 py-0.5 rounded-full">
-                        {localPortfolios.length} Total
+                  {/* Slider 2: Expected Return Rate */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-zinc-300 font-medium">Expected Return Rate (p.a.)</span>
+                      <span className="font-mono font-extrabold text-blue-400 text-base">
+                        {sipReturn}%
                       </span>
-                    </CardTitle>
-                    <p className="text-[11px] text-zinc-400">
-                      Manage your uploaded CAS PDFs, broker statements, and screenshots. Tap delete to remove a source and update database records instantly.
+                    </div>
+                    <input
+                      type="range"
+                      min={4}
+                      max={30}
+                      step={0.5}
+                      value={sipReturn}
+                      onChange={(e) => setSipReturn(Number(e.target.value))}
+                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all"
+                    />
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {[
+                        { r: 8, label: "8% (Debt/FD)" },
+                        { r: 12, label: "12% (Index/Large)" },
+                        { r: 15, label: "15% (Flexi Cap)" },
+                        { r: 18, label: "18% (Mid/Small)" },
+                      ].map((item) => (
+                        <button
+                          key={item.r}
+                          type="button"
+                          onClick={() => setSipReturn(item.r)}
+                          className={`text-[10px] px-2.5 py-1 rounded-lg border font-mono transition-colors cursor-pointer ${
+                            sipReturn === item.r
+                              ? "bg-blue-500/20 text-blue-400 border-blue-500/40 font-bold"
+                              : "bg-zinc-900/60 text-zinc-400 hover:text-white border-zinc-800"
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Slider 3: Time Horizon */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-zinc-300 font-medium">Time Horizon (Years)</span>
+                      <span className="font-mono font-extrabold text-purple-400 text-base">
+                        {sipYears} {sipYears === 1 ? "Year" : "Years"}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={35}
+                      step={1}
+                      value={sipYears}
+                      onChange={(e) => setSipYears(Number(e.target.value))}
+                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all"
+                    />
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {[3, 5, 10, 15, 20, 25, 30].map((y) => (
+                        <button
+                          key={y}
+                          type="button"
+                          onClick={() => setSipYears(y)}
+                          className={`text-[10px] px-2.5 py-1 rounded-lg border font-mono transition-colors cursor-pointer ${
+                            sipYears === y
+                              ? "bg-purple-500/20 text-purple-400 border-purple-500/40 font-bold"
+                              : "bg-zinc-900/60 text-zinc-400 hover:text-white border-zinc-800"
+                          }`}
+                        >
+                          {y}Y
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Right Column: Outcomes, Split & Milestones */}
+              <div className="lg:col-span-7 space-y-6">
+                {/* 3 Metrics Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div className="p-4 rounded-2xl bg-zinc-950/80 border border-[#27272a] shadow-lg">
+                    <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Total Invested</p>
+                    <p className="text-xl sm:text-2xl font-mono font-bold text-white mt-1">
+                      ₹{sipCalculation.totalInvested.toLocaleString("en-IN")}
+                    </p>
+                    <p className="text-[10px] text-zinc-500 mt-1">Principal contribution</p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-zinc-950/80 border border-[#27272a] shadow-lg">
+                    <p className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">Wealth Gained</p>
+                    <p className="text-xl sm:text-2xl font-mono font-bold text-emerald-400 mt-1">
+                      +₹{sipCalculation.wealthGained.toLocaleString("en-IN")}
+                    </p>
+                    <p className="text-[10px] text-emerald-500/80 mt-1 font-mono">
+                      {(sipCalculation.maturityValue / (sipCalculation.totalInvested || 1)).toFixed(1)}x Multiple
                     </p>
                   </div>
-                  <Link href="/portfolio/upload">
-                    <Button size="sm" className="h-8 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white gap-1.5 rounded-xl shadow-md">
-                      <Upload className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Upload Source</span>
-                    </Button>
-                  </Link>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                    {localPortfolios.map((p: any) => {
-                      const fileName = p.file_path ? p.file_path.split("/").pop() : "Statement Record";
-                      const isPdf = fileName.toLowerCase().endsWith(".pdf");
 
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 to-emerald-950/30 border border-blue-500/30 shadow-lg">
+                    <p className="text-[11px] font-semibold text-blue-300 uppercase tracking-wider">Maturity Value</p>
+                    <p className="text-xl sm:text-2xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mt-1">
+                      ₹{sipCalculation.maturityValue.toLocaleString("en-IN")}
+                    </p>
+                    <p className="text-[10px] text-blue-300/80 mt-1">Estimated corpus</p>
+                  </div>
+                </div>
+
+                {/* Visual Ratio & Milestones */}
+                <Card className="border-[#27272a] bg-zinc-950/80 backdrop-blur-xl shadow-xl p-5 sm:p-6 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <PieChart className="h-4 w-4 text-emerald-400" />
+                      Wealth Compounding Breakdown
+                    </h3>
+                    <span className="text-xs font-mono text-zinc-400">
+                      Profit Share: {Math.round((sipCalculation.wealthGained / (sipCalculation.maturityValue || 1)) * 100)}%
+                    </span>
+                  </div>
+
+                  {/* Horizontal visual split bar */}
+                  <div className="space-y-2">
+                    <div className="h-3.5 w-full rounded-full bg-zinc-900 border border-zinc-800 flex overflow-hidden p-0.5">
+                      <div
+                        className="h-full bg-zinc-600 rounded-l-full transition-all duration-300"
+                        style={{
+                          width: `${Math.max(5, Math.min(95, Math.round((sipCalculation.totalInvested / (sipCalculation.maturityValue || 1)) * 100)))}%`,
+                        }}
+                      />
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-r-full transition-all duration-300 flex-1"
+                      />
+                    </div>
+                    <div className="flex justify-between text-[11px] text-zinc-400 font-mono">
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-zinc-600" />
+                        Invested: ₹{sipCalculation.totalInvested.toLocaleString("en-IN")}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                        Profit: ₹{sipCalculation.wealthGained.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Smart Milestones Roadmap */}
+                  <div className="pt-3 border-t border-zinc-900 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {[
+                      { yr: Math.min(sipYears, 3), label: "Short Term" },
+                      { yr: Math.min(sipYears, 5), label: "Medium Term" },
+                      { yr: Math.min(sipYears, 10), label: "Long Term" },
+                      { yr: sipYears, label: "Target Goal" },
+                    ].map((m, idx) => {
+                      const proj = sipProjections.find((p) => p.year === m.yr) || sipProjections[sipProjections.length - 1];
                       return (
-                        <div key={p.id} className="flex flex-col justify-between p-3.5 rounded-xl bg-zinc-950/80 border border-[#27272a] hover:border-zinc-700 transition-all space-y-3 fluid-card-hover">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              <div className={`p-2 rounded-lg shrink-0 ${isPdf ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-blue-500/10 text-blue-400 border border-blue-500/20"}`}>
-                                {isPdf ? <FileText className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-white truncate" title={fileName}>{fileName}</p>
-                                <p className="text-[9.5px] font-mono text-zinc-400 mt-0.5">
-                                  As of: {p.as_of_date || (p.created_at ? p.created_at.split("T")[0] : "Recent")}
-                                </p>
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteStatement(p.id);
-                              }}
-                              className="h-9 w-9 shrink-0 flex items-center justify-center rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 active:scale-95 transition-all touch-manipulation cursor-pointer"
-                              title="Remove statement source & update database"
-                              aria-label="Delete statement record"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-
-                          <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px]">
-                            <span className="text-zinc-400 font-medium">Parsed Value</span>
-                            <span className="font-bold font-mono text-white">
-                              {p.total_value ? formatIndianCurrency(Number(p.total_value)) : "Synced"}
-                            </span>
-                          </div>
+                        <div key={idx} className="p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800/60">
+                          <p className="text-[10px] text-zinc-400 font-medium">{m.label} ({m.yr}Y)</p>
+                          <p className="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 truncate">
+                            ₹{proj?.maturity.toLocaleString("en-IN") || "—"}
+                          </p>
                         </div>
                       );
                     })}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Portfolio Insights & Health Analysis */}
-            {assets.length > 0 && (
-              <Card className="border border-white/10 bg-[#0c101d]/90 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden animate-fade-in-up stagger-5">
-                <CardHeader className="pb-3 border-b border-white/5 bg-slate-900/40 px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
-                      <Sparkles className="h-4 w-4 text-blue-400" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base font-bold text-white tracking-tight">
-                        Portfolio Insights & Health Analysis
-                      </CardTitle>
-                      <CardDescription className="text-xs text-slate-400">
-                        Real-time automated diagnostic summary of your asset allocation, risk exposure, and growth strategy.
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-5">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Insight 1: Asset Allocation & Health */}
-                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5 fluid-card-hover">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Asset Allocation</span>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
-                          totalValue > 0 && Math.round((equitiesTotal / totalValue) * 100) > 70
-                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                            : "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                        }`}>
-                          {totalValue > 0 ? `${Math.round((mutualFundsTotal / totalValue) * 100)}% MF / ${Math.round((equitiesTotal / totalValue) * 100)}% Equity` : "100% Cash"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-300 leading-relaxed font-light">
-                        {totalValue > 0 && Math.round((equitiesTotal / totalValue) * 100) > 70
-                          ? "High exposure to direct equities (over 70%). Rebalancing a portion into mutual funds or debt assets will help buffer market corrections."
-                          : "Your portfolio has a balanced ratio between mutual funds and equities, providing stable long-term compound growth."}
-                      </p>
-                    </div>
-
-                    {/* Insight 2: Diversification & Risk Profile */}
-                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5 fluid-card-hover">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Diversification</span>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
-                          diversificationRating === "High"
-                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                            : diversificationRating === "Medium"
-                            ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                            : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                        }`}>
-                          {diversificationRating} Spread
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-300 leading-relaxed font-light">
-                        {diversificationRating === "High"
-                          ? "Excellent risk distribution across multiple asset categories. Your portfolio is well-protected against sector-specific downturns."
-                          : diversificationRating === "Medium"
-                          ? "Good spread across core holdings. Adding a Flexi Cap or Index Fund can further optimize risk-adjusted returns."
-                          : "Investments are concentrated in a few assets. Consider spreading capital across flexi cap or large cap mutual funds."}
-                      </p>
-                    </div>
-
-                    {/* Insight 3: Performance & Wealth Strategy */}
-                    <div className="rounded-xl border border-white/5 bg-slate-900/50 p-4 space-y-2.5 fluid-card-hover">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Growth Outlook</span>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
-                          totalGain !== null && totalGain >= 0
-                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                            : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                        }`}>
-                          {totalGain !== null && totalGain >= 0 ? "+ Positive Trajectory" : "Consolidating"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-300 leading-relaxed font-light">
-                        {totalGain !== null && totalGain >= 0
-                          ? "Your investments are generating positive returns. Setting up systematic monthly SIP top-ups will accelerate wealth compounding."
-                          : "Temporary market consolidation observed. Maintain your long-term investment horizon and accumulate quality units during dips."}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Charts section */}
-            {assets.length > 0 && (
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-5 animate-fade-in-up stagger-6">
-                {/* Line chart: net worth timeline */}
-                <Card className="md:col-span-3 border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Invested Capital vs Current Value</CardTitle>
-                    <CardDescription className="text-[10px] text-slate-400 font-light">Real-time asset value compared to purchase cost</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-56 mt-2">
-                    <CustomBarChart data={barChartData} />
-                  </CardContent>
                 </Card>
 
-                {/* Redesigned Asset Class Allocation Visual */}
-                <Card className="md:col-span-2 border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Asset Class Allocation</CardTitle>
-                    <CardDescription className="text-[10px] text-slate-400 font-light">Distribution across asset classes</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-col items-center justify-center h-56 mt-2 pt-2 pb-0">
-                    <CustomDonutChart data={chartAllocation} />
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Top Movers Section */}
-              {(topGainers.length > 0 || topLosers.length > 0) && (
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 mt-6 animate-fade-in-up stagger-7">
-                  {/* Top Gainers */}
-                  <Card className="border-emerald-500/10 bg-slate-900/40 glass-card fluid-card-hover">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                          <TrendingUp className="h-4 w-4 text-emerald-500" />
-                        </div>
-                        <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Top Performers</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3 pt-2">
-                      {topGainers.length === 0 ? (
-                        <div className="text-xs text-slate-500 py-2">No gainers found.</div>
-                      ) : (
-                        topGainers.map((asset, i) => (
-                          <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/30 border border-white/5 hover:border-emerald-500/30 fluid-row-hover">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-slate-200 truncate max-w-[180px]">{asset.name}</span>
-                              <span className="text-[10px] text-slate-400">{asset.asset_type === "mutual_fund" ? "Mutual Fund" : "Direct Equity"}</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="text-sm font-bold text-emerald-400 flex items-center">
-                                <ArrowUpRight className="h-3.5 w-3.5 mr-0.5" />
-                                {asset.pctReturn.toFixed(2)}%
-                              </span>
-                              <span className="text-[10px] text-emerald-500/70">+₹{asset.absoluteReturn.toLocaleString('en-IN')}</span>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Top Losers */}
-                  <Card className="border-red-500/10 bg-slate-900/40 glass-card fluid-card-hover">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-md bg-red-500/10 border border-red-500/20">
-                          <TrendingDown className="h-4 w-4 text-red-500" />
-                        </div>
-                        <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Needs Attention</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3 pt-2">
-                      {topLosers.length === 0 || topLosers[0].pctReturn >= 0 ? (
-                        <div className="text-xs text-slate-500 py-2">No assets in loss! 🎉</div>
-                      ) : (
-                        topLosers.filter(a => a.pctReturn < 0).map((asset, i) => (
-                          <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950/30 border border-white/5 hover:border-red-500/30 fluid-row-hover">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-slate-200 truncate max-w-[180px]">{asset.name}</span>
-                              <span className="text-[10px] text-slate-400">{asset.asset_type === "mutual_fund" ? "Mutual Fund" : "Direct Equity"}</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="text-sm font-bold text-red-400 flex items-center">
-                                <ArrowDownRight className="h-3.5 w-3.5 mr-0.5" />
-                                {Math.abs(asset.pctReturn).toFixed(2)}%
-                              </span>
-                              <span className="text-[10px] text-red-500/70">-₹{Math.abs(asset.absoluteReturn).toLocaleString('en-IN')}</span>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            {/* Holdings Table */}
-            {assets.length === 0 ? (
-              <div className="flex flex-col items-center gap-4 py-16 text-center border border-dashed border-white/10 rounded-xl bg-slate-950/20">
-                <div className="rounded-full bg-slate-900 border border-white/5 p-4 text-slate-400 animate-pulse">
-                  <Upload className="h-8 w-8 text-slate-300" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-semibold text-white">No active holdings</p>
-                  <p className="text-xs text-slate-400 font-light max-w-sm px-6">
-                    Upload your Consolidated Account Statement (CAS), upload a dashboard screenshot, or click "Add Asset Manually" to get started immediately.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 mt-2">
-                  <Link href="/portfolio/upload">
-                    <Button className="bg-blue-600 hover:bg-blue-500 shadow-md text-xs">
-                      <Upload className="mr-1.5 h-3.5 w-3.5" />
-                      Upload Statement
-                    </Button>
-                  </Link>
-                  <Button onClick={handleOpenAddModal} variant="outline" className="border-white/10 text-xs text-slate-300">
-                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Add Holding
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <Card className="border-white/5 bg-slate-900/40 glass-card overflow-hidden animate-fade-in-up stagger-8">
-                <CardHeader className="p-4 sm:p-6 border-b border-white/5 bg-slate-950/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-base font-bold text-white">Holdings List</CardTitle>
-                    <CardDescription className="text-xs text-slate-400 font-light">Filter, update, and manage your asset holdings</CardDescription>
+                {/* Year-by-Year Growth Projections Table */}
+                <Card className="border-[#27272a] bg-zinc-950/80 backdrop-blur-xl shadow-xl overflow-hidden">
+                  <div className="p-4 sm:p-5 border-b border-zinc-800/80 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-emerald-400" />
+                      Growth Schedule & Compounding Timeline
+                    </h3>
+                    <span className="text-[11px] text-zinc-400 font-mono">
+                      {sipMode === "sip" ? `₹${sipMonthly.toLocaleString("en-IN")}/mo` : `₹${sipMonthly.toLocaleString("en-IN")} Lumpsum`} @ {sipReturn}% p.a.
+                    </span>
                   </div>
-                  {/* Filters and search */}
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative w-full sm:w-56">
-                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-                      <Input
-                        placeholder="Search name or ISIN..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 h-9 text-xs bg-slate-950/60 border-white/10 text-white"
-                      />
-                    </div>
-                    <select
-                      value={assetTypeFilter}
-                      onChange={(e) => setAssetTypeFilter(e.target.value)}
-                      className="w-full sm:w-40 h-9 rounded-md bg-slate-950/60 border border-white/10 text-xs text-white px-3 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                      <option value="all">All Asset Classes</option>
-                      <option value="mutual_fund">Mutual Funds</option>
-                      <option value="equity">Equities</option>
-                      <option value="etf">ETFs / Bonds</option>
-                    </select>
-                  </div>
-                </CardHeader>
-                {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead>
-                      <tr className="border-b border-white/5 bg-slate-950/30 text-[10px] text-slate-400 uppercase tracking-wider">
-                        <th className="px-4 sm:px-6 py-4 font-bold">Instrument Name</th>
-                        <th className="px-4 sm:px-6 py-4 font-bold">Asset Type</th>
-                        <th className="px-4 sm:px-6 py-4 font-bold">Quantity</th>
-                        <th className="px-4 sm:px-6 py-4 font-bold">Latest Price</th>
-                        <th className="px-4 sm:px-6 py-4 font-bold text-right">Market Value</th>
-                        <th className="px-4 sm:px-6 py-4 font-bold text-right">{hasCostBasis ? "Gain / Loss" : "Folio"}</th>
-                        <th className="px-4 sm:px-6 py-4 font-bold text-center">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredAssets.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} className="px-6 py-10 text-center text-slate-500 text-xs font-light">
-                            No holdings match your search filters.
-                          </td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-zinc-800/80 text-zinc-400 bg-zinc-900/40 text-[11px] font-semibold">
+                          <th className="py-2.5 px-4">Timeline</th>
+                          <th className="py-2.5 px-4 text-right">Invested</th>
+                          <th className="py-2.5 px-4 text-right">Interest / Gains</th>
+                          <th className="py-2.5 px-4 text-right">Total Corpus</th>
                         </tr>
-                      ) : (
-                        filteredAssets.map((asset) => {
-                          const gain = asset.cost_basis && Number(asset.cost_basis) > 0
-                            ? Number(asset.market_value ?? 0) - Number(asset.cost_basis)
-                            : null;
-                          const gainPct = gain !== null && Number(asset.cost_basis) > 0
-                            ? (gain / Number(asset.cost_basis)) * 100
-                            : null;
-                          return (
-                            <tr key={asset.id} className="border-b border-white/5 last:border-0 fluid-row-hover transition-colors">
-                              <td className="px-4 sm:px-6 py-4">
-                                <div className="flex items-center gap-2">
-                                  <p className="font-semibold text-white text-xs sm:text-sm">{asset.name}</p>
-                                  {selectedPortfolioId === "all" && asset.portfolio_id && (
-                                    <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono font-normal">
-                                      {localPortfolios.find(p => p.id === asset.portfolio_id)?.name || "Section"}
-                                    </span>
-                                  )}
-                                </div>
-                                {asset.isin && (
-                                  <p className="text-[10px] text-slate-500 font-mono mt-0.5 tracking-wider uppercase">{asset.isin}</p>
-                                )}
-                              </td>
-                              <td className="px-4 sm:px-6 py-4">
-                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                  asset.asset_type === "mutual_fund" ? "bg-emerald-500/10 text-emerald-400" :
-                                  asset.asset_type === "equity" ? "bg-blue-500/10 text-blue-400" : "bg-violet-500/10 text-violet-400"
-                                }`}>
-                                  {asset.asset_type?.replace("_", " ")}
-                                </span>
-                              </td>
-                              <td className="px-4 sm:px-6 py-4 font-mono text-xs text-slate-300">
-                                {Number(asset.quantity).toFixed(2)}
-                              </td>
-                              <td className="px-4 sm:px-6 py-4 font-mono text-xs text-slate-300">
-                                {asset.current_price ? formatIndianCurrency(Number(asset.current_price)) : "—"}
-                              </td>
-                              <td className="px-4 sm:px-6 py-4 text-right font-mono font-bold text-white text-xs sm:text-sm">
-                                {asset.market_value ? formatIndianCurrency(Number(asset.market_value)) : "—"}
-                              </td>
-                              <td className="px-4 sm:px-6 py-4 text-right">
-                                {gain !== null ? (
-                                  <span className={`font-mono text-xs font-bold ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                                    {gain >= 0 ? "+" : ""}{formatIndianCurrency(gain)}
-                                    <span className="text-[10px] font-normal ml-1">({gain >= 0 ? "+" : ""}{gainPct?.toFixed(1)}%)</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-500 text-xs font-mono">{asset.metadata?.folio || "—"}</span>
-                                )}
-                              </td>
-                              <td className="px-4 sm:px-6 py-4 text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <button
-                                    onClick={() => handleEditAsset(asset)}
-                                    className="p-1.5 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-all"
-                                    title="Edit asset"
-                                  >
-                                    <Pencil className="h-3.5 w-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteAsset(asset.id, asset.portfolio_id)}
-                                    className="p-1.5 rounded hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-all"
-                                    title="Delete asset"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Card List — shown only on small screens */}
-                <div className="md:hidden divide-y divide-white/5">
-                  {filteredAssets.length === 0 ? (
-                    <p className="px-4 py-10 text-center text-slate-500 text-xs">No holdings match your search filters.</p>
-                  ) : (
-                    filteredAssets.map((asset) => {
-                      const gain = asset.cost_basis && Number(asset.cost_basis) > 0
-                        ? Number(asset.market_value ?? 0) - Number(asset.cost_basis)
-                        : null;
-                      const gainPct = gain !== null && Number(asset.cost_basis) > 0
-                        ? (gain / Number(asset.cost_basis)) * 100
-                        : null;
-                      return (
-                        <div key={asset.id} className="px-4 py-4 fluid-row-hover transition-colors">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <p className="font-semibold text-white text-sm leading-snug truncate">{asset.name}</p>
-                                {selectedPortfolioId === "all" && asset.portfolio_id && (
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono font-normal">
-                                    {localPortfolios.find(p => p.id === asset.portfolio_id)?.name || "Section"}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                  asset.asset_type === "mutual_fund" ? "bg-emerald-500/10 text-emerald-400" :
-                                  asset.asset_type === "equity" ? "bg-blue-500/10 text-blue-400" : "bg-violet-500/10 text-violet-400"
-                                }`}>
-                                  {asset.asset_type?.replace("_", " ")}
-                                </span>
-                                {asset.isin && (
-                                  <span className="text-[9px] text-slate-500 font-mono uppercase tracking-wider truncate">{asset.isin}</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <button
-                                onClick={() => handleEditAsset(asset)}
-                                className="p-1.5 rounded hover:bg-white/10 text-slate-400 hover:text-white transition-all"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteAsset(asset.id, asset.portfolio_id)}
-                                className="p-1.5 rounded hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-all"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between mt-3 gap-2">
-                            <div className="text-left">
-                              <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">Qty</p>
-                              <p className="text-xs font-mono text-slate-300 mt-0.5">{Number(asset.quantity).toFixed(2)}</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">NAV/Price</p>
-                              <p className="text-xs font-mono text-slate-300 mt-0.5">{asset.current_price ? formatIndianCurrency(Number(asset.current_price)) : "—"}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">Market Value</p>
-                              <p className="text-xs font-mono font-bold text-white mt-0.5">{asset.market_value ? formatIndianCurrency(Number(asset.market_value)) : "—"}</p>
-                            </div>
-                            {gain !== null && (
-                              <div className="text-right">
-                                <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">P&L</p>
-                                <p className={`text-xs font-mono font-bold mt-0.5 ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                                  {gain >= 0 ? "+" : ""}{gainPct?.toFixed(1)}%
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </Card>
-            )}
-            </>
-          )}
+                      </thead>
+                      <tbody className="divide-y divide-zinc-800/50 font-mono">
+                        {sipProjections.map((p) => (
+                          <tr key={p.year} className="hover:bg-zinc-900/40 transition-colors">
+                            <td className="py-2.5 px-4 text-zinc-300 font-sans font-medium">Year {p.year}</td>
+                            <td className="py-2.5 px-4 text-right text-zinc-400">₹{p.invested.toLocaleString("en-IN")}</td>
+                            <td className="py-2.5 px-4 text-right text-emerald-400 font-bold">+₹{p.wealthGained.toLocaleString("en-IN")}</td>
+                            <td className="py-2.5 px-4 text-right text-white font-bold">₹{p.maturity.toLocaleString("en-IN")}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            </div>
           </div>
         )}
 
@@ -2502,162 +1547,6 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
         })()}
       </div>
 
-      {/* Manual Input modal dialog */}
-      <ManualAssetModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        assetToEdit={editingAsset}
-        portfolios={localPortfolios}
-        defaultPortfolioId={selectedPortfolioId !== "all" ? selectedPortfolioId : undefined}
-        userId={user?.id || ""}
-      />
-
-      {/* Create Section Dialog */}
-      <Dialog open={createSectionOpen} onOpenChange={setCreateSectionOpen}>
-        <DialogContent className="sm:max-w-[460px] bg-[#0c121e] border-white/10 text-white shadow-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
-              <FolderPlus className="w-5 h-5 text-emerald-400" />
-              Create Portfolio Profile / Section
-            </DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
-              Create an isolated profile to track different vendors (e.g., Zerodha, Groww, CAMS) or financial buckets.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="sec-name" className="text-xs text-slate-300">
-                Profile / Section Name <span className="text-red-400">*</span>
-              </Label>
-              <Input
-                id="sec-name"
-                placeholder="e.g., Zerodha Kite, Groww MF, Retirement 2040"
-                value={newSectionName}
-                onChange={(e) => setNewSectionName(e.target.value)}
-                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-emerald-500/50"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="sec-vendor" className="text-xs text-slate-300">
-                Vendor / Broker (Optional)
-              </Label>
-              <Input
-                id="sec-vendor"
-                placeholder="e.g., Zerodha, Groww, CAMS, KFintech, Angel One"
-                value={newSectionVendor}
-                onChange={(e) => setNewSectionVendor(e.target.value)}
-                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-emerald-500/50"
-              />
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {["Zerodha", "Groww", "CAMS", "KFintech", "Angel One", "Upstox"].map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setNewSectionVendor(v)}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-white/5 transition-colors"
-                  >
-                    {v}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="sec-desc" className="text-xs text-slate-300">
-                Notes / Strategy (Optional)
-              </Label>
-              <Input
-                id="sec-desc"
-                placeholder="e.g., Direct equity long term, Tax saving ELSS"
-                value={newSectionDesc}
-                onChange={(e) => setNewSectionDesc(e.target.value)}
-                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-emerald-500/50"
-              />
-            </div>
           </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setCreateSectionOpen(false)}
-              className="border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={createSectionLoading || !newSectionName.trim()}
-              onClick={handleCreateSection}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white"
-            >
-              {createSectionLoading ? "Creating..." : "Create Section"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Section Dialog */}
-      <Dialog open={editSectionOpen} onOpenChange={setEditSectionOpen}>
-        <DialogContent className="sm:max-w-[460px] bg-[#0c121e] border-white/10 text-white shadow-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-blue-400" />
-              Edit Portfolio Profile
-            </DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
-              Update name or notes for this portfolio profile.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="edit-sec-name" className="text-xs text-slate-300">
-                Profile / Section Name <span className="text-red-400">*</span>
-              </Label>
-              <Input
-                id="edit-sec-name"
-                value={editSectionName}
-                onChange={(e) => setEditSectionName(e.target.value)}
-                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-blue-500/50"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="edit-sec-desc" className="text-xs text-slate-300">
-                Notes / Vendor / Description
-              </Label>
-              <Input
-                id="edit-sec-desc"
-                value={editSectionDesc}
-                onChange={(e) => setEditSectionDesc(e.target.value)}
-                className="bg-slate-900/60 border-white/10 text-white placeholder:text-slate-600 focus:border-blue-500/50"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setEditSectionOpen(false)}
-              className="border-white/10 text-slate-400 hover:bg-white/5 hover:text-white"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              disabled={editSectionLoading || !editSectionName.trim()}
-              onClick={handleUpdateSection}
-              className="bg-blue-600 hover:bg-blue-500 text-white"
-            >
-              {editSectionLoading ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
   );
 }

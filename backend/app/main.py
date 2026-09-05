@@ -13,8 +13,6 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-from app.api.v1.portfolio import router as portfolio_router
-from app.api.v1.asset import router as asset_router
 from app.api.v1.market import router as market_router
 from app.core.config import settings
 
@@ -76,8 +74,6 @@ async def rate_limit_and_security_middleware(request: Request, call_next):
 
     return response
 
-app.include_router(portfolio_router, prefix=settings.api_v1_prefix)
-app.include_router(asset_router, prefix=settings.api_v1_prefix)
 app.include_router(market_router, prefix=settings.api_v1_prefix)
 
 

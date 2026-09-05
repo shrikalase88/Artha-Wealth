@@ -1,48 +1,24 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import useSWR from "swr";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { 
   Activity, 
   Compass, 
-  Briefcase, 
   Coins, 
-  Upload, 
   Calculator, 
-  Settings, 
-  LogOut, 
   Info, 
   Phone, 
   Menu, 
   ChevronRight
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 function DashboardNavContent() {
   const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  useEffect(() => {
-    async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    }
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase]);
 
   const currentTab = searchParams ? searchParams.get("tab") : null;
   const [activeNavTab, setActiveNavTab] = useState<string>(() => {
@@ -76,44 +52,30 @@ function DashboardNavContent() {
     { 
       name: "Markets", 
       href: "/dashboard?tab=market", 
+      tabId: "market",
       icon: Activity,
       isActive: pathname === "/dashboard" && (currentTab === "market" || !currentTab)
     },
     { 
       name: "Funds", 
       href: "/dashboard?tab=funds", 
+      tabId: "funds",
       icon: Compass,
       isActive: pathname === "/dashboard" && currentTab === "funds"
     },
     { 
-      name: "Portfolio", 
-      href: "/dashboard?tab=portfolio", 
-      icon: Briefcase,
-      isActive: pathname === "/dashboard" && currentTab === "portfolio"
-    },
-    { 
       name: "Currency", 
       href: "/dashboard?tab=currency", 
+      tabId: "currency",
       icon: Coins,
       isActive: pathname === "/dashboard" && currentTab === "currency"
     },
     { 
-      name: "Upload Statement", 
-      href: "/portfolio/upload", 
-      icon: Upload,
-      isActive: pathname === "/portfolio/upload" 
-    },
-    { 
       name: "SIP Calculator", 
-      href: "/sip-calculator", 
+      href: "/dashboard?tab=sip", 
+      tabId: "sip",
       icon: Calculator,
-      isActive: pathname === "/sip-calculator" 
-    },
-    { 
-      name: "Settings", 
-      href: "/settings", 
-      icon: Settings,
-      isActive: pathname === "/settings" 
+      isActive: (pathname === "/dashboard" && currentTab === "sip") || pathname === "/sip-calculator"
     },
     { 
       name: "About", 
@@ -128,11 +90,6 @@ function DashboardNavContent() {
       isActive: pathname === "/contact" 
     },
   ];
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-  };
 
   return (
     <>
@@ -182,125 +139,84 @@ function DashboardNavContent() {
             </nav>
           </div>
 
-          {/* Desktop Footer profile */}
-          <div className="border-t border-[#27272a] pt-4 flex items-center justify-between">
-            {user ? (
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 text-xs font-bold text-white shadow-inner shrink-0">
-                  {user.email?.[0].toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-white truncate max-w-[140px]">
-                    {user.user_metadata?.full_name || user.email?.split("@")[0]}
-                  </p>
-                  <p className="text-[10px] text-zinc-400 truncate max-w-[140px]">{user.email}</p>
-                </div>
+          {/* Sidebar Footer */}
+          <div className="pt-6 border-t border-[#27272a] space-y-3">
+            <div className="p-3.5 rounded-2xl bg-zinc-900/50 border border-zinc-800/60 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-white tracking-tight">Finance Engine</p>
+                <p className="text-[10px] text-emerald-400 font-mono flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live Sync
+                </p>
               </div>
-            ) : (
-              <Link href="/login" className="w-full">
-                <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl">
-                  Sign In
-                </Button>
-              </Link>
-            )}
+              <span className="text-[10px] text-zinc-500 font-mono">v1.2</span>
+            </div>
           </div>
         </div>
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="lg:hidden sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-[#27272a] bg-[#09090b]/95 backdrop-blur-xl px-4">
-        <Link href="/dashboard?tab=market" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-400 p-0.5 shadow-md shadow-blue-500/20">
+      <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[#27272a] bg-[#09090b]/90 backdrop-blur-xl sticky top-0 z-40">
+        <Link href="/dashboard?tab=market" className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-400 p-0.5 shadow-md shadow-blue-500/20">
             <span className="text-xs font-bold text-white">A</span>
           </div>
           <span className="text-base font-bold tracking-tight text-white">
-            Artha <span className="text-blue-400 font-medium text-xs">Wealth</span>
+            Artha <span className="text-blue-400 text-xs font-semibold uppercase tracking-wider ml-0.5">Wealth</span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
-          {/* Shadcn Sheet Drawer Trigger */}
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger
-              className="p-2 rounded-lg border border-[#27272a] bg-zinc-800 text-zinc-200 hover:bg-zinc-700 transition-colors"
-              aria-label="Toggle menu"
-            >
-              <Menu className="h-4 w-4" />
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-[#09090b] border-l border-[#27272a] text-white p-0 flex flex-col justify-between">
-              <div>
-                <SheetHeader className="p-5 border-b border-[#27272a] text-left">
-                  <SheetTitle className="text-white flex items-center gap-2.5">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-blue-600 to-emerald-400 p-0.5">
-                      <span className="text-xs font-bold text-white">A</span>
-                    </div>
-                    <span className="font-bold text-base">Navigation</span>
-                  </SheetTitle>
-                </SheetHeader>
+        <button 
+          onClick={() => setSheetOpen(true)}
+          className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/60 border border-zinc-800"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetContent side="right" className="bg-[#09090b] border-[#27272a] p-0 w-80 flex flex-col justify-between">
+            <div>
+              <SheetHeader className="p-5 border-b border-[#27272a]">
+                <SheetTitle className="text-white flex items-center gap-2 text-left">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-xs">
+                    A
+                  </div>
+                  Artha Wealth
+                </SheetTitle>
+              </SheetHeader>
 
-                <div className="p-4 space-y-1">
-                  {navItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setSheetOpen(false)}
-                        className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-all ${
-                          item.isActive
-                            ? "bg-zinc-800 text-white border border-zinc-700 font-semibold"
-                            : "text-zinc-300 hover:bg-zinc-800/50 hover:text-white"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className={`h-4 w-4 ${item.isActive ? "text-blue-400" : "text-zinc-400"}`} />
-                          <span>{item.name}</span>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-zinc-600" />
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Drawer User Info */}
-              <div className="p-5 border-t border-[#27272a] bg-zinc-950 space-y-3">
-                {user ? (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 font-bold text-white">
-                        {user.email?.[0].toUpperCase()}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-white truncate">
-                          {user.user_metadata?.full_name || "User"}
-                        </p>
-                        <p className="text-[11px] text-zinc-400 truncate">{user.email}</p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setSheetOpen(false);
-                        handleSignOut();
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-colors"
+              <div className="p-4 space-y-1">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setSheetOpen(false)}
+                      className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-all ${
+                        item.isActive
+                          ? "bg-zinc-800 text-white border border-zinc-700 font-semibold"
+                          : "text-zinc-300 hover:bg-zinc-800/50 hover:text-white"
+                      }`}
                     >
-                      <LogOut className="h-3.5 w-3.5" />
-                      Sign Out
-                    </button>
-                  </>
-                ) : (
-                  <Link href="/login" onClick={() => setSheetOpen(false)} className="w-full">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl">
-                      Sign In
-                    </Button>
-                  </Link>
-                )}
+                      <div className="flex items-center gap-3">
+                        <Icon className={`h-4 w-4 ${item.isActive ? "text-blue-400" : "text-zinc-400"}`} />
+                        <span>{item.name}</span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-zinc-600" />
+                    </Link>
+                  );
+                })}
               </div>
-            </SheetContent>
-          </Sheet>
-        </div>
+            </div>
+
+            <div className="p-5 border-t border-[#27272a] bg-zinc-950">
+              <p className="text-xs font-semibold text-white">Artha Wealth Platform</p>
+              <p className="text-[11px] text-zinc-500 mt-1">
+                Global Stock Markets, Mutual Funds Aggregator, Forex & SIP Engine.
+              </p>
+            </div>
+          </SheetContent>
+        </Sheet>
       </header>
 
       {/* Mobile Bottom Navigation Capsule with High Z-Index Guarantee & Safe Area Inset Support */}
@@ -340,24 +256,7 @@ function DashboardNavContent() {
             <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "funds" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Funds</span>
           </Link>
 
-          {/* 3. Portfolio */}
-          <Link
-            href="/dashboard?tab=portfolio"
-            onClick={(e) => handleBottomTabClick(e, "portfolio")}
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
-              pathname === "/dashboard" && activeNavTab === "portfolio"
-                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
-                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
-            }`}
-          >
-            {pathname === "/dashboard" && activeNavTab === "portfolio" && (
-              <span className="absolute -top-1 w-6 h-1 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
-            )}
-            <Briefcase className={`h-4 w-4 ${pathname === "/dashboard" && activeNavTab === "portfolio" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "portfolio" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Portfolio</span>
-          </Link>
-
-          {/* 4. Currency */}
+          {/* 3. Currency */}
           <Link
             href="/dashboard?tab=currency"
             onClick={(e) => handleBottomTabClick(e, "currency")}
@@ -372,6 +271,23 @@ function DashboardNavContent() {
             )}
             <Coins className={`h-4 w-4 ${pathname === "/dashboard" && activeNavTab === "currency" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
             <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "currency" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Currency</span>
+          </Link>
+
+          {/* 4. SIP Calculator */}
+          <Link
+            href="/dashboard?tab=sip"
+            onClick={(e) => handleBottomTabClick(e, "sip")}
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+              (pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator"
+                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
+                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+            }`}
+          >
+            {((pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator") && (
+              <span className="absolute -top-1 w-6 h-1 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
+            )}
+            <Calculator className={`h-4 w-4 ${(pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${(pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>SIP Calc</span>
           </Link>
 
           {/* 5. More */}
