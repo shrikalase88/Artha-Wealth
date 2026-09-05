@@ -45,6 +45,32 @@ function DashboardNavContent() {
   }, [supabase]);
 
   const currentTab = searchParams ? searchParams.get("tab") : null;
+  const [activeNavTab, setActiveNavTab] = useState<string>(() => {
+    return currentTab || "market";
+  });
+
+  useEffect(() => {
+    if (currentTab) {
+      setActiveNavTab(currentTab);
+    }
+  }, [currentTab]);
+
+  useEffect(() => {
+    const handleSwitchTab = (e: any) => {
+      if (e.detail) setActiveNavTab(e.detail);
+    };
+    window.addEventListener("artha:switch-tab", handleSwitchTab);
+    return () => window.removeEventListener("artha:switch-tab", handleSwitchTab);
+  }, []);
+
+  const handleBottomTabClick = (e: React.MouseEvent, tabId: string) => {
+    if (pathname === "/dashboard") {
+      e.preventDefault();
+      setActiveNavTab(tabId);
+      window.dispatchEvent(new CustomEvent("artha:switch-tab", { detail: tabId }));
+      window.history.replaceState(null, "", `/dashboard?tab=${tabId}`);
+    }
+  };
 
   const navItems = [
     { 
@@ -277,77 +303,81 @@ function DashboardNavContent() {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Capsule with High Z-Index Guarantee */}
-      <nav className="lg:hidden fixed bottom-3 left-3 right-3 z-[999] rounded-2xl border border-[#27272a] bg-[#09090b]/95 backdrop-blur-2xl shadow-2xl shadow-black/95 p-1.5">
+      {/* Mobile Bottom Navigation Capsule with High Z-Index Guarantee & Safe Area Inset Support */}
+      <nav className="lg:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] left-2.5 right-2.5 sm:left-4 sm:right-4 z-[999] rounded-2xl border border-[#27272a] bg-[#09090b]/95 backdrop-blur-2xl shadow-2xl shadow-black/95 p-1.5 touch-manipulation select-none">
         <div className="grid grid-cols-5 gap-1">
           {/* 1. Market */}
           <Link
             href="/dashboard?tab=market"
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-200 ${
-              pathname === "/dashboard" && (currentTab === "market" || !currentTab)
-                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md scale-[1.02]"
+            onClick={(e) => handleBottomTabClick(e, "market")}
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+              pathname === "/dashboard" && activeNavTab === "market"
+                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
             }`}
           >
-            {pathname === "/dashboard" && (currentTab === "market" || !currentTab) && (
+            {pathname === "/dashboard" && activeNavTab === "market" && (
               <span className="absolute -top-1 w-6 h-1 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
             )}
-            <Activity className={`h-4 w-4 ${pathname === "/dashboard" && (currentTab === "market" || !currentTab) ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && (currentTab === "market" || !currentTab) ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Markets</span>
+            <Activity className={`h-4 w-4 ${pathname === "/dashboard" && activeNavTab === "market" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "market" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Markets</span>
           </Link>
 
           {/* 2. Funds */}
           <Link
             href="/dashboard?tab=funds"
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-200 ${
-              pathname === "/dashboard" && currentTab === "funds"
-                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md scale-[1.02]"
+            onClick={(e) => handleBottomTabClick(e, "funds")}
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+              pathname === "/dashboard" && activeNavTab === "funds"
+                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
             }`}
           >
-            {pathname === "/dashboard" && currentTab === "funds" && (
+            {pathname === "/dashboard" && activeNavTab === "funds" && (
               <span className="absolute -top-1 w-6 h-1 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
             )}
-            <Compass className={`h-4 w-4 ${pathname === "/dashboard" && currentTab === "funds" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && currentTab === "funds" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Funds</span>
+            <Compass className={`h-4 w-4 ${pathname === "/dashboard" && activeNavTab === "funds" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "funds" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Funds</span>
           </Link>
 
           {/* 3. Portfolio */}
           <Link
             href="/dashboard?tab=portfolio"
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-200 ${
-              pathname === "/dashboard" && currentTab === "portfolio"
-                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md scale-[1.02]"
+            onClick={(e) => handleBottomTabClick(e, "portfolio")}
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+              pathname === "/dashboard" && activeNavTab === "portfolio"
+                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
             }`}
           >
-            {pathname === "/dashboard" && currentTab === "portfolio" && (
+            {pathname === "/dashboard" && activeNavTab === "portfolio" && (
               <span className="absolute -top-1 w-6 h-1 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
             )}
-            <Briefcase className={`h-4 w-4 ${pathname === "/dashboard" && currentTab === "portfolio" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && currentTab === "portfolio" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Portfolio</span>
+            <Briefcase className={`h-4 w-4 ${pathname === "/dashboard" && activeNavTab === "portfolio" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "portfolio" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Portfolio</span>
           </Link>
 
           {/* 4. Currency */}
           <Link
             href="/dashboard?tab=currency"
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-200 ${
-              pathname === "/dashboard" && currentTab === "currency"
-                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md scale-[1.02]"
+            onClick={(e) => handleBottomTabClick(e, "currency")}
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+              pathname === "/dashboard" && activeNavTab === "currency"
+                ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
             }`}
           >
-            {pathname === "/dashboard" && currentTab === "currency" && (
+            {pathname === "/dashboard" && activeNavTab === "currency" && (
               <span className="absolute -top-1 w-6 h-1 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
             )}
-            <Coins className={`h-4 w-4 ${pathname === "/dashboard" && currentTab === "currency" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && currentTab === "currency" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Currency</span>
+            <Coins className={`h-4 w-4 ${pathname === "/dashboard" && activeNavTab === "currency" ? "text-blue-400 stroke-[2.5]" : "text-zinc-400"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "currency" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Currency</span>
           </Link>
 
           {/* 5. More */}
           <button
             onClick={() => setSheetOpen(true)}
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-zinc-400 hover:text-zinc-200 transition-all duration-200 border border-transparent"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-zinc-400 hover:text-zinc-200 active:scale-95 transition-colors duration-150 border border-transparent touch-manipulation cursor-pointer"
           >
             <Menu className="h-4 w-4 text-zinc-400" />
             <span className="text-[10px] tracking-tight mt-1 font-medium text-zinc-400">More</span>
