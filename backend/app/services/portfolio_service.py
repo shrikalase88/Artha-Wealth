@@ -208,6 +208,8 @@ def process_portfolio_pdf(
             try:
                 dt = datetime.strptime(d_str, "%Y-%m-%d") if "-" in d_str and len(d_str) == 10 else datetime.strptime(d_str.replace("-", "/"), "%d/%m/%Y")
                 update_data["as_of_date"] = dt.strftime("%Y-%m-%d")
+            except Exception:
+                pass
         if result.get("vendor"):
             cur_p = supabase.from_table("portfolios").eq("id", portfolio_id).select("description").execute()
             cur_p_data = cur_p.data[0] if cur_p.data and isinstance(cur_p.data, list) else {}
