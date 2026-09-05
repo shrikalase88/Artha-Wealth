@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        destination: "/dashboard?tab=market",
+      },
+    ];
+  },
   async headers() {
     return [
       {

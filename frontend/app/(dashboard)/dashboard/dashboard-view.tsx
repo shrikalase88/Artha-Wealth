@@ -2255,8 +2255,8 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
                         Universal Currency & Forex Hub
                       </h2>
-                      <p className="text-xs text-slate-400 line-clamp-1 sm:line-clamp-none">
-                        Choose any base currency and convert across global market pairs with real-time cross rates.
+                      <p className="text-xs text-slate-400">
+                        Convert across global market pairs with real-time cross rates.
                       </p>
                     </div>
                   </div>
@@ -2270,7 +2270,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                 </div>
               </div>
 
-              {/* Main 2-Column Grid */}
+              {/* Main Layout Grid */}
               <div className="grid gap-5 lg:gap-6 lg:grid-cols-12 w-full">
                 {/* Left Column: Any-to-Any Currency Converter (5 cols on lg) */}
                 <div className="lg:col-span-5 space-y-4 w-full">
@@ -2300,65 +2300,83 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                     </CardHeader>
 
                     <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-5">
-                      {/* Currency Pair Selector: From -> To */}
-                      <div className="grid grid-cols-1 xs:grid-cols-2 gap-2.5 sm:gap-3 p-3 rounded-2xl bg-slate-950/60 border border-white/5">
+                      {/* Currency Pair Selector: Stacked cleanly on mobile without truncation */}
+                      <div className="p-3 sm:p-4 rounded-2xl bg-slate-950/70 border border-white/5 space-y-2.5 sm:space-y-3">
                         {/* Base Currency Selector */}
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                            Base (From)
+                          <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                            From (Base Currency)
                           </label>
-                          <select
-                            value={baseCurrency}
-                            onChange={(e) => handleSelectBase(e.target.value)}
-                            className="w-full bg-slate-900 border border-white/10 rounded-xl px-2.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer truncate"
+                          <div className="relative">
+                            <select
+                              value={baseCurrency}
+                              onChange={(e) => handleSelectBase(e.target.value)}
+                              className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer appearance-none pr-8"
+                            >
+                              {CURRENCIES.map((c) => (
+                                <option key={c.short} value={c.short} className="bg-slate-900 text-white">
+                                  {c.flag} {c.short} — {c.name} ({c.symbol})
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          </div>
+                        </div>
+
+                        {/* Centered Swap Pill */}
+                        <div className="flex justify-center -my-0.5">
+                          <button
+                            type="button"
+                            onClick={swapCurrencies}
+                            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 hover:bg-blue-500/25 active:scale-95 border border-blue-500/30 text-[11px] font-semibold transition-all cursor-pointer touch-manipulation shadow-sm"
                           >
-                            {CURRENCIES.map((c) => (
-                              <option key={c.short} value={c.short} className="bg-slate-900 text-white">
-                                {c.flag} {c.short} — {c.name}
-                              </option>
-                            ))}
-                          </select>
+                            <ArrowRightLeft className="w-3.5 h-3.5" />
+                            <span>Swap From / To</span>
+                          </button>
                         </div>
 
                         {/* Target Currency Selector */}
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                            Target (To)
+                          <label className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                            To (Target Currency)
                           </label>
-                          <select
-                            value={targetCurrency}
-                            onChange={(e) => handleSelectTarget(e.target.value)}
-                            className="w-full bg-slate-900 border border-white/10 rounded-xl px-2.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer truncate"
-                          >
-                            {CURRENCIES.map((c) => (
-                              <option key={c.short} value={c.short} className="bg-slate-900 text-white">
-                                {c.flag} {c.short} — {c.name}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="relative">
+                            <select
+                              value={targetCurrency}
+                              onChange={(e) => handleSelectTarget(e.target.value)}
+                              className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer appearance-none pr-8"
+                            >
+                              {CURRENCIES.map((c) => (
+                                <option key={c.short} value={c.short} className="bg-slate-900 text-white">
+                                  {c.flag} {c.short} — {c.name} ({c.symbol})
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          </div>
                         </div>
                       </div>
 
-                      {/* Quick Base Currency Selector Chips: Horizontal swipe on mobile, grid on tablet/desktop */}
+                      {/* Quick Base Currency Selector Chips: Horizontal swipe showing all 11 global currencies */}
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
                           <span>Quick Base Currency</span>
-                          <span className="text-[10px] font-mono text-slate-500">Tap to set</span>
+                          <span className="text-[10px] font-mono text-slate-500">Scroll & tap</span>
                         </div>
-                        <div className="flex sm:grid sm:grid-cols-6 gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none touch-pan-x">
-                          {CURRENCIES.slice(0, 6).map((r) => (
+                        <div className="flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-none touch-pan-x">
+                          {CURRENCIES.map((r) => (
                             <button
                               key={r.short}
                               type="button"
                               onClick={() => handleSelectBase(r.short)}
-                              className={`shrink-0 min-w-[50px] sm:min-w-0 p-1.5 sm:p-2 rounded-xl text-center border transition-all duration-150 active:scale-95 cursor-pointer touch-manipulation ${
+                              className={`shrink-0 min-w-[56px] p-2 rounded-xl text-center border transition-all duration-150 active:scale-95 cursor-pointer touch-manipulation ${
                                 baseCurrency === r.short
                                   ? "bg-blue-600 text-white border-blue-400/50 shadow-md shadow-blue-600/20 font-bold ring-1 ring-blue-400/50"
                                   : "bg-slate-900/80 border-white/5 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
                               }`}
                             >
-                              <div className="text-sm leading-none mb-0.5">{r.flag}</div>
-                              <div className="text-[10.5px] font-mono font-bold">{r.short}</div>
+                              <div className="text-base leading-none mb-1">{r.flag}</div>
+                              <div className="text-[11px] font-mono font-bold">{r.short}</div>
                             </button>
                           ))}
                         </div>
@@ -2368,7 +2386,7 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
                           <label>Amount in {baseCurrObj.short}</label>
-                          <span className="text-[10px] font-mono text-slate-500">You Enter</span>
+                          <span className="text-[10px] font-mono text-slate-500">Enter Value</span>
                         </div>
 
                         <div className="relative flex items-center">
@@ -2379,10 +2397,10 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                             step="any"
                             value={currencyAmount}
                             onChange={(e) => setCurrencyAmount(e.target.value)}
-                            className="w-full bg-slate-950/90 border border-white/10 rounded-xl pl-3.5 pr-24 py-3 text-lg sm:text-xl font-bold font-mono text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner"
+                            className="w-full bg-slate-950/90 border border-white/10 rounded-xl pl-3.5 pr-28 py-3 text-lg sm:text-xl font-bold font-mono text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner"
                             placeholder="1"
                           />
-                          <div className="absolute right-2.5 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-800/90 text-xs font-bold font-mono text-slate-200 border border-white/10 pointer-events-none">
+                          <div className="absolute right-2.5 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 text-xs font-bold font-mono text-slate-200 border border-white/10 pointer-events-none">
                             <span>{baseCurrObj.flag}</span>
                             <span>{baseCurrObj.short}</span>
                           </div>
@@ -2416,31 +2434,33 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                       {/* Result Box with Copy action */}
                       <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-900/30 via-slate-900/90 to-cyan-900/30 border border-blue-500/30 text-center space-y-2 shadow-lg relative group">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest truncate">
-                            Equivalent ({targetCurrObj.short})
+                          <span className="text-[10px] sm:text-xs font-bold text-blue-400 uppercase tracking-widest">
+                            Converted Result ({targetCurrObj.short})
                           </span>
                           <button
                             type="button"
                             onClick={copyConversionToClipboard}
-                            className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0 touch-manipulation"
+                            className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0 touch-manipulation"
                             title="Copy conversion"
                           >
-                            {copiedRate ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedRate ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                           </button>
                         </div>
 
-                        <h3 className="text-2xl xs:text-3xl sm:text-4xl font-black text-white font-mono tracking-tight break-all">
-                          {targetCurrObj.symbol}{" "}
-                          {convertedTotal.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 4,
-                          })}{" "}
-                          <span className="text-sm sm:text-base font-normal text-slate-400 font-sans">{targetCurrObj.short}</span>
-                        </h3>
+                        <div className="py-1">
+                          <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white font-mono tracking-tight tabular-nums break-words">
+                            {targetCurrObj.symbol}{" "}
+                            {convertedTotal.toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 4,
+                            })}{" "}
+                            <span className="text-sm sm:text-base font-normal text-slate-400 font-sans">{targetCurrObj.short}</span>
+                          </h3>
+                        </div>
 
-                        <div className="pt-1 text-[10px] xs:text-[11px] text-slate-400 font-mono flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                        <div className="pt-2 border-t border-white/5 text-[11px] text-slate-400 font-mono flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
                           <span>1 {baseCurrObj.short} = {crossRate.toFixed(4)} {targetCurrObj.short}</span>
-                          <span className="hidden xs:inline">•</span>
+                          <span>•</span>
                           <span>1 {targetCurrObj.short} = {inverseRate.toFixed(4)} {baseCurrObj.short}</span>
                         </div>
                       </div>
@@ -2472,8 +2492,8 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                     </div>
                   </div>
 
-                  {/* Currencies Grid */}
-                  <div className="grid gap-2.5 sm:gap-3 grid-cols-1 xs:grid-cols-2 sm:grid-cols-2">
+                  {/* Currencies Grid: Single column on mobile (<640px) to prevent cramping/truncation, 2 columns on tablet/desktop */}
+                  <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                     {filteredCurrencies.length === 0 ? (
                       <div className="col-span-full p-8 text-center text-sm text-slate-500 border border-white/5 bg-slate-900/30 rounded-2xl">
                         No currencies match "{currencySearch}".
@@ -2500,58 +2520,63 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                               isTarget
                                 ? "bg-gradient-to-br from-blue-900/40 via-slate-900/95 to-cyan-900/40 border-blue-500/60 ring-2 ring-blue-500/30 shadow-blue-500/10"
                                 : isBase
-                                ? "bg-slate-900/90 border-emerald-500/30 opacity-80"
+                                ? "bg-slate-900/90 border-emerald-500/30 opacity-85"
                                 : "bg-[#090e1d]/90 border-white/10 hover:bg-white/[0.06] hover:border-white/20"
                             }`}
                           >
-                            <CardContent className="p-3.5 sm:p-4 flex flex-col justify-between h-full space-y-2.5 sm:space-y-3">
+                            <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
+                              {/* Top Row: Flag, Full Currency Name, Badges, and 24h Change */}
                               <div className="flex justify-between items-start gap-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <span className="text-xl sm:text-2xl shrink-0">{item.flag}</span>
-                                  <div className="min-w-0">
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                  <span className="text-2xl sm:text-3xl shrink-0">{item.flag}</span>
+                                  <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-1.5 flex-wrap">
-                                      <p className="text-xs font-bold text-white group-hover:text-blue-300 transition-colors truncate">
+                                      <span className="text-sm font-bold text-white group-hover:text-blue-300 transition-colors">
                                         {item.name}
-                                      </p>
+                                      </span>
                                       {isBase && (
-                                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold shrink-0">
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold shrink-0">
                                           Base
                                         </span>
                                       )}
                                       {isTarget && (
-                                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold shrink-0">
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold shrink-0">
                                           Target
                                         </span>
                                       )}
                                     </div>
-                                    <p className="text-[10px] text-slate-500 font-mono">{baseCurrObj.short} / {item.short}</p>
+                                    <p className="text-xs text-slate-400 font-mono mt-0.5">
+                                      {baseCurrObj.short} / {item.short} ({item.symbol})
+                                    </p>
                                   </div>
                                 </div>
 
-                                <div className={`flex items-center gap-0.5 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 ${
+                                <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold shrink-0 ${
                                   positive ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-red-500/15 text-red-400 border border-red-500/30"
                                 }`}>
-                                  {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                  {positive ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
                                   {positive ? "+" : ""}{item.change_pct}%
                                 </div>
                               </div>
 
-                              <div className="flex items-baseline justify-between pt-2 border-t border-white/5 gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <span className="text-[10px] text-slate-500 font-medium block">
+                              {/* Rates Row: Spacious, tabular numbers without ellipsis or truncation */}
+                              <div className="flex items-center justify-between pt-3 border-t border-white/5 gap-2">
+                                <div className="min-w-0">
+                                  <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider block">
                                     1 {baseCurrObj.short} =
                                   </span>
-                                  <h4 className="text-sm sm:text-base md:text-lg font-black text-white font-mono tracking-tight truncate">
+                                  <span className="text-base sm:text-lg font-black text-white font-mono tracking-tight tabular-nums block">
                                     {item.symbol} {rateForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                                  </h4>
+                                  </span>
                                 </div>
+
                                 <div className="text-right shrink-0">
-                                  <span className="text-[10px] text-slate-500 font-medium block">
+                                  <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider block">
                                     1 {item.short} =
                                   </span>
-                                  <p className="text-xs font-mono font-semibold text-slate-300">
+                                  <span className="text-xs sm:text-sm font-mono font-semibold text-slate-300 tabular-nums block">
                                     {baseCurrObj.symbol} {inverseForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                                  </p>
+                                  </span>
                                 </div>
                               </div>
                             </CardContent>
