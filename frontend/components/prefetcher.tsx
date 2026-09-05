@@ -3,15 +3,19 @@
 import { useEffect } from "react";
 import { preload } from "swr";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://backend-hhls4780t-shrikant-kalase-s-projects.vercel.app";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const safeFetcher = (url: string) =>
+  fetch(url)
+    .then((res) => (res.ok ? res.json() : null))
+    .catch(() => null);
 
 export function Prefetcher() {
   useEffect(() => {
-    preload(`${BACKEND_URL}/api/v1/market/summary`, fetcher);
-    preload(`${BACKEND_URL}/api/v1/market/currency`, fetcher);
-    preload(`${BACKEND_URL}/api/v1/market/top-funds`, fetcher);
+    if (!BACKEND_URL) return;
+    preload(`${BACKEND_URL}/api/v1/market/summary`, safeFetcher);
+    preload(`${BACKEND_URL}/api/v1/market/currency`, safeFetcher);
+    preload(`${BACKEND_URL}/api/v1/market/top-funds`, safeFetcher);
   }, []);
 
   return null;

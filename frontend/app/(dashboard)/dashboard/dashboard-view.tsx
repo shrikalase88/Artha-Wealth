@@ -5,7 +5,8 @@ import useSWR from "swr";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -456,6 +457,12 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
   // Compute comprehensive API loading state for Splash Screen
   const isInitialDataLoading = (!marketSummary && !marketSummaryError) || (!currencyRates) || (fundsLoading && !topFundsData);
 
+  useEffect(() => {
+    if (!isInitialDataLoading) {
+      window.dispatchEvent(new CustomEvent("artha:dashboard-ready"));
+    }
+  }, [isInitialDataLoading]);
+
   const [currencyAmount, setCurrencyAmount] = useState<string>("1");
   const [baseCurrency, setBaseCurrency] = useState<string>("USD");
   const [targetCurrency, setTargetCurrency] = useState<string>("INR");
@@ -875,15 +882,17 @@ export function DashboardView({ user, portfolios, assets }: DashboardViewProps) 
                   </p>
                 </div>
                 <div className="flex gap-4 pt-2">
-                  <Link href="/login">
-                    <Button variant="outline" className="border-white/10 text-white hover:bg-white/5">
-                      Sign In
-                    </Button>
+                  <Link
+                    href="/login"
+                    className={cn(buttonVariants({ variant: "outline" }), "border-white/10 text-white hover:bg-white/5 h-10 px-5 text-sm cursor-pointer")}
+                  >
+                    Sign In
                   </Link>
-                  <Link href="/signup">
-                    <Button className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25">
-                      Create Account <ChevronRight className="ml-1 h-4 w-4" />
-                    </Button>
+                  <Link
+                    href="/signup"
+                    className={cn(buttonVariants({ variant: "default" }), "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/25 h-10 px-5 text-sm font-semibold cursor-pointer")}
+                  >
+                    Create Account <ChevronRight className="ml-1 h-4 w-4" />
                   </Link>
                 </div>
               </div>

@@ -42,14 +42,19 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const pathname = request.nextUrl.pathname;
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route),
   );
+
+  // For public routes (/dashboard, /login, /signup, etc.), return immediately without blocking TTFB
+  if (!isProtected) {
+    return supabaseResponse;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
