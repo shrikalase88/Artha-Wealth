@@ -7,8 +7,12 @@ export interface DonutDataItem {
   name: string;
   value: number;
   change_pct?: number;
+  change?: number;
+  symbol?: string;
   subtext?: string;
 }
+
+export { RadialVelocityGauge } from "./radial-velocity-gauge";
 
 interface CustomDonutChartProps {
   data: DonutDataItem[];

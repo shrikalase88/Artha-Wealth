@@ -219,14 +219,14 @@ function DashboardNavContent() {
         </Sheet>
       </header>
 
-      {/* Mobile Bottom Navigation Capsule with High Z-Index Guarantee & Safe Area Inset Support */}
-      <nav className="lg:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] left-2.5 right-2.5 sm:left-4 sm:right-4 z-[999] rounded-2xl border border-[#27272a] bg-[#09090b]/95 backdrop-blur-2xl shadow-2xl shadow-black/95 p-1.5 touch-manipulation select-none">
+      {/* Mobile Bottom Navigation Capsule with High Z-Index Guarantee & Safe Area Inset Support (120Hz GPU Composited) */}
+      <nav className="lg:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] left-2.5 right-2.5 sm:left-4 sm:right-4 z-[999] rounded-2xl border border-[#27272a] bg-[#09090b]/95 backdrop-blur-2xl shadow-2xl shadow-black/95 p-1.5 touch-manipulation select-none transform-gpu will-change-transform">
         <div className="grid grid-cols-5 gap-1">
           {/* 1. Market */}
           <Link
             href="/dashboard?tab=market"
             onClick={(e) => handleBottomTabClick(e, "market")}
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-150 ease-out active:scale-95 touch-manipulation cursor-pointer ${
               pathname === "/dashboard" && activeNavTab === "market"
                 ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
@@ -243,7 +243,7 @@ function DashboardNavContent() {
           <Link
             href="/dashboard?tab=funds"
             onClick={(e) => handleBottomTabClick(e, "funds")}
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-150 ease-out active:scale-95 touch-manipulation cursor-pointer ${
               pathname === "/dashboard" && activeNavTab === "funds"
                 ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
@@ -260,7 +260,7 @@ function DashboardNavContent() {
           <Link
             href="/dashboard?tab=currency"
             onClick={(e) => handleBottomTabClick(e, "currency")}
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-150 ease-out active:scale-95 touch-manipulation cursor-pointer ${
               pathname === "/dashboard" && activeNavTab === "currency"
                 ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
@@ -277,7 +277,7 @@ function DashboardNavContent() {
           <Link
             href="/dashboard?tab=sip"
             onClick={(e) => handleBottomTabClick(e, "sip")}
-            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-colors duration-150 active:scale-95 touch-manipulation cursor-pointer ${
+            className={`relative flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-150 ease-out active:scale-95 touch-manipulation cursor-pointer ${
               (pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator"
                 ? "bg-zinc-800 text-white font-extrabold border border-zinc-700 shadow-md"
                 : "text-zinc-400 hover:text-zinc-200 border border-transparent"
@@ -293,7 +293,7 @@ function DashboardNavContent() {
           {/* 5. More */}
           <button
             onClick={() => setSheetOpen(true)}
-            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-zinc-400 hover:text-zinc-200 active:scale-95 transition-colors duration-150 border border-transparent touch-manipulation cursor-pointer"
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-xl text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all duration-150 ease-out border border-transparent touch-manipulation cursor-pointer"
           >
             <Menu className="h-4 w-4 text-zinc-400" />
             <span className="text-[10px] tracking-tight mt-1 font-medium text-zinc-400">More</span>

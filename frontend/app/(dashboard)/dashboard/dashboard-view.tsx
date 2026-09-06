@@ -26,7 +26,7 @@ import {
   Copy,
 } from "lucide-react";
 import { formatIndianCurrency } from "@/lib/utils";
-import { CustomDonutChart } from "@/components/ui/custom-donut-chart";
+import { RadialVelocityGauge } from "@/components/ui/radial-velocity-gauge";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
@@ -772,17 +772,20 @@ export function DashboardView() {
                           />
                         </CardContent>
                       </Card>
-                      
+
                       <Card className="border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
-                        <CardHeader className="pb-2">
+                        <CardHeader className="pb-1">
                           <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="h-px w-4 bg-slate-400/30" /> Top 5 Movers by Price
+                              <div className="h-px w-4 bg-slate-400/30" /> Top 5 Market Movers
                             </div>
-                            <span className="text-[10px] font-mono text-blue-400 font-normal">Dynamic Weight</span>
+                            <span className="text-[10px] font-mono text-emerald-400 font-normal flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              Directional Velocity
+                            </span>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="min-h-[260px] p-4 flex justify-center items-center">
+                        <CardContent className="min-h-[260px] p-3 flex justify-center items-center">
                           {(() => {
                             const sourceStocks = marketSummary?.stocks || [];
                             const dynamicMovers = [...sourceStocks]
@@ -793,10 +796,12 @@ export function DashboardView() {
                               name: s.short || s.name || "Stock",
                               value: Number(s.price || 0),
                               change_pct: s.change_pct !== undefined ? Number(s.change_pct) : undefined,
+                              change: s.change !== undefined ? Number(s.change) : undefined,
+                              symbol: s.symbol,
                             }));
 
-                             return (
-                              <CustomDonutChart
+                            return (
+                              <RadialVelocityGauge
                                 data={chartData}
                                 currencySymbol={currSymbol}
                                 className="w-full"

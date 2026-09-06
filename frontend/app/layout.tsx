@@ -27,6 +27,17 @@ export const metadata: Metadata = {
     icon: "/icon?v=3",
     apple: "/apple-icon?v=3",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Artha Wealth",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -34,6 +45,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#09090b" },
   ],
@@ -41,6 +53,7 @@ export const viewport: Viewport = {
 };
 
 import { GlobalSplashScreen } from "@/components/global-splash-screen";
+import { Prefetcher } from "@/components/prefetcher";
 
 export default function RootLayout({
   children,
@@ -58,6 +71,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <GlobalSplashScreen />
+          <Prefetcher />
           {children}
           <Toaster richColors position="top-right" />
         </ThemeProvider>
