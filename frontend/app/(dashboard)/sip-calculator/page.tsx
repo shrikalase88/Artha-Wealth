@@ -44,7 +44,7 @@ export default function SipCalculatorPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-10 text-slate-100 pb-24">
+    <div className="p-4 sm:p-6 lg:p-10 text-slate-100">
       <div className="mx-auto max-w-6xl space-y-6">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">

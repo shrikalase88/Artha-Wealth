@@ -377,7 +377,7 @@ export function DashboardView() {
         );
       })()}
 
-      <div className="px-4 sm:px-6 lg:px-8 space-y-6 pt-2 pb-8">
+      <div className="px-4 sm:px-6 lg:px-8 space-y-6 pt-2 pb-4 sm:pb-6">
         <div className="hidden lg:flex sticky top-0 z-30 w-full border-b border-[#27272a] bg-[#09090b]/95 backdrop-blur-xl py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 overflow-x-auto scrollbar-none">
           <div className="flex items-center justify-between gap-4 w-full min-w-max">
             <nav className="inline-flex items-center p-1 sm:p-1.5 bg-[#121215]/95 backdrop-blur-2xl rounded-2xl border border-[#27272a] shadow-lg gap-1 sm:gap-1.5 overflow-x-auto">
@@ -420,7 +420,7 @@ export function DashboardView() {
         </div>
         {/* -------------------- TAB: SIP & INVESTMENT GROWTH CALCULATOR -------------------- */}
         {activeTab === "sip" && (
-          <div className="space-y-6 pb-8 animate-fade-in-up">
+          <div className="space-y-6 animate-fade-in-up">
             {/* Header / Mode Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-950/80 border border-[#27272a] rounded-2xl p-4 sm:p-5 backdrop-blur-xl shadow-xl">
               <div>
@@ -711,7 +711,7 @@ export function DashboardView() {
 
         {/* -------------------- TAB 2: LIVE SHAREMARKET VIEW -------------------- */}
         {activeTab === "market" && (
-          <div className="space-y-6 pb-8 animate-fade-in-up">
+          <div className="space-y-6 animate-fade-in-up">
             {/* Regional Selector Sub-Options Bar */}
               <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-2 scrollbar-none select-none -mx-4 px-4 sm:mx-0 sm:px-0">
                 {[

@@ -5,7 +5,7 @@ import { Info, ShieldCheck, Cpu, Heart, Code } from "lucide-react";
 
 export default function AboutPage() {
   return (
-    <div className="p-4 sm:p-6 lg:p-10 text-slate-100 pb-24">
+    <div className="p-4 sm:p-6 lg:p-10 text-slate-100">
       <div className="mx-auto max-w-4xl space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">

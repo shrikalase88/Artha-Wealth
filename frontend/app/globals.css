@@ -692,8 +692,8 @@ td {
 
 /* Mobile bottom nav safe area compensation */
 @media (max-width: 1023px) {
-  main {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  main.page-transition {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
