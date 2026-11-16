@@ -10,3 +10,5 @@ __pycache__/
 .venv/
 graphify-out/
 .graphifyignore
+.coverage
+Artha-Wealth/
