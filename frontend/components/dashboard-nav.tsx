@@ -14,12 +14,13 @@ import {
   ChevronRight
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function BrandMonogram({ className = "h-8 w-8" }: { className?: string }) {
   return (
-    <div className={`flex items-center justify-center rounded-xl bg-zinc-900 border border-white/10 shadow-sm shrink-0 ${className}`}>
+    <div className={`flex items-center justify-center rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 shadow-xs dark:shadow-none shrink-0 ${className}`}>
       <svg 
-        className="w-5 h-5 text-white" 
+        className="w-5 h-5 text-zinc-900 dark:text-white" 
         viewBox="0 0 48 48" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
@@ -30,7 +31,7 @@ function BrandMonogram({ className = "h-8 w-8" }: { className?: string }) {
         />
         <path
           d="M24 16.5L19 26H29L24 16.5Z"
-          fill="#09090b"
+          className="fill-white dark:fill-[#09090b]"
           opacity="0.9"
         />
         <path
@@ -39,12 +40,12 @@ function BrandMonogram({ className = "h-8 w-8" }: { className?: string }) {
         />
         <defs>
           <linearGradient id="nav-silver-grad" x1="6" y1="6" x2="42" y2="38" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#FFFFFF" />
-            <stop offset="0.6" stopColor="#E4E4E7" />
-            <stop offset="1" stopColor="#A1A1AA" />
+            <stop stopColor="#18181B" className="dark:stop-color-white" />
+            <stop offset="0.6" stopColor="#3F3F46" className="dark:stop-color-zinc-300" />
+            <stop offset="1" stopColor="#71717A" className="dark:stop-color-zinc-400" />
           </linearGradient>
           <linearGradient id="nav-accent-grad" x1="21" y1="27" x2="27" y2="33" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#3B82F6" />
+            <stop stopColor="#2563EB" />
             <stop offset="1" stopColor="#10B981" />
           </linearGradient>
         </defs>
@@ -131,18 +132,18 @@ function DashboardNavContent() {
 
   return (
     <>
-      {/* Desktop Sidebar - Apple/Google Minimalist obsidian styling */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-white/[0.08] bg-[#09090b]/85 backdrop-blur-2xl h-screen sticky top-0 z-30 select-none">
+      {/* Desktop Sidebar - Apple/Google Minimalist styling (Light by default, Dark optional) */}
+      <aside className="hidden lg:flex w-64 flex-col border-r border-zinc-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-[#09090b]/85 backdrop-blur-2xl h-screen sticky top-0 z-30 select-none transition-colors duration-200">
         <div className="flex h-full flex-col justify-between p-6">
           <div className="space-y-8">
             {/* Logo */}
             <Link href="/dashboard?tab=market" className="flex items-center gap-3 px-1 group cursor-pointer">
               <BrandMonogram className="h-9 w-9 group-hover:scale-105 transition-transform duration-200" />
               <div className="flex flex-col">
-                <span className="text-base font-bold tracking-[0.1em] text-white uppercase leading-none">
+                <span className="text-base font-bold tracking-[0.1em] text-zinc-900 dark:text-white uppercase leading-none">
                   Artha
                 </span>
-                <span className="text-[10px] font-semibold text-zinc-400 tracking-[0.2em] uppercase mt-1">
+                <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 tracking-[0.2em] uppercase mt-1">
                   Wealth Hub
                 </span>
               </div>
@@ -157,16 +158,16 @@ function DashboardNavContent() {
                     <span
                       className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 active:scale-[0.98] ${
                         item.isActive
-                          ? "bg-white/[0.08] text-white font-semibold border border-white/[0.1] shadow-xs"
-                          : "text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent"
+                          ? "bg-zinc-100 dark:bg-white/[0.08] text-zinc-900 dark:text-white font-semibold border border-zinc-200/80 dark:border-white/[0.1] shadow-xs"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-white/[0.03] border border-transparent"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`h-4.5 w-4.5 shrink-0 ${item.isActive ? "text-white stroke-[2.2]" : "text-zinc-400 stroke-[1.8]"}`} />
+                        <Icon className={`h-4.5 w-4.5 shrink-0 ${item.isActive ? "text-zinc-900 dark:text-white stroke-[2.2]" : "text-zinc-500 dark:text-zinc-400 stroke-[1.8]"}`} />
                         <span>{item.name}</span>
                       </div>
                       {item.isActive && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" />
                       )}
                     </span>
                   </Link>
@@ -175,45 +176,56 @@ function DashboardNavContent() {
             </nav>
           </div>
 
-          {/* Sidebar Footer */}
-          <div className="pt-6 border-t border-white/[0.06] space-y-2">
-            <div className="p-3 rounded-xl bg-zinc-900/60 border border-white/[0.06] flex items-center justify-between">
+          {/* Sidebar Footer with Theme Switcher & Status */}
+          <div className="pt-6 border-t border-zinc-200/80 dark:border-white/[0.06] space-y-3">
+            {/* Theme Toggle Button */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Appearance</span>
+              <ThemeToggle showLabel={true} />
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-white/[0.06] flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-zinc-200 tracking-tight">Market Feeds</p>
-                <p className="text-[10px] text-emerald-400 font-mono flex items-center gap-1.5 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 tracking-tight">Market Feeds</p>
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                   Live Sync
                 </p>
               </div>
-              <span className="text-[10px] text-zinc-500 font-mono">v2.0</span>
+              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono">v2.1</span>
             </div>
           </div>
         </div>
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-xl sticky top-0 z-40 select-none">
+      <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-zinc-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-xl sticky top-0 z-40 select-none transition-colors duration-200">
         <Link href="/dashboard?tab=market" className="flex items-center gap-2.5 active:scale-95 transition-transform duration-150">
           <BrandMonogram className="h-8 w-8" />
-          <span className="text-sm font-bold tracking-[0.1em] text-white uppercase">
-            Artha <span className="text-zinc-400 text-xs font-medium tracking-normal ml-0.5">Wealth</span>
+          <span className="text-sm font-bold tracking-[0.1em] text-zinc-900 dark:text-white uppercase">
+            Artha <span className="text-zinc-500 dark:text-zinc-400 text-xs font-medium tracking-normal ml-0.5">Wealth</span>
           </span>
         </Link>
 
-        <button 
-          type="button"
-          onClick={() => setSheetOpen(true)}
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-white/[0.05] border border-white/[0.08] active:scale-95 transition-all duration-150 cursor-pointer"
-          aria-label="Open Navigation Menu"
-        >
-          <Menu className="h-5 w-5 stroke-[1.8]" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Mobile Theme Toggle */}
+          <ThemeToggle />
+
+          <button 
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.05] border border-zinc-200 dark:border-white/[0.08] active:scale-95 transition-all duration-150 cursor-pointer"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu className="h-5 w-5 stroke-[1.8]" />
+          </button>
+        </div>
 
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent side="right" className="bg-[#09090b] border-white/[0.08] p-0 w-80 flex flex-col justify-between">
+          <SheetContent side="right" className="bg-white dark:bg-[#09090b] border-zinc-200 dark:border-white/[0.08] p-0 w-80 flex flex-col justify-between">
             <div>
-              <SheetHeader className="p-5 border-b border-white/[0.08]">
-                <SheetTitle className="text-white flex items-center gap-2.5 text-left font-sans">
+              <SheetHeader className="p-5 border-b border-zinc-200 dark:border-white/[0.08]">
+                <SheetTitle className="text-zinc-900 dark:text-white flex items-center gap-2.5 text-left font-sans">
                   <BrandMonogram className="h-7 w-7" />
                   <span className="text-sm font-bold tracking-wider uppercase">Artha Wealth</span>
                 </SheetTitle>
@@ -229,23 +241,26 @@ function DashboardNavContent() {
                       onClick={() => setSheetOpen(false)}
                       className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-all active:scale-[0.98] ${
                         item.isActive
-                          ? "bg-white/[0.08] text-white border border-white/[0.1] font-semibold"
-                          : "text-zinc-300 hover:bg-white/[0.04] hover:text-white"
+                          ? "bg-zinc-100 dark:bg-white/[0.08] text-zinc-900 dark:text-white border border-zinc-200 dark:border-white/[0.1] font-semibold"
+                          : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/[0.04] hover:text-zinc-900 dark:hover:text-white"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`h-4.5 w-4.5 shrink-0 ${item.isActive ? "text-white stroke-[2.2]" : "text-zinc-400 stroke-[1.8]"}`} />
+                        <Icon className={`h-4.5 w-4.5 shrink-0 ${item.isActive ? "text-zinc-900 dark:text-white stroke-[2.2]" : "text-zinc-500 dark:text-zinc-400 stroke-[1.8]"}`} />
                         <span>{item.name}</span>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-zinc-600 stroke-[1.8]" />
+                      <ChevronRight className="h-4 w-4 text-zinc-400 dark:text-zinc-600 stroke-[1.8]" />
                     </Link>
                   );
                 })}
               </div>
             </div>
 
-            <div className="p-5 border-t border-white/[0.08] bg-zinc-950/60">
-              <p className="text-xs font-semibold text-zinc-200">Artha Wealth Intelligence</p>
+            <div className="p-5 border-t border-zinc-200 dark:border-white/[0.08] bg-zinc-50 dark:bg-zinc-950/60 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Theme Preference</span>
+                <ThemeToggle showLabel={true} />
+              </div>
               <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
                 Global Stock Markets, Mutual Funds Aggregator, Multi-Currency Forex & Systematic Compounding Engine.
               </p>
@@ -255,7 +270,7 @@ function DashboardNavContent() {
       </header>
 
       {/* Mobile Bottom Navigation Bar - Emil Kowalski style tactile micro-interactions */}
-      <nav className="lg:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] left-2.5 right-2.5 sm:left-4 sm:right-4 z-[999] rounded-2xl border border-white/[0.1] bg-[#09090b]/92 backdrop-blur-2xl shadow-2xl shadow-black/95 p-1 touch-manipulation select-none transform-gpu will-change-transform">
+      <nav className="lg:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] left-2.5 right-2.5 sm:left-4 sm:right-4 z-[999] rounded-2xl border border-zinc-200/90 dark:border-white/[0.1] bg-white/95 dark:bg-[#09090b]/92 backdrop-blur-2xl shadow-xl shadow-zinc-900/10 dark:shadow-2xl dark:shadow-black/95 p-1 touch-manipulation select-none transform-gpu will-change-transform transition-colors duration-200">
         <div className="grid grid-cols-5 gap-1">
           {/* 1. Market */}
           <Link
@@ -263,15 +278,15 @@ function DashboardNavContent() {
             onClick={(e) => handleBottomTabClick(e, "market")}
             className={`relative min-h-[48px] flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all duration-150 ease-out active:scale-[0.92] touch-manipulation cursor-pointer ${
               pathname === "/dashboard" && activeNavTab === "market"
-                ? "bg-white/[0.08] text-white font-bold border border-white/10 shadow-xs"
-                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+                ? "bg-zinc-100 dark:bg-white/[0.08] text-zinc-900 dark:text-white font-bold border border-zinc-200 dark:border-white/10 shadow-xs"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 border border-transparent"
             }`}
           >
             {pathname === "/dashboard" && activeNavTab === "market" && (
-              <span className="absolute -top-1 w-5 h-0.5 rounded-full bg-blue-400" />
+              <span className="absolute -top-1 w-5 h-0.5 rounded-full bg-blue-500 dark:bg-blue-400" />
             )}
-            <TrendingUp className={`h-4.5 w-4.5 shrink-0 ${pathname === "/dashboard" && activeNavTab === "market" ? "text-white stroke-[2.2]" : "text-zinc-400 stroke-[1.8]"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "market" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Markets</span>
+            <TrendingUp className={`h-4.5 w-4.5 shrink-0 ${pathname === "/dashboard" && activeNavTab === "market" ? "text-zinc-900 dark:text-white stroke-[2.2]" : "text-zinc-500 dark:text-zinc-400 stroke-[1.8]"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "market" ? "font-bold text-zinc-900 dark:text-white" : "font-medium text-zinc-500 dark:text-zinc-400"}`}>Markets</span>
           </Link>
 
           {/* 2. Funds */}
@@ -280,15 +295,15 @@ function DashboardNavContent() {
             onClick={(e) => handleBottomTabClick(e, "funds")}
             className={`relative min-h-[48px] flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all duration-150 ease-out active:scale-[0.92] touch-manipulation cursor-pointer ${
               pathname === "/dashboard" && activeNavTab === "funds"
-                ? "bg-white/[0.08] text-white font-bold border border-white/10 shadow-xs"
-                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+                ? "bg-zinc-100 dark:bg-white/[0.08] text-zinc-900 dark:text-white font-bold border border-zinc-200 dark:border-white/10 shadow-xs"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 border border-transparent"
             }`}
           >
             {pathname === "/dashboard" && activeNavTab === "funds" && (
-              <span className="absolute -top-1 w-5 h-0.5 rounded-full bg-blue-400" />
+              <span className="absolute -top-1 w-5 h-0.5 rounded-full bg-blue-500 dark:bg-blue-400" />
             )}
-            <PieChart className={`h-4.5 w-4.5 shrink-0 ${pathname === "/dashboard" && activeNavTab === "funds" ? "text-white stroke-[2.2]" : "text-zinc-400 stroke-[1.8]"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "funds" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Funds</span>
+            <PieChart className={`h-4.5 w-4.5 shrink-0 ${pathname === "/dashboard" && activeNavTab === "funds" ? "text-zinc-900 dark:text-white stroke-[2.2]" : "text-zinc-500 dark:text-zinc-400 stroke-[1.8]"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "funds" ? "font-bold text-zinc-900 dark:text-white" : "font-medium text-zinc-500 dark:text-zinc-400"}`}>Funds</span>
           </Link>
 
           {/* 3. Currency */}
@@ -297,15 +312,15 @@ function DashboardNavContent() {
             onClick={(e) => handleBottomTabClick(e, "currency")}
             className={`relative min-h-[48px] flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all duration-150 ease-out active:scale-[0.92] touch-manipulation cursor-pointer ${
               pathname === "/dashboard" && activeNavTab === "currency"
-                ? "bg-white/[0.08] text-white font-bold border border-white/10 shadow-xs"
-                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+                ? "bg-zinc-100 dark:bg-white/[0.08] text-zinc-900 dark:text-white font-bold border border-zinc-200 dark:border-white/10 shadow-xs"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 border border-transparent"
             }`}
           >
             {pathname === "/dashboard" && activeNavTab === "currency" && (
-              <span className="absolute -top-1 w-5 h-0.5 rounded-full bg-blue-400" />
+              <span className="absolute -top-1 w-5 h-0.5 rounded-full bg-blue-500 dark:bg-blue-400" />
             )}
-            <ArrowLeftRight className={`h-4.5 w-4.5 shrink-0 ${pathname === "/dashboard" && activeNavTab === "currency" ? "text-white stroke-[2.2]" : "text-zinc-400 stroke-[1.8]"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "currency" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>Currency</span>
+            <ArrowLeftRight className={`h-4.5 w-4.5 shrink-0 ${pathname === "/dashboard" && activeNavTab === "currency" ? "text-zinc-900 dark:text-white stroke-[2.2]" : "text-zinc-500 dark:text-zinc-400 stroke-[1.8]"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${pathname === "/dashboard" && activeNavTab === "currency" ? "font-bold text-zinc-900 dark:text-white" : "font-medium text-zinc-500 dark:text-zinc-400"}`}>Currency</span>
           </Link>
 
           {/* 4. SIP Calculator */}
@@ -314,26 +329,26 @@ function DashboardNavContent() {
             onClick={(e) => handleBottomTabClick(e, "sip")}
             className={`relative min-h-[48px] flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all duration-150 ease-out active:scale-[0.92] touch-manipulation cursor-pointer ${
               (pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator"
-                ? "bg-white/[0.08] text-white font-bold border border-white/10 shadow-xs"
-                : "text-zinc-400 hover:text-zinc-200 border border-transparent"
+                ? "bg-zinc-100 dark:bg-white/[0.08] text-zinc-900 dark:text-white font-bold border border-zinc-200 dark:border-white/10 shadow-xs"
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 border border-transparent"
             }`}
           >
             {((pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator") && (
-              <span className="absolute -top-1 w-5 h-0.5 rounded-full bg-blue-400" />
+              <span className="absolute -top-1 w-5 h-0.5 rounded-full bg-blue-500 dark:bg-blue-400" />
             )}
-            <Calculator className={`h-4.5 w-4.5 shrink-0 ${(pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator" ? "text-white stroke-[2.2]" : "text-zinc-400 stroke-[1.8]"}`} />
-            <span className={`text-[10px] tracking-tight mt-1 ${(pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator" ? "font-bold text-white" : "font-medium text-zinc-400"}`}>SIP Calc</span>
+            <Calculator className={`h-4.5 w-4.5 shrink-0 ${(pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator" ? "text-zinc-900 dark:text-white stroke-[2.2]" : "text-zinc-500 dark:text-zinc-400 stroke-[1.8]"}`} />
+            <span className={`text-[10px] tracking-tight mt-1 ${(pathname === "/dashboard" && activeNavTab === "sip") || pathname === "/sip-calculator" ? "font-bold text-zinc-900 dark:text-white" : "font-medium text-zinc-500 dark:text-zinc-400"}`}>SIP Calc</span>
           </Link>
 
           {/* 5. More */}
           <button
             type="button"
             onClick={() => setSheetOpen(true)}
-            className="min-h-[48px] flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-zinc-400 hover:text-zinc-200 active:scale-[0.92] transition-all duration-150 ease-out border border-transparent touch-manipulation cursor-pointer"
+            className="min-h-[48px] flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 active:scale-[0.92] transition-all duration-150 ease-out border border-transparent touch-manipulation cursor-pointer"
             aria-label="More Options"
           >
-            <Menu className="h-4.5 w-4.5 text-zinc-400 stroke-[1.8] shrink-0" />
-            <span className="text-[10px] tracking-tight mt-1 font-medium text-zinc-400">More</span>
+            <Menu className="h-4.5 w-4.5 text-zinc-500 dark:text-zinc-400 stroke-[1.8] shrink-0" />
+            <span className="text-[10px] tracking-tight mt-1 font-medium text-zinc-500 dark:text-zinc-400">More</span>
           </button>
         </div>
       </nav>

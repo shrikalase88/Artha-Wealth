@@ -348,8 +348,8 @@ export function DashboardView() {
             ];
 
         return (
-          <div className="relative z-20 flex items-center w-full max-w-full my-2 overflow-hidden bg-[#09090b]/95 border-y border-[#27272a] shadow-lg backdrop-blur-xl">
-            <div className={`flex shrink-0 items-center gap-1.5 z-20 bg-[#09090b] px-4 py-2.5 text-[11px] sm:text-xs font-bold tracking-wider uppercase border-r border-[#27272a] shadow-md ${isMarketOpen ? 'text-blue-400' : 'text-zinc-400'}`}>
+          <div className="relative z-20 flex items-center w-full max-w-full my-2 overflow-hidden bg-white/95 dark:bg-[#09090b]/95 border-y border-zinc-200 dark:border-[#27272a] shadow-xs dark:shadow-lg backdrop-blur-xl">
+            <div className={`flex shrink-0 items-center gap-1.5 z-20 bg-white dark:bg-[#09090b] px-4 py-2.5 text-[11px] sm:text-xs font-bold tracking-wider uppercase border-r border-zinc-200 dark:border-[#27272a] shadow-xs dark:shadow-md ${isMarketOpen ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-500 dark:text-zinc-400'}`}>
               <Activity className={`h-3.5 w-3.5 ${isMarketOpen ? 'animate-pulse' : ''}`} /> 
               <span>{isMarketOpen ? 'Market Live' : 'Market Closed'}</span>
             </div>
@@ -365,15 +365,15 @@ export function DashboardView() {
                   const Icon = positive ? TrendingUp : TrendingDown;
                   return (
                     <div key={`${idx.short}-${index}`} className="flex shrink-0 items-center gap-2 text-xs">
-                      <span className="font-bold text-zinc-300">{idx.short}</span>
-                      <span className="font-extrabold text-white tabular-nums">{Number(idx.price).toLocaleString("en-IN")}</span>
-                      <span className={`flex items-center gap-0.5 font-semibold tabular-nums ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                      <span className="font-bold text-zinc-600 dark:text-zinc-300">{idx.short}</span>
+                      <span className="font-extrabold text-zinc-900 dark:text-white tabular-nums">{Number(idx.price).toLocaleString("en-IN")}</span>
+                      <span className={`flex items-center gap-0.5 font-semibold tabular-nums ${positive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
                         <Icon className="h-3.5 w-3.5" />
                         {positive ? "+" : ""}
                         {change.toFixed(2)}
                         {typeof idx?.change_pct === "number" && ` (${positive ? "+" : ""}${Number(idx.change_pct).toFixed(2)}%)`}
                       </span>
-                      <span className="text-white/20 ml-2">•</span>
+                      <span className="text-zinc-300 dark:text-white/20 ml-2">•</span>
                     </div>
                   );
                 })}
@@ -384,9 +384,9 @@ export function DashboardView() {
       })()}
 
       <div className="px-4 sm:px-6 lg:px-8 space-y-6 pt-2 pb-4 sm:pb-6">
-        <div className="hidden lg:flex sticky top-0 z-30 w-full border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-xl py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 overflow-x-auto scrollbar-none">
+        <div className="hidden lg:flex sticky top-0 z-30 w-full border-b border-zinc-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-xl py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 overflow-x-auto scrollbar-none">
           <div className="flex items-center justify-between gap-4 w-full min-w-max">
-            <nav className="inline-flex items-center p-1 bg-zinc-900/90 backdrop-blur-2xl rounded-xl border border-white/[0.08] shadow-sm gap-1 overflow-x-auto">
+            <nav className="inline-flex items-center p-1 bg-zinc-100 dark:bg-zinc-900/90 backdrop-blur-2xl rounded-xl border border-zinc-200/90 dark:border-white/[0.08] shadow-sm gap-1 overflow-x-auto">
               {[
                 { id: "market", name: "Markets", icon: TrendingUp },
                 { id: "funds", name: "Funds", icon: PieChart },
@@ -405,20 +405,20 @@ export function DashboardView() {
                     }}
                     className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-all duration-150 select-none whitespace-nowrap cursor-pointer active:scale-95 ${
                       active
-                        ? "bg-white/[0.08] text-white font-semibold border border-white/[0.1] shadow-xs"
-                        : "text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent font-medium"
+                        ? "bg-white dark:bg-white/[0.08] text-zinc-900 dark:text-white font-semibold border border-zinc-200 dark:border-white/[0.1] shadow-xs"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-white/[0.03] border border-transparent font-medium"
                     }`}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-white stroke-[2.2]" : "text-zinc-400 stroke-[1.8]"}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-zinc-900 dark:text-white stroke-[2.2]" : "text-zinc-500 dark:text-zinc-400 stroke-[1.8]"}`} />
                     <span className="text-xs font-semibold whitespace-nowrap">{tab.name}</span>
                   </button>
                 );
               })}
             </nav>
 
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
+            <div className="flex items-center gap-2 text-xs font-mono text-zinc-600 dark:text-zinc-400">
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                 Live Sync Active
               </span>
             </div>
@@ -428,28 +428,28 @@ export function DashboardView() {
         {activeTab === "sip" && (
           <div className="space-y-6 animate-fade-in-up">
             {/* Header / Mode Switcher */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/60 border border-white/[0.08] rounded-2xl p-4 sm:p-5 backdrop-blur-xl shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 backdrop-blur-xl shadow-xs dark:shadow-xl">
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                     <Calculator className="h-5 w-5 stroke-[1.8]" />
                   </div>
                   SIP & Wealth Growth Engine
                 </h2>
-                <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xl">
                   Simulate systematic compounding growth, calculate future maturity values, and analyze returns over customizable horizons.
                 </p>
               </div>
 
               {/* Mode Switcher Pill */}
-              <div className="inline-flex p-1 rounded-xl bg-zinc-900 border border-white/[0.08] self-start sm:self-auto">
+              <div className="inline-flex p-1 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/[0.08] self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setSipMode("sip")}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 ${
                     sipMode === "sip"
-                      ? "bg-white/[0.1] text-white border border-white/20 shadow-xs"
-                      : "text-zinc-400 hover:text-white"
+                      ? "bg-white dark:bg-white/[0.1] text-zinc-900 dark:text-white border border-zinc-200 dark:border-white/20 shadow-xs"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                   }`}
                 >
                   Monthly SIP
@@ -459,8 +459,8 @@ export function DashboardView() {
                   onClick={() => setSipMode("lumpsum")}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 ${
                     sipMode === "lumpsum"
-                      ? "bg-white/[0.1] text-white border border-white/20 shadow-xs"
-                      : "text-zinc-400 hover:text-white"
+                      ? "bg-white dark:bg-white/[0.1] text-zinc-900 dark:text-white border border-zinc-200 dark:border-white/20 shadow-xs"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                   }`}
                 >
                   One-Time Lump Sum
@@ -472,14 +472,14 @@ export function DashboardView() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Left Column: Sliders */}
               <div className="lg:col-span-5 space-y-6">
-                <Card className="border-[#27272a] bg-zinc-950/80 backdrop-blur-xl shadow-xl p-5 sm:p-6 space-y-6">
+                <Card className="border-zinc-200 dark:border-[#27272a] bg-white dark:bg-zinc-950/80 backdrop-blur-xl shadow-xs dark:shadow-xl p-5 sm:p-6 space-y-6">
                   {/* Slider 1: Monthly / Lumpsum Amount */}
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-zinc-300 font-medium">
+                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">
                         {sipMode === "sip" ? "Monthly Investment" : "Lump Sum Investment"}
                       </span>
-                      <span className="font-mono font-extrabold text-emerald-400 text-base">
+                      <span className="font-mono font-extrabold text-emerald-600 dark:text-emerald-400 text-base">
                         ₹{sipMonthly.toLocaleString("en-IN")}
                       </span>
                     </div>
@@ -490,7 +490,7 @@ export function DashboardView() {
                       step={sipMode === "sip" ? 500 : 5000}
                       value={sipMonthly}
                       onChange={(e) => setSipMonthly(Number(e.target.value))}
-                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-400 hover:accent-emerald-300 transition-all"
+                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 transition-all"
                     />
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {(sipMode === "sip" ? [2500, 5000, 10000, 25000, 50000] : [25000, 50000, 100000, 250000, 500000]).map((amt) => (
@@ -500,8 +500,8 @@ export function DashboardView() {
                           onClick={() => setSipMonthly(amt)}
                           className={`text-[10px] px-2.5 py-1 rounded-lg border font-mono transition-colors cursor-pointer ${
                             sipMonthly === amt
-                              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 font-bold"
-                              : "bg-zinc-900/60 text-zinc-400 hover:text-white border-zinc-800"
+                              ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 font-bold"
+                              : "bg-zinc-100 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border-zinc-200 dark:border-zinc-800"
                           }`}
                         >
                           ₹{amt.toLocaleString("en-IN")}
@@ -513,8 +513,8 @@ export function DashboardView() {
                   {/* Slider 2: Expected Return Rate */}
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-zinc-300 font-medium">Expected Return Rate (p.a.)</span>
-                      <span className="font-mono font-extrabold text-blue-400 text-base">
+                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">Expected Return Rate (p.a.)</span>
+                      <span className="font-mono font-extrabold text-blue-600 dark:text-blue-400 text-base">
                         {sipReturn}%
                       </span>
                     </div>
@@ -525,7 +525,7 @@ export function DashboardView() {
                       step={0.5}
                       value={sipReturn}
                       onChange={(e) => setSipReturn(Number(e.target.value))}
-                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all"
+                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-blue-500 transition-all"
                     />
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {[
@@ -540,8 +540,8 @@ export function DashboardView() {
                           onClick={() => setSipReturn(item.r)}
                           className={`text-[10px] px-2.5 py-1 rounded-lg border font-mono transition-colors cursor-pointer ${
                             sipReturn === item.r
-                              ? "bg-blue-500/20 text-blue-400 border-blue-500/40 font-bold"
-                              : "bg-zinc-900/60 text-zinc-400 hover:text-white border-zinc-800"
+                              ? "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/40 font-bold"
+                              : "bg-zinc-100 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border-zinc-200 dark:border-zinc-800"
                           }`}
                         >
                           {item.label}
@@ -553,8 +553,8 @@ export function DashboardView() {
                   {/* Slider 3: Time Horizon */}
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-zinc-300 font-medium">Time Horizon (Years)</span>
-                      <span className="font-mono font-extrabold text-purple-400 text-base">
+                      <span className="text-zinc-700 dark:text-zinc-300 font-medium">Time Horizon (Years)</span>
+                      <span className="font-mono font-extrabold text-purple-600 dark:text-purple-400 text-base">
                         {sipYears} {sipYears === 1 ? "Year" : "Years"}
                       </span>
                     </div>
@@ -565,7 +565,7 @@ export function DashboardView() {
                       step={1}
                       value={sipYears}
                       onChange={(e) => setSipYears(Number(e.target.value))}
-                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all"
+                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-600 dark:accent-purple-500 transition-all"
                     />
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {[3, 5, 10, 15, 20, 25, 30].map((y) => (
@@ -575,8 +575,8 @@ export function DashboardView() {
                           onClick={() => setSipYears(y)}
                           className={`text-[10px] px-2.5 py-1 rounded-lg border font-mono transition-colors cursor-pointer ${
                             sipYears === y
-                              ? "bg-purple-500/20 text-purple-400 border-purple-500/40 font-bold"
-                              : "bg-zinc-900/60 text-zinc-400 hover:text-white border-zinc-800"
+                              ? "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/40 font-bold"
+                              : "bg-zinc-100 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border-zinc-200 dark:border-zinc-800"
                           }`}
                         >
                           {y}Y
@@ -591,27 +591,27 @@ export function DashboardView() {
               <div className="lg:col-span-7 space-y-6">
                 {/* 3 Metrics Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  <div className="p-4 rounded-2xl bg-zinc-900/60 border border-white/[0.08] shadow-lg">
-                    <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Total Invested</p>
-                    <p className="text-xl sm:text-2xl font-mono font-bold text-white mt-1">
+                  <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-white/[0.08] shadow-xs dark:shadow-lg">
+                    <p className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total Invested</p>
+                    <p className="text-xl sm:text-2xl font-mono font-bold text-zinc-900 dark:text-white mt-1">
                       ₹{sipCalculation.totalInvested.toLocaleString("en-IN")}
                     </p>
-                    <p className="text-[10px] text-zinc-500 mt-1">Principal contribution</p>
+                    <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1">Principal contribution</p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-zinc-900/60 border border-white/[0.08] shadow-lg">
-                    <p className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">Wealth Gained</p>
-                    <p className="text-xl sm:text-2xl font-mono font-bold text-emerald-400 mt-1">
+                  <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-white/[0.08] shadow-xs dark:shadow-lg">
+                    <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Wealth Gained</p>
+                    <p className="text-xl sm:text-2xl font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                       +₹{sipCalculation.wealthGained.toLocaleString("en-IN")}
                     </p>
-                    <p className="text-[10px] text-emerald-500/80 mt-1 font-mono">
+                    <p className="text-[10px] text-emerald-600/80 dark:text-emerald-500/80 mt-1 font-mono">
                       {(sipCalculation.maturityValue / (sipCalculation.totalInvested || 1)).toFixed(1)}x Multiple
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-zinc-900/80 border border-white/[0.12] shadow-lg">
-                    <p className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">Maturity Value</p>
-                    <p className="text-xl sm:text-2xl font-mono font-bold text-white mt-1">
+                  <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.12] shadow-xs dark:shadow-lg">
+                    <p className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Maturity Value</p>
+                    <p className="text-xl sm:text-2xl font-mono font-bold text-blue-600 dark:text-white mt-1">
                       ₹{sipCalculation.maturityValue.toLocaleString("en-IN")}
                     </p>
                     <p className="text-[10px] text-zinc-400 mt-1">Estimated total corpus</p>
@@ -619,22 +619,22 @@ export function DashboardView() {
                 </div>
 
                 {/* Visual Ratio & Milestones */}
-                <Card className="border-[#27272a] bg-zinc-950/80 backdrop-blur-xl shadow-xl p-5 sm:p-6 space-y-5">
+                <Card className="border-zinc-200 dark:border-[#27272a] bg-white dark:bg-zinc-950/80 backdrop-blur-xl shadow-xs dark:shadow-xl p-5 sm:p-6 space-y-5">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <PieChart className="h-4 w-4 text-emerald-400" />
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                      <PieChart className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                       Wealth Compounding Breakdown
                     </h3>
-                    <span className="text-xs font-mono text-zinc-400">
+                    <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">
                       Profit Share: {Math.round((sipCalculation.wealthGained / (sipCalculation.maturityValue || 1)) * 100)}%
                     </span>
                   </div>
 
                   {/* Horizontal visual split bar */}
                   <div className="space-y-2">
-                    <div className="h-3.5 w-full rounded-full bg-zinc-900 border border-zinc-800 flex overflow-hidden p-0.5">
+                    <div className="h-3.5 w-full rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex overflow-hidden p-0.5">
                       <div
-                        className="h-full bg-zinc-600 rounded-l-full transition-all duration-300"
+                        className="h-full bg-zinc-400 dark:bg-zinc-600 rounded-l-full transition-all duration-300"
                         style={{
                           width: `${Math.max(5, Math.min(95, Math.round((sipCalculation.totalInvested / (sipCalculation.maturityValue || 1)) * 100)))}%`,
                         }}
@@ -643,20 +643,20 @@ export function DashboardView() {
                         className="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-r-full transition-all duration-300 flex-1"
                       />
                     </div>
-                    <div className="flex justify-between text-[11px] text-zinc-400 font-mono">
+                    <div className="flex justify-between text-[11px] text-zinc-600 dark:text-zinc-400 font-mono">
                       <span className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-zinc-600" />
+                        <span className="h-2 w-2 rounded-full bg-zinc-400 dark:bg-zinc-600" />
                         Invested: ₹{sipCalculation.totalInvested.toLocaleString("en-IN")}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                         Profit: ₹{sipCalculation.wealthGained.toLocaleString("en-IN")}
                       </span>
                     </div>
                   </div>
 
                   {/* Smart Milestones Roadmap */}
-                  <div className="pt-3 border-t border-zinc-900 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-900 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                     {[
                       { yr: Math.min(sipYears, 3), label: "Short Term" },
                       { yr: Math.min(sipYears, 5), label: "Medium Term" },
@@ -665,9 +665,9 @@ export function DashboardView() {
                     ].map((m, idx) => {
                       const proj = sipProjections.find((p) => p.year === m.yr) || sipProjections[sipProjections.length - 1];
                       return (
-                        <div key={idx} className="p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800/60">
-                          <p className="text-[10px] text-zinc-400 font-medium">{m.label} ({m.yr}Y)</p>
-                          <p className="text-xs sm:text-sm font-bold font-mono text-white mt-0.5 truncate">
+                        <div key={idx} className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/60">
+                          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">{m.label} ({m.yr}Y)</p>
+                          <p className="text-xs sm:text-sm font-bold font-mono text-zinc-900 dark:text-white mt-0.5 truncate">
                             ₹{proj?.maturity.toLocaleString("en-IN") || "—"}
                           </p>
                         </div>
@@ -677,33 +677,33 @@ export function DashboardView() {
                 </Card>
 
                 {/* Year-by-Year Growth Projections Table */}
-                <Card className="border-[#27272a] bg-zinc-950/80 backdrop-blur-xl shadow-xl overflow-hidden">
-                  <div className="p-4 sm:p-5 border-b border-zinc-800/80 flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-emerald-400" />
+                <Card className="border-zinc-200 dark:border-[#27272a] bg-white dark:bg-zinc-950/80 backdrop-blur-xl shadow-xs dark:shadow-xl overflow-hidden">
+                  <div className="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                       Growth Schedule & Compounding Timeline
                     </h3>
-                    <span className="text-[11px] text-zinc-400 font-mono">
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
                       {sipMode === "sip" ? `₹${sipMonthly.toLocaleString("en-IN")}/mo` : `₹${sipMonthly.toLocaleString("en-IN")} Lumpsum`} @ {sipReturn}% p.a.
                     </span>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="border-b border-zinc-800/80 text-zinc-400 bg-zinc-900/40 text-[11px] font-semibold">
+                        <tr className="border-b border-zinc-100 dark:border-zinc-800/80 text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/40 text-[11px] font-semibold">
                           <th className="py-2.5 px-4">Timeline</th>
                           <th className="py-2.5 px-4 text-right">Invested</th>
                           <th className="py-2.5 px-4 text-right">Interest / Gains</th>
                           <th className="py-2.5 px-4 text-right">Total Corpus</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-800/50 font-mono">
+                      <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50 font-mono">
                         {sipProjections.map((p) => (
-                          <tr key={p.year} className="hover:bg-zinc-900/40 transition-colors">
-                            <td className="py-2.5 px-4 text-zinc-300 font-sans font-medium">Year {p.year}</td>
-                            <td className="py-2.5 px-4 text-right text-zinc-400">₹{p.invested.toLocaleString("en-IN")}</td>
-                            <td className="py-2.5 px-4 text-right text-emerald-400 font-bold">+₹{p.wealthGained.toLocaleString("en-IN")}</td>
-                            <td className="py-2.5 px-4 text-right text-white font-bold">₹{p.maturity.toLocaleString("en-IN")}</td>
+                          <tr key={p.year} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition-colors">
+                            <td className="py-2.5 px-4 text-zinc-800 dark:text-zinc-300 font-sans font-medium">Year {p.year}</td>
+                            <td className="py-2.5 px-4 text-right text-zinc-600 dark:text-zinc-400">₹{p.invested.toLocaleString("en-IN")}</td>
+                            <td className="py-2.5 px-4 text-right text-emerald-600 dark:text-emerald-400 font-bold">+₹{p.wealthGained.toLocaleString("en-IN")}</td>
+                            <td className="py-2.5 px-4 text-right text-zinc-900 dark:text-white font-bold">₹{p.maturity.toLocaleString("en-IN")}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -736,14 +736,14 @@ export function DashboardView() {
                     onClick={() => setSelectedMarketRegion(region.id as any)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 ${
                       isActive
-                        ? "bg-white/[0.1] text-white font-semibold border border-white/20 shadow-xs"
-                        : "bg-zinc-900/60 border border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.04]"
+                        ? "bg-zinc-900 text-white dark:bg-white/[0.12] dark:text-white font-semibold border border-zinc-900 dark:border-white/20 shadow-xs"
+                        : "bg-white/90 dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-white/[0.06] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.04]"
                     }`}
                   >
                     <span className="text-sm">{region.flag}</span>
                     <span>{region.label}</span>
                     <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
-                      isActive ? "bg-white/10 text-white" : "bg-zinc-800/80 text-zinc-400"
+                      isActive ? "bg-white/20 text-white" : "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400"
                     }`}>
                       {region.sub}
                     </span>
@@ -760,14 +760,14 @@ export function DashboardView() {
                   {/* Sector Performance Bar Chart & Top 5 Movers Donut Chart */}
                   {marketSummary && marketSummary.sectors && (
                     <div className="grid gap-4 md:grid-cols-2 pt-2 animate-fade-in-up stagger-1">
-                      <Card className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
-                        <CardHeader className="p-4 sm:p-5 pb-2 border-b border-white/[0.06]">
-                          <CardTitle className="text-xs font-bold text-zinc-300 uppercase tracking-widest flex items-center justify-between">
+                      <Card className="border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-xs dark:shadow-xl overflow-hidden">
+                        <CardHeader className="p-4 sm:p-5 pb-2 border-b border-zinc-100 dark:border-white/[0.06]">
+                          <CardTitle className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Layers className="h-4 w-4 text-blue-400 stroke-[1.8]" />
+                              <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400 stroke-[1.8]" />
                               <span>Sector Performance (% Change)</span>
                             </div>
-                            <span className="text-[10px] font-mono text-zinc-400 font-medium">Equities Benchmark</span>
+                            <span className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 font-medium">Equities Benchmark</span>
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="h-[270px] p-3">
@@ -783,15 +783,15 @@ export function DashboardView() {
                         </CardContent>
                       </Card>
 
-                      <Card className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
-                        <CardHeader className="p-4 sm:p-5 pb-2 border-b border-white/[0.06]">
-                          <CardTitle className="text-xs font-bold text-zinc-300 uppercase tracking-widest flex items-center justify-between">
+                      <Card className="border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-xs dark:shadow-xl overflow-hidden">
+                        <CardHeader className="p-4 sm:p-5 pb-2 border-b border-zinc-100 dark:border-white/[0.06]">
+                          <CardTitle className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-widest flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <TrendingUp className="h-4 w-4 text-emerald-400 stroke-[2]" />
+                              <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400 stroke-[2]" />
                               <span>Top 5 Market Movers</span>
                             </div>
-                            <span className="text-[10px] font-mono text-zinc-400 font-medium flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 font-medium flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                               <span>Directional Velocity</span>
                             </span>
                           </CardTitle>
@@ -827,8 +827,8 @@ export function DashboardView() {
                   {/* Indices Cards */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                        <div className="h-px w-4 bg-zinc-600" /> Major Indices
+                      <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-px w-4 bg-zinc-300 dark:bg-zinc-600" /> Major Indices
                       </h3>
                       <span className="text-[11px] font-mono text-zinc-500">Live Tick Data ({currSymbol})</span>
                     </div>
@@ -846,19 +846,19 @@ export function DashboardView() {
                           return (
                             <Card 
                               key={idx.short} 
-                              className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl hover:border-white/20 hover:bg-zinc-900/80 transition-all duration-200 overflow-hidden group shadow-sm active:scale-[0.99]"
+                              className="border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-zinc-900/60 backdrop-blur-xl rounded-2xl hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-zinc-900/80 transition-all duration-200 overflow-hidden group shadow-xs active:scale-[0.99]"
                             >
                               <CardContent className="p-3.5 sm:p-4 flex flex-col justify-between h-full space-y-3">
                                 {/* Header row */}
                                 <div className="flex justify-between items-start gap-1">
                                   <div className="min-w-0">
-                                    <p className="text-xs sm:text-sm font-semibold text-white tracking-tight truncate group-hover:text-blue-400 transition-colors">
+                                    <p className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                       {idx.short || idx.name}
                                     </p>
                                     <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">{selectedMarketRegion.toUpperCase()} • Index</p>
                                   </div>
                                   <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold shrink-0 border ${
-                                    positive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                    positive ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20"
                                   }`}>
                                     {positive ? <TrendingUp className="h-3 w-3 stroke-[2]" /> : <TrendingDown className="h-3 w-3 stroke-[2]" />}
                                     {positive ? "+" : ""}{typeof idx?.change_pct === "number" ? Number(idx.change_pct).toFixed(2) : "0.00"}%
@@ -867,21 +867,21 @@ export function DashboardView() {
 
                                 {/* Price & points */}
                                 <div>
-                                  <h4 className="text-lg sm:text-xl font-bold text-white font-mono tracking-tight">
+                                  <h4 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white font-mono tracking-tight">
                                     {currSymbol}{price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </h4>
-                                  <p className={`text-[11px] font-mono font-medium mt-0.5 ${positive ? "text-emerald-400" : "text-rose-400"}`}>
+                                  <p className={`text-[11px] font-mono font-medium mt-0.5 ${positive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                                     {positive ? "+" : ""}{change.toFixed(2)} pts
                                   </p>
                                 </div>
 
                                 {/* Day High/Low visual range slider bar */}
-                                <div className="pt-2 border-t border-white/[0.06] space-y-1">
-                                  <div className="flex justify-between text-[9px] font-mono text-zinc-400">
+                                <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.06] space-y-1">
+                                  <div className="flex justify-between text-[9px] font-mono text-zinc-500 dark:text-zinc-400">
                                     <span>Low {currSymbol}{dayLow.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                                     <span>High {currSymbol}{dayHigh.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                                   </div>
-                                  <div className="relative h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                                  <div className="relative h-1.5 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                                     <div 
                                       className={`h-full rounded-full transition-all duration-300 ${positive ? "bg-emerald-500" : "bg-rose-500"}`} 
                                       style={{ width: `${posPct}%` }} 
@@ -921,15 +921,15 @@ export function DashboardView() {
                         const price = Number(sector.price || 0);
 
                         return (
-                          <Card key={sector.name} className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl hover:border-white/20 hover:bg-zinc-900/80 transition-all duration-200 group cursor-pointer shadow-sm active:scale-[0.99]">
+                          <Card key={sector.name} className="border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-zinc-900/60 backdrop-blur-xl rounded-2xl hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-zinc-900/80 transition-all duration-200 group cursor-pointer shadow-xs active:scale-[0.99]">
                             <CardContent className="p-3.5 flex flex-col justify-between h-full space-y-2.5">
                               <div className="flex justify-between items-start gap-1">
                                 <div className="min-w-0">
-                                  <p className="text-xs font-semibold text-zinc-200 group-hover:text-white transition-colors truncate">{sector.name}</p>
+                                  <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-white transition-colors truncate">{sector.name}</p>
                                   <p className="text-[9px] font-mono text-zinc-500">Sector Benchmark</p>
                                 </div>
                                 <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold shrink-0 border ${
-                                  positive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                  positive ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20"
                                 }`}>
                                   {positive ? <TrendingUp className="h-3 w-3 stroke-[2]" /> : <TrendingDown className="h-3 w-3 stroke-[2]" />}
                                   {positive ? "+" : ""}{sector.change_pct}%
@@ -937,12 +937,12 @@ export function DashboardView() {
                               </div>
 
                               <div>
-                                <p className="text-base font-bold text-white font-mono tracking-tight">{currSymbol}{price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <p className="text-base font-bold text-zinc-900 dark:text-white font-mono tracking-tight">{currSymbol}{price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                               </div>
 
-                              <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[9.5px]">
+                              <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.06] flex items-center justify-between text-[9.5px]">
                                 <span className="text-zinc-500 font-medium">Status</span>
-                                <span className={`font-semibold font-mono ${positive ? "text-emerald-400" : "text-rose-400"}`}>
+                                <span className={`font-semibold font-mono ${positive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                                   {positive ? "Outperforming" : "Underperforming"}
                                 </span>
                               </div>
@@ -955,14 +955,14 @@ export function DashboardView() {
 
                   {/* Stocks Listing - Active Movers */}
                   <div className="space-y-4 pt-4">
-                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                      <div className="h-px w-4 bg-zinc-600" /> Active Movers ({currSymbol})
+                    <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                      <div className="h-px w-4 bg-zinc-300 dark:bg-zinc-600" /> Active Movers ({currSymbol})
                     </h3>
                     
-                    <div className="border border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl">
+                    <div className="border border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-zinc-900/60 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xs dark:shadow-xl">
                       {marketSummary && marketSummary.stocks ? (
-                        <div className="divide-y divide-white/[0.04]">
-                          <div className="grid grid-cols-12 gap-3 p-3.5 sm:p-4 text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-widest bg-white/[0.02]">
+                        <div className="divide-y divide-zinc-100 dark:divide-white/[0.04]">
+                          <div className="grid grid-cols-12 gap-3 p-3.5 sm:p-4 text-[10px] font-mono font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest bg-zinc-50 dark:bg-white/[0.02]">
                             <div className="col-span-5 sm:col-span-4">Company</div>
                             <div className="col-span-2 hidden sm:block">Ticker</div>
                             <div className="col-span-4 sm:col-span-2 text-right">Last Price</div>
@@ -973,30 +973,30 @@ export function DashboardView() {
                             const change = stock.change ?? 0;
                             const positive = change >= 0;
                             return (
-                              <div key={stock.symbol} className="grid grid-cols-12 gap-3 p-3.5 sm:p-4 items-center hover:bg-white/[0.02] transition-colors border-b border-white/[0.04] last:border-0">
+                              <div key={stock.symbol} className="grid grid-cols-12 gap-3 p-3.5 sm:p-4 items-center hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors border-b border-zinc-100 dark:border-white/[0.04] last:border-0">
                                 {/* Company Name */}
                                 <div className="col-span-5 sm:col-span-4 min-w-0">
-                                  <p className="text-xs sm:text-sm font-semibold text-white tracking-tight truncate">{stock.short}</p>
-                                  <p className="text-[10px] text-zinc-400 mt-0.5 truncate pr-2">{stock.name}</p>
+                                  <p className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white tracking-tight truncate">{stock.short}</p>
+                                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate pr-2">{stock.name}</p>
                                 </div>
                                 
                                 {/* Ticker badge (sm+) */}
                                 <div className="col-span-2 hidden sm:flex items-center">
-                                  <span className="text-[10px] font-mono bg-zinc-800/80 border border-white/[0.06] text-zinc-300 px-2 py-0.5 rounded-md font-medium">
+                                  <span className="text-[10px] font-mono bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-white/[0.06] text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-md font-medium">
                                     {stock.symbol}
                                   </span>
                                 </div>
                                 
                                 {/* Last Price */}
                                 <div className="col-span-4 sm:col-span-2 text-right">
-                                  <p className="text-xs sm:text-sm font-bold font-mono text-white">
+                                  <p className="text-xs sm:text-sm font-bold font-mono text-zinc-900 dark:text-white">
                                     {currSymbol}{Number(stock.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </p>
                                 </div>
                                 
                                 {/* Absolute Change (sm+) */}
                                 <div className="col-span-2 hidden sm:block text-right">
-                                  <p className={`text-xs sm:text-sm font-mono font-medium ${positive ? "text-emerald-400" : "text-rose-400"}`}>
+                                  <p className={`text-xs sm:text-sm font-mono font-medium ${positive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                                     {positive ? "+" : ""}{change.toFixed(2)}
                                   </p>
                                 </div>
@@ -1005,8 +1005,8 @@ export function DashboardView() {
                                 <div className="col-span-3 sm:col-span-2 flex justify-end">
                                   <span className={`text-[11px] sm:text-xs font-mono font-bold px-2 py-1 rounded-md flex items-center justify-center gap-0.5 min-w-[70px] sm:min-w-[76px] border ${
                                     positive 
-                                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                                      : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20" 
+                                      : "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20"
                                   }`}>
                                     {positive ? <ArrowUpRight className="h-3 w-3 stroke-[2.2] shrink-0" /> : <ArrowDownRight className="h-3 w-3 stroke-[2.2] shrink-0" />}
                                     {positive ? "+" : ""}{typeof stock?.change_pct === "number" ? Number(stock.change_pct).toFixed(2) : "0.00"}%
@@ -1163,7 +1163,7 @@ export function DashboardView() {
                             href={searchUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group relative flex flex-col justify-between rounded-2xl border border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl p-5 hover:border-white/20 hover:bg-zinc-900/80 transition-all duration-200 block focus:outline-none shadow-sm active:scale-[0.99]"
+                            className="group relative flex flex-col justify-between rounded-2xl border border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-zinc-900/60 backdrop-blur-xl p-5 hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-zinc-900/80 transition-all duration-200 block focus:outline-none shadow-xs active:scale-[0.99]"
                           >
                             <div className="space-y-3">
                               <div className="flex items-center justify-between gap-2">
@@ -1173,30 +1173,30 @@ export function DashboardView() {
                                 <span className="text-[10px] font-mono text-zinc-500">ID: {fund.code}</span>
                               </div>
                               <div>
-                                <h3 className="font-semibold text-sm sm:text-base text-zinc-200 group-hover:text-white line-clamp-2 tracking-tight transition-colors">
+                                <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-white line-clamp-2 tracking-tight transition-colors">
                                   {fund.name}
                                 </h3>
                                 <p className="mt-1 text-[11px] font-medium text-zinc-500">
-                                  AUM: <span className="text-zinc-400">{fund.aum}</span>
+                                  AUM: <span className="text-zinc-700 dark:text-zinc-400">{fund.aum}</span>
                                 </p>
                               </div>
                             </div>
 
-                            <div className="mt-5 grid grid-cols-2 gap-2 border-t border-white/[0.06] pt-3">
+                            <div className="mt-5 grid grid-cols-2 gap-2 border-t border-zinc-100 dark:border-white/[0.06] pt-3">
                               <div>
                                 <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Direct NAV</p>
-                                <p className="text-base font-bold font-mono text-zinc-100 mt-0.5">₹{fund.nav}</p>
-                                <span className={`inline-flex items-center gap-0.5 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded mt-1 border ${positive ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : "text-rose-400 bg-rose-500/10 border-rose-500/20"}`}>
+                                <p className="text-base font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-0.5">₹{fund.nav}</p>
+                                <span className={`inline-flex items-center gap-0.5 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded mt-1 border ${positive ? "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : "text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/20"}`}>
                                   {positive ? <TrendingUp className="h-3 w-3 stroke-[2]" /> : <TrendingDown className="h-3 w-3 stroke-[2]" />}
                                   {Math.abs(fund.change_pct)}%
                                 </span>
                               </div>
                               <div className="text-right">
                                 <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Annual Returns</p>
-                                <p className={`text-base font-bold font-mono mt-0.5 ${fund.return_1y < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                <p className={`text-base font-bold font-mono mt-0.5 ${fund.return_1y < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                   {fund.return_1y}% <span className="text-[10px] text-zinc-500 font-normal">1Y</span>
                                 </p>
-                                <p className="text-xs font-semibold font-mono text-zinc-400 mt-1">
+                                <p className="text-xs font-semibold font-mono text-zinc-600 dark:text-zinc-400 mt-1">
                                   {fund.return_3y}% <span className="text-[10px] text-zinc-500 font-normal">3Y</span>
                                 </p>
                               </div>
@@ -1206,8 +1206,8 @@ export function DashboardView() {
                       })}
                     </div>
                   ) : (
-                    <div className="p-8 text-center bg-slate-900/40 rounded-2xl border border-slate-800 flex flex-col items-center gap-3">
-                      <p className="text-sm font-medium text-slate-400">No mutual funds found matching this category.</p>
+                    <div className="p-8 text-center bg-zinc-50 dark:bg-slate-900/40 rounded-2xl border border-zinc-200 dark:border-slate-800 flex flex-col items-center gap-3">
+                      <p className="text-sm font-medium text-zinc-600 dark:text-slate-400">No mutual funds found matching this category.</p>
                       <button
                         type="button"
                         onClick={() => setFundFilterCategory("all")}
@@ -1318,14 +1318,14 @@ export function DashboardView() {
                       onClick={() => handleSelectBase(c.short)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer touch-manipulation active:scale-95 ${
                         isActive
-                          ? "bg-white/[0.1] text-white font-semibold border border-white/20 shadow-xs"
-                          : "bg-zinc-900/60 border border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.04]"
+                          ? "bg-zinc-900 text-white dark:bg-white/[0.15] dark:text-white font-semibold border border-zinc-900 dark:border-white/20 shadow-xs"
+                          : "bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-white/[0.06] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-white/[0.04]"
                       }`}
                     >
                       <span className="text-base leading-none">{c.flag}</span>
                       <span>{c.short}</span>
                       <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-md ${
-                        isActive ? "bg-white/15 text-white font-semibold" : "bg-zinc-800 text-zinc-400"
+                        isActive ? "bg-white/20 text-white font-semibold" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
                       }`}>
                         {c.symbol}
                       </span>
@@ -1335,22 +1335,22 @@ export function DashboardView() {
               </div>
 
               {/* Currency Converter Card: Obsidian Glass matching Markets & Funds */}
-              <div className="rounded-2xl border border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 space-y-4 shadow-xl">
+              <div className="rounded-2xl border border-zinc-200/90 dark:border-white/[0.08] bg-white dark:bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 space-y-4 shadow-xs dark:shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
+                    <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 shrink-0">
                       <ArrowRightLeft className="w-4 h-4 stroke-[1.8]" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-white tracking-tight">Currency Converter</h3>
-                      <p className="text-[11px] text-zinc-400">Live multi-currency cross rates</p>
+                      <h3 className="text-sm font-semibold text-zinc-900 dark:text-white tracking-tight">Currency Converter</h3>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Live multi-currency cross rates</p>
                     </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={swapCurrencies}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-zinc-200 border border-white/[0.08] text-xs font-medium transition-all active:scale-95 cursor-pointer touch-manipulation"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-white/[0.08] text-xs font-medium transition-all active:scale-95 cursor-pointer touch-manipulation"
                     title="Swap base & target currencies"
                   >
                     <ArrowRightLeft className="w-3.5 h-3.5 stroke-[1.8]" />
@@ -1362,7 +1362,7 @@ export function DashboardView() {
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                   {/* Amount in Base Currency */}
                   <div className="sm:col-span-5 space-y-1">
-                    <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
                       You Convert ({baseCurrObj.short})
                     </label>
                     <div className="relative flex items-center">
@@ -1373,10 +1373,10 @@ export function DashboardView() {
                         step="any"
                         value={currencyAmount}
                         onChange={(e) => setCurrencyAmount(e.target.value)}
-                        className="w-full bg-zinc-950/80 border border-white/[0.08] rounded-xl pl-3 pr-20 py-2.5 text-base sm:text-lg font-bold font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
+                        className="w-full bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-white/[0.08] rounded-xl pl-3 pr-20 py-2.5 text-base sm:text-lg font-bold font-mono text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
                         placeholder="1"
                       />
-                      <div className="absolute right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-zinc-800 border border-white/[0.06] text-xs font-semibold font-mono text-zinc-200 pointer-events-none">
+                      <div className="absolute right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.06] text-xs font-semibold font-mono text-zinc-700 dark:text-zinc-200 pointer-events-none">
                         <span>{baseCurrObj.flag}</span>
                         <span>{baseCurrObj.short}</span>
                       </div>
@@ -1388,7 +1388,7 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={swapCurrencies}
-                      className="p-2.5 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] text-zinc-200 active:scale-90 active:rotate-180 transition-all duration-200 cursor-pointer touch-manipulation"
+                      className="p-2.5 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:hover:bg-zinc-700/80 border border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-200 active:scale-90 active:rotate-180 transition-all duration-200 cursor-pointer touch-manipulation"
                       title="Swap Currencies"
                     >
                       <ArrowRightLeft className="w-4 h-4 stroke-[1.8]" />
@@ -1397,41 +1397,41 @@ export function DashboardView() {
 
                   {/* Target Currency Selector */}
                   <div className="sm:col-span-5 space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    <label className="text-[10px] font-bold text-zinc-500 dark:text-slate-400 uppercase tracking-wider block">
                       Target Currency ({targetCurrObj.short})
                     </label>
                     <div className="relative">
                       <select
                         value={targetCurrency}
                         onChange={(e) => handleSelectTarget(e.target.value)}
-                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-white focus:outline-none focus:border-blue-500 cursor-pointer appearance-none"
+                        className="w-full bg-zinc-50 dark:bg-slate-950/80 border border-zinc-200 dark:border-white/10 rounded-xl pl-3 pr-8 py-2.5 text-xs sm:text-sm font-bold text-zinc-900 dark:text-white focus:outline-none focus:border-blue-500 cursor-pointer appearance-none"
                       >
                         {CURRENCIES.map((c) => (
-                          <option key={c.short} value={c.short} className="bg-slate-900 text-white">
+                          <option key={c.short} value={c.short} className="bg-white dark:bg-slate-900 text-zinc-900 dark:text-white">
                             {c.flag} {c.short} — {c.name} ({c.symbol})
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-slate-400 pointer-events-none" />
                     </div>
                   </div>
                 </div>
 
                 {/* Conversion Result Banner */}
-                <div className="p-4 rounded-xl bg-gradient-to-r from-blue-950/40 via-slate-900/60 to-cyan-950/40 border border-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 rounded-xl bg-blue-50/70 dark:bg-gradient-to-r dark:from-blue-950/40 dark:via-slate-900/60 dark:to-cyan-950/40 border border-blue-200 dark:border-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">
                       Converted Total ({targetCurrObj.short})
                     </span>
-                    <div className="text-xl sm:text-2xl font-black text-white font-mono tracking-tight tabular-nums mt-0.5">
+                    <div className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white font-mono tracking-tight tabular-nums mt-0.5">
                       {targetCurrObj.symbol}{" "}
                       {convertedTotal.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 4,
                       })}{" "}
-                      <span className="text-xs font-normal text-slate-400 font-sans">{targetCurrObj.short}</span>
+                      <span className="text-xs font-normal text-zinc-500 dark:text-slate-400 font-sans">{targetCurrObj.short}</span>
                     </div>
-                    <p className="text-[10px] text-slate-400 font-mono mt-1">
+                    <p className="text-[10px] text-zinc-500 dark:text-slate-400 font-mono mt-1">
                       1 {baseCurrObj.short} = {crossRate.toFixed(4)} {targetCurrObj.short} • 1 {targetCurrObj.short} = {inverseRate.toFixed(4)} {baseCurrObj.short}
                     </p>
                   </div>
@@ -1439,9 +1439,9 @@ export function DashboardView() {
                   <button
                     type="button"
                     onClick={copyConversionToClipboard}
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-xs font-semibold text-slate-200 border border-white/10 transition-colors cursor-pointer self-start sm:self-auto shrink-0 touch-manipulation"
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-white hover:bg-zinc-100 dark:bg-slate-800/80 dark:hover:bg-slate-700 active:scale-95 text-xs font-semibold text-zinc-800 dark:text-slate-200 border border-zinc-200 dark:border-white/10 transition-colors cursor-pointer self-start sm:self-auto shrink-0 touch-manipulation"
                   >
-                    {copiedRate ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedRate ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedRate ? "Copied!" : "Copy"}</span>
                   </button>
                 </div>
@@ -1461,12 +1461,12 @@ export function DashboardView() {
 
                   {/* Search Input for currencies */}
                   <div className="relative w-full sm:w-56">
-                    <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                    <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-400 dark:text-slate-500" />
                     <Input
                       placeholder="Search currency..."
                       value={currencySearch}
                       onChange={(e) => setCurrencySearch(e.target.value)}
-                      className="pl-8 h-8 text-xs bg-slate-900/80 border-white/10 text-white placeholder:text-slate-600 focus:border-blue-500/50 rounded-xl"
+                      className="pl-8 h-8 text-xs bg-zinc-50 dark:bg-slate-900/80 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-slate-600 focus:border-blue-500/50 rounded-xl"
                     />
                   </div>
                 </div>
@@ -1474,7 +1474,7 @@ export function DashboardView() {
                 {/* Currencies Grid: 1 col on mobile, 2 on tablet, 3 on desktop (Exact match with Funds) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filteredCurrencies.length === 0 ? (
-                    <div className="col-span-full p-8 text-center text-sm text-slate-500 border border-white/5 bg-slate-900/30 rounded-2xl">
+                    <div className="col-span-full p-8 text-center text-sm text-zinc-500 dark:text-slate-500 border border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-slate-900/30 rounded-2xl">
                       No currencies match "{currencySearch}".
                     </div>
                   ) : (
@@ -1494,10 +1494,10 @@ export function DashboardView() {
                           }}
                           className={`rounded-2xl border p-4 transition-all duration-200 cursor-pointer active:scale-[0.99] touch-manipulation flex flex-col justify-between gap-3 ${
                             isTarget
-                              ? "bg-blue-600/10 border-blue-500/50 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/30"
+                              ? "bg-blue-50/80 dark:bg-blue-600/10 border-blue-500/50 shadow-md shadow-blue-500/10 ring-1 ring-blue-500/30"
                               : isBase
-                              ? "bg-emerald-500/5 border-emerald-500/30 opacity-90"
-                              : "bg-slate-900/40 border-white/5 hover:bg-slate-900/70 hover:border-white/15"
+                              ? "bg-emerald-50/80 dark:bg-emerald-500/5 border-emerald-500/30 opacity-90"
+                              : "bg-white dark:bg-slate-900/40 border-zinc-200/90 dark:border-white/5 hover:bg-zinc-50 dark:hover:bg-slate-900/70 hover:border-zinc-300 dark:hover:border-white/15 shadow-xs"
                           }`}
                         >
                           {/* Top: Flag, Name, Code, Badges */}
@@ -1506,21 +1506,21 @@ export function DashboardView() {
                               <span className="text-2xl shrink-0">{item.flag}</span>
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="text-xs sm:text-sm font-bold text-white tracking-tight">
+                                  <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white tracking-tight">
                                     {item.name}
                                   </span>
                                   {isBase && (
-                                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold shrink-0">
+                                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold shrink-0">
                                       Base
                                     </span>
                                   )}
                                   {isTarget && (
-                                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 font-semibold shrink-0">
+                                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-700 dark:text-blue-300 font-semibold shrink-0">
                                       Target
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                                <p className="text-[11px] text-zinc-500 dark:text-slate-400 font-mono mt-0.5">
                                   {baseCurrObj.short} / {item.short}
                                 </p>
                               </div>
@@ -1529,8 +1529,8 @@ export function DashboardView() {
                             {/* 24h Change Pill */}
                             <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold shrink-0 ${
                               positive
-                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                : "bg-red-500/10 text-red-400 border border-red-500/20"
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                                : "bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20"
                             }`}>
                               {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                               {positive ? "+" : ""}{item.change_pct}%
@@ -1538,21 +1538,21 @@ export function DashboardView() {
                           </div>
 
                           {/* Bottom: 2-column metrics */}
-                          <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-white/5">
+                          <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-zinc-100 dark:border-white/5">
                             <div>
-                              <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-medium">
+                              <span className="text-[10px] text-zinc-500 dark:text-slate-500 uppercase tracking-wider block font-medium">
                                 1 {baseCurrObj.short} =
                               </span>
-                              <span className="text-sm sm:text-base font-black font-mono text-white tabular-nums block mt-0.5">
+                              <span className="text-sm sm:text-base font-black font-mono text-zinc-900 dark:text-white tabular-nums block mt-0.5">
                                 {item.symbol} {rateForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                               </span>
                             </div>
 
                             <div className="text-right">
-                              <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-medium">
+                              <span className="text-[10px] text-zinc-500 dark:text-slate-500 uppercase tracking-wider block font-medium">
                                 1 {item.short} =
                               </span>
-                              <span className="text-xs sm:text-sm font-semibold font-mono text-slate-300 tabular-nums block mt-0.5">
+                              <span className="text-xs sm:text-sm font-semibold font-mono text-zinc-700 dark:text-slate-300 tabular-nums block mt-0.5">
                                 {baseCurrObj.symbol} {inverseForCard.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                               </span>
                             </div>

@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "Artha Wealth",
   },
   formatDetection: {
@@ -44,6 +44,7 @@ export const viewport: Viewport = {
   userScalable: true,
   viewportFit: "cover",
   themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#09090b" },
   ],
   interactiveWidget: "resizes-visual",
@@ -58,14 +59,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="font-sans antialiased bg-[#09090b] text-zinc-50 min-h-screen">
+    <html lang="en" suppressHydrationWarning>
+      <body className="font-sans antialiased bg-background text-foreground min-h-screen transition-colors duration-200">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          forcedTheme="dark"
+          defaultTheme="light"
           enableSystem={false}
-          disableTransitionOnChange
+          disableTransitionOnChange={false}
         >
           <GlobalSplashScreen />
           <Prefetcher />

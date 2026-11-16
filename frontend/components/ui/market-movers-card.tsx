@@ -76,7 +76,7 @@ export function MarketMoversCard({
   if (!data || data.length === 0) {
     return (
       <div className={cn("flex flex-col items-center justify-center p-8 text-center text-xs text-zinc-500 font-sans", className)}>
-        <Layers className="h-6 w-6 text-zinc-600 mb-2 stroke-[1.5]" />
+        <Layers className="h-6 w-6 text-zinc-400 dark:text-zinc-600 mb-2 stroke-[1.5]" />
         <span>No market movers data available</span>
       </div>
     );
@@ -85,17 +85,17 @@ export function MarketMoversCard({
   return (
     <div className={cn("flex flex-col w-full space-y-3 font-sans select-none", className)}>
       {/* Sub-Header: Segmented Filter Pills & Breadth Indicator */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-white/[0.06]">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-zinc-200/90 dark:border-white/[0.06]">
         {/* Emil Kowalski style Segmented Pill Switcher */}
-        <div className="flex items-center p-0.5 rounded-lg bg-zinc-900/90 border border-white/[0.08] shadow-inner">
+        <div className="flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-white/[0.08] shadow-inner">
           <button
             type="button"
             onClick={() => setFilter("all")}
             className={cn(
               "px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-150 cursor-pointer active:scale-95",
               filter === "all"
-                ? "bg-zinc-800 text-white font-semibold shadow-xs"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold shadow-xs"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
             )}
           >
             All Top 5
@@ -106,11 +106,11 @@ export function MarketMoversCard({
             className={cn(
               "flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-150 cursor-pointer active:scale-95",
               filter === "gainers"
-                ? "bg-emerald-950/80 text-emerald-300 font-semibold border border-emerald-500/20 shadow-xs"
-                : "text-zinc-400 hover:text-emerald-400"
+                ? "bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 font-semibold border border-emerald-300 dark:border-emerald-500/20 shadow-xs"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400"
             )}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
             Gainers ({gainersCount})
           </button>
           <button
@@ -119,23 +119,23 @@ export function MarketMoversCard({
             className={cn(
               "flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-md transition-all duration-150 cursor-pointer active:scale-95",
               filter === "losers"
-                ? "bg-rose-950/80 text-rose-300 font-semibold border border-rose-500/20 shadow-xs"
-                : "text-zinc-400 hover:text-rose-400"
+                ? "bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 font-semibold border border-rose-300 dark:border-rose-500/20 shadow-xs"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400"
             )}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-rose-400" />
             Decliners ({losersCount})
           </button>
         </div>
 
         {/* Market Velocity & Scale Badge */}
-        <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400">
+        <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
           <span className="hidden sm:inline-block">Scale: ±{maxPct.toFixed(1)}%</span>
           <span className={cn(
             "flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border",
             avgNetChange >= 0
-              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-              : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+              ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+              : "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20"
           )}>
             {avgNetChange >= 0 ? <TrendingUp className="h-3 w-3 stroke-[2]" /> : <TrendingDown className="h-3 w-3 stroke-[2]" />}
             <span>Net {avgNetChange >= 0 ? "+" : ""}{avgNetChange.toFixed(2)}%</span>
@@ -145,16 +145,16 @@ export function MarketMoversCard({
 
       {/* Axis Scale Markers for Diverging Chart */}
       <div className="relative w-full hidden sm:flex items-center justify-between px-[120px] text-[9px] font-mono text-zinc-500 pt-0.5">
-        <span className="text-rose-400/80">-{maxPct.toFixed(1)}%</span>
-        <div className="flex items-center gap-1 text-zinc-400 font-medium">
-          <span className="w-1 h-1 rounded-full bg-zinc-400" />
+        <span className="text-rose-600 dark:text-rose-400/80">-{maxPct.toFixed(1)}%</span>
+        <div className="flex items-center gap-1 text-zinc-500 dark:text-zinc-400 font-medium">
+          <span className="w-1 h-1 rounded-full bg-zinc-400 dark:bg-zinc-500" />
           <span>0.0% Axis</span>
         </div>
-        <span className="text-emerald-400/80">+{maxPct.toFixed(1)}%</span>
+        <span className="text-emerald-600 dark:text-emerald-400/80">+{maxPct.toFixed(1)}%</span>
       </div>
 
       {/* List of High-Precision Diverging Delta Rows */}
-      <div className="divide-y divide-white/[0.04]">
+      <div className="divide-y divide-zinc-200/80 dark:divide-white/[0.04]">
         {filteredMovers.map((mover, idx) => {
           const pct = Number(mover.change_pct ?? mover.change ?? 0);
           const isPositive = pct >= 0;
@@ -169,26 +169,26 @@ export function MarketMoversCard({
               onMouseLeave={() => setActiveHoverIdx(null)}
               className={cn(
                 "group relative flex items-center justify-between py-2.5 px-2 rounded-xl transition-all duration-150 ease-out cursor-pointer",
-                isHovered ? "bg-white/[0.04] shadow-xs" : "hover:bg-white/[0.02]"
+                isHovered ? "bg-zinc-100/90 dark:bg-white/[0.04] shadow-xs" : "hover:bg-zinc-50 dark:hover:bg-white/[0.02]"
               )}
             >
               {/* Left Column: Rank, Ticker & Name */}
               <div className="flex items-center gap-2.5 min-w-0 w-[38%] sm:w-[28%] shrink-0">
-                <span className="text-[10px] font-mono font-medium text-zinc-500 w-4 text-center">
+                <span className="text-[10px] font-mono font-medium text-zinc-400 dark:text-zinc-500 w-4 text-center">
                   #{idx + 1}
                 </span>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs sm:text-sm font-semibold text-white tracking-tight truncate group-hover:text-blue-400 transition-colors">
+                    <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {mover.name}
                     </span>
                     {mover.symbol && (
-                      <span className="hidden md:inline-block text-[9px] font-mono text-zinc-400 bg-zinc-800/80 px-1.5 py-0.2 rounded border border-white/[0.05]">
+                      <span className="hidden md:inline-block text-[9px] font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/80 px-1.5 py-0.2 rounded border border-zinc-200 dark:border-white/[0.05]">
                         {mover.symbol}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-zinc-400 font-mono truncate">
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono truncate">
                     {currencySymbol}{Number(mover.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -197,9 +197,9 @@ export function MarketMoversCard({
               {/* Center Column: Professional Diverging Bi-Directional Delta Bar */}
               <div className="flex-1 mx-2 sm:mx-4 relative h-6 flex items-center">
                 {/* Background Track with Center Zero Line */}
-                <div className="absolute inset-x-0 h-1.5 bg-zinc-800/60 rounded-full overflow-hidden border border-white/[0.04]">
+                <div className="absolute inset-x-0 h-1.5 bg-zinc-200 dark:bg-zinc-800/60 rounded-full overflow-hidden border border-zinc-300/40 dark:border-white/[0.04]">
                   {/* Subtle center hairline at 50% */}
-                  <div className="absolute top-0 bottom-0 left-1/2 w-px bg-white/20 z-10" />
+                  <div className="absolute top-0 bottom-0 left-1/2 w-px bg-zinc-400/50 dark:bg-white/20 z-10" />
                 </div>
 
                 {/* Diverging Bar extending from Center (50%) */}
@@ -237,8 +237,8 @@ export function MarketMoversCard({
                 <div className={cn(
                   "flex items-center justify-center gap-0.5 px-2 py-1 rounded-md text-[11px] sm:text-xs font-mono font-bold border transition-colors min-w-[68px] sm:min-w-[76px]",
                   isPositive
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:bg-emerald-500/15"
-                    : "bg-rose-500/10 text-rose-400 border-rose-500/20 group-hover:bg-rose-500/15"
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 group-hover:bg-emerald-500/15"
+                    : "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20 group-hover:bg-rose-500/15"
                 )}>
                   {isPositive ? (
                     <ArrowUpRight className="h-3 w-3 stroke-[2.2] shrink-0" />
