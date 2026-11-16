@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart, DonutChart } from "@tremor/react";
+import { SectorPerformanceChart } from "@/components/ui/sector-performance-chart";
 import {
   TrendingUp,
   TrendingDown,
@@ -736,14 +736,14 @@ export function DashboardView() {
                     onClick={() => setSelectedMarketRegion(region.id as any)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 ${
                       isActive
-                        ? "bg-zinc-900 text-white dark:bg-white/[0.12] dark:text-white font-semibold border border-zinc-900 dark:border-white/20 shadow-xs"
-                        : "bg-white/90 dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-white/[0.06] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/[0.04]"
+                        ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 font-semibold border border-zinc-900 dark:border-white shadow-xs"
+                        : "bg-white/90 dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-white/[0.06] hover:border-zinc-300 dark:hover:border-white/20 shadow-2xs"
                     }`}
                   >
                     <span className="text-sm">{region.flag}</span>
                     <span>{region.label}</span>
-                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
-                      isActive ? "bg-white/20 text-white" : "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400"
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md transition-colors ${
+                      isActive ? "bg-white/20 text-white dark:bg-zinc-950/15 dark:text-zinc-950 font-bold" : "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400"
                     }`}>
                       {region.sub}
                     </span>
@@ -770,15 +770,10 @@ export function DashboardView() {
                             <span className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 font-medium">Equities Benchmark</span>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="h-[270px] p-3">
-                          <BarChart
-                            data={marketSummary.sectors.map((s: any) => ({ name: s.short, "Change %": s.change_pct ?? s.change ?? 0 }))}
-                            index="name"
-                            categories={["Change %"]}
-                            colors={["blue"]}
-                            valueFormatter={(val) => `${val}%`}
-                            yAxisWidth={48}
-                            className="h-full"
+                        <CardContent className="min-h-[270px] p-3 sm:p-4 flex flex-col justify-center">
+                          <SectorPerformanceChart
+                            data={marketSummary.sectors}
+                            className="w-full"
                           />
                         </CardContent>
                       </Card>
@@ -1116,14 +1111,16 @@ export function DashboardView() {
                           onClick={() => setFundFilterCategory(opt.id)}
                           className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 ${
                             isActive
-                              ? "bg-white/[0.1] text-white font-semibold border border-white/20 shadow-xs"
-                              : "bg-zinc-900/60 border border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.04]"
+                              ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 font-semibold border border-zinc-900 dark:border-white shadow-xs"
+                              : "bg-white dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-white/[0.06] hover:border-zinc-300 dark:hover:border-white/20 shadow-2xs"
                           }`}
                         >
                           <span>{opt.label}</span>
                           <span
-                            className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
-                              isActive ? "bg-white/15 text-white font-semibold" : "bg-zinc-800 text-zinc-400"
+                            className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono transition-colors ${
+                              isActive
+                                ? "bg-white/20 text-white dark:bg-zinc-950/15 dark:text-zinc-950 font-bold"
+                                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
                             }`}
                           >
                             {count}
@@ -1318,14 +1315,14 @@ export function DashboardView() {
                       onClick={() => handleSelectBase(c.short)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer touch-manipulation active:scale-95 ${
                         isActive
-                          ? "bg-zinc-900 text-white dark:bg-white/[0.15] dark:text-white font-semibold border border-zinc-900 dark:border-white/20 shadow-xs"
-                          : "bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-white/[0.06] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-white/[0.04]"
+                          ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 font-semibold border border-zinc-900 dark:border-white shadow-xs"
+                          : "bg-white dark:bg-zinc-900/60 border border-zinc-200/90 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-white/[0.06] hover:border-zinc-300 dark:hover:border-white/20 shadow-2xs"
                       }`}
                     >
                       <span className="text-base leading-none">{c.flag}</span>
                       <span>{c.short}</span>
-                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-md ${
-                        isActive ? "bg-white/20 text-white font-semibold" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
+                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md transition-colors ${
+                        isActive ? "bg-white/20 text-white dark:bg-zinc-950/15 dark:text-zinc-950 font-bold" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
                       }`}>
                         {c.symbol}
                       </span>
