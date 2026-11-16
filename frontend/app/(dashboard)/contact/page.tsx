@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Phone, Mail, User, Send, CheckCircle, MessageSquare } from "lucide-react";
+import { Mail, Phone, User, Send, CheckCircle, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ContactPage() {
@@ -31,138 +28,137 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-10 text-slate-100">
+    <div className="p-4 sm:p-6 lg:p-8 text-zinc-100 font-sans select-none">
       <div className="mx-auto max-w-4xl space-y-8">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <Phone className="h-8 w-8 text-blue-400" /> Contact Us
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <Mail className="h-6 w-6 stroke-[1.8]" />
+            </div>
+            <span>Contact & Inquiries</span>
           </h1>
-          <p className="mt-1.5 text-sm text-slate-300 font-light max-w-2xl leading-relaxed">
-            Get in touch with us for inquiries, feature requests, or developer support.
+          <p className="mt-1.5 text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
+            Get in touch for institutional access, feature proposals, or engineering support.
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-5 items-start">
-          {/* Contact Details Card (Col 2) */}
+          {/* Contact Details Card */}
           <div className="md:col-span-2 space-y-4">
-            <Card className="border-white/5 bg-slate-900/40 backdrop-blur-md glass-card py-2">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold text-white">Direct Connect</CardTitle>
-                <CardDescription className="text-slate-300 text-xs font-light">
-                  Get in touch with the lead developer
+            <Card className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-xl">
+              <CardHeader className="p-5 pb-3 border-b border-white/[0.06]">
+                <CardTitle className="text-sm font-semibold text-white">Direct Channels</CardTitle>
+                <CardDescription className="text-zinc-400 text-xs">
+                  Connect with the engineering lead
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/5 pb-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                    <User className="h-4.5 w-4.5" />
+              <CardContent className="p-5 space-y-4">
+                <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-800 border border-white/[0.06] text-zinc-300">
+                    <User className="h-4.5 w-4.5 stroke-[1.8]" />
                   </div>
                   <div>
-                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Representative</p>
-                    <p className="font-semibold text-white mt-0.5 text-sm">Shrikant Kalase</p>
+                    <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Representative</p>
+                    <p className="font-semibold text-white text-xs sm:text-sm mt-0.5">Shrikant Kalase</p>
                   </div>
                 </div>
 
                 <a 
                   href="mailto:shrikalase@gmail.com" 
-                  className="flex items-center gap-3 border-b border-white/5 pb-3 hover:bg-white/5 rounded-lg p-1.5 -m-1.5 transition-all duration-200"
+                  className="flex items-center gap-3 border-b border-white/[0.06] pb-3.5 hover:bg-white/[0.03] rounded-xl p-2 -mx-2 transition-all duration-150 active:scale-[0.98]"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                    <Mail className="h-4.5 w-4.5" />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                    <Mail className="h-4.5 w-4.5 stroke-[1.8]" />
                   </div>
-                  <div>
-                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Email Address</p>
-                    <p className="font-semibold text-white mt-0.5 text-sm hover:underline">shrikalase@gmail.com</p>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Email Address</p>
+                    <p className="font-semibold text-white text-xs sm:text-sm hover:underline truncate mt-0.5">shrikalase@gmail.com</p>
                   </div>
                 </a>
 
                 <a 
                   href="tel:+91-9096180081" 
-                  className="flex items-center gap-3 hover:bg-white/5 rounded-lg p-1.5 -m-1.5 transition-all duration-200"
+                  className="flex items-center gap-3 hover:bg-white/[0.03] rounded-xl p-2 -mx-2 transition-all duration-150 active:scale-[0.98]"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                    <Phone className="h-4.5 w-4.5" />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <Phone className="h-4.5 w-4.5 stroke-[1.8]" />
                   </div>
                   <div>
-                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Phone Hotline</p>
-                    <p className="font-semibold text-white mt-0.5 text-sm hover:underline">+91 90961 80081</p>
+                    <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Telephone</p>
+                    <p className="font-semibold text-white text-xs sm:text-sm hover:underline mt-0.5 font-mono">+91 90961 80081</p>
                   </div>
                 </a>
               </CardContent>
             </Card>
 
-            <div className="rounded-xl border border-white/5 bg-slate-950/40 p-4 text-xs text-slate-400 font-light space-y-2 leading-relaxed glass-card">
-              <p>
-                <strong>Availability:</strong> Monday to Friday (9 AM - 6 PM IST). 
-              </p>
-              <p>
-                We usually respond to all engineering query emails within 24 hours.
-              </p>
+            <div className="rounded-2xl border border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl p-4 text-xs text-zinc-400 space-y-1.5 leading-relaxed shadow-xl">
+              <p className="font-semibold text-zinc-300">Desk Hours</p>
+              <p>Monday to Friday, 9:00 AM – 6:00 PM IST.</p>
+              <p className="text-[11px] text-zinc-500">Inquiries typically resolved within 24 business hours.</p>
             </div>
           </div>
 
-          {/* Contact Form Card (Col 3) */}
+          {/* Form Card */}
           <div className="md:col-span-3">
-            <Card className="border-white/5 bg-slate-900/40 backdrop-blur-md glass-card py-2">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-base font-bold text-white flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-blue-400" /> Send a Message
+            <Card className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-xl">
+              <CardHeader className="p-5 pb-3 border-b border-white/[0.06]">
+                <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-blue-400 stroke-[1.8]" />
+                  <span>Transmit Inquiry</span>
                 </CardTitle>
-                <CardDescription className="text-slate-300 text-xs font-light">
-                  Have a suggestion or request? Write directly to Shrikant.
+                <CardDescription className="text-zinc-400 text-xs">
+                  Fill out the parameters below to establish communications
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-5">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="name" className="text-xs text-slate-300">Your Name</Label>
-                    <Input
-                      id="name"
-                      placeholder="John Doe"
+                    <label className="text-xs font-medium text-zinc-300">Full Name</label>
+                    <input
+                      type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-slate-950/60 border-white/10 text-sm h-10"
+                      placeholder="e.g. Anand Sharma"
+                      className="w-full rounded-xl border border-white/[0.08] bg-zinc-950/80 px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs text-slate-300">Email Address</Label>
-                    <Input
-                      id="email"
+                    <label className="text-xs font-medium text-zinc-300">Email Address</label>
+                    <input
                       type="email"
-                      placeholder="john@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-slate-950/60 border-white/10 text-sm h-10"
+                      placeholder="anand@example.com"
+                      className="w-full rounded-xl border border-white/[0.08] bg-zinc-950/80 px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="message" className="text-xs text-slate-300">Message Details</Label>
+                    <label className="text-xs font-medium text-zinc-300">Message Content</label>
                     <textarea
-                      id="message"
                       rows={4}
-                      placeholder="Hi Shrikant, I love the cockpit theme..."
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      className="w-full rounded-md bg-slate-950/60 border border-white/10 p-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      placeholder="Detail your inquiry, feedback, or integration requirement..."
+                      className="w-full rounded-xl border border-white/[0.08] bg-zinc-950/80 px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all resize-none"
                     />
                   </div>
 
-                  <Button
+                  <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold text-xs h-10 active:scale-95 transition-all duration-200 flex items-center justify-center gap-1.5 border border-white/10"
+                    className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 font-semibold text-xs sm:text-sm px-4 py-2.5 transition-all duration-150 active:scale-[0.98] disabled:opacity-50 cursor-pointer shadow-md"
                   >
                     {submitting ? (
-                      "Sending..."
+                      <div className="h-4 w-4 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <>
-                        <Send className="h-3.5 w-3.5" />
-                        Send Message
+                        <Send className="h-4 w-4 stroke-[2]" />
+                        <span>Send Message</span>
                       </>
                     )}
-                  </Button>
+                  </button>
                 </form>
               </CardContent>
             </Card>

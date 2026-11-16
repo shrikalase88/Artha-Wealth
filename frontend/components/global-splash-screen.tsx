@@ -1,191 +1,131 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Activity, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
-
-const STAGES = [
-  { threshold: 0, message: "Initializing Finance & Quant Engine..." },
-  { threshold: 25, message: "Connecting to Global Market Indices..." },
-  { threshold: 50, message: "Fetching Live Exchange & Forex Rates..." },
-  { threshold: 75, message: "Aggregating AMFI Mutual Funds & NAVs..." },
-  { threshold: 92, message: "Synthesizing Asset Allocation Metrics..." },
-  { threshold: 100, message: "Financial Intelligence Ready" },
-];
 
 export function GlobalSplashScreen() {
   const pathname = usePathname();
   const isAuthPage = pathname === "/login" || pathname === "/signup";
 
-  const [progress, setProgress] = useState(15);
-  const [statusMessage, setStatusMessage] = useState(STAGES[0].message);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
-  const isDataReadyRef = useRef(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // If user opens directly on an auth page, dismiss splash immediately
+    setMounted(true);
+
     if (isAuthPage) {
       setIsDismissed(true);
       return;
     }
 
+    let isDone = false;
+    const dismiss = () => {
+      if (isDone) return;
+      isDone = true;
+      setIsFadingOut(true);
+      setTimeout(() => {
+        setIsDismissed(true);
+      }, 350);
+    };
+
+    // Listen for dashboard-ready event from dashboard view
     const handleDashboardReady = () => {
-      isDataReadyRef.current = true;
+      // Small graceful buffer for silky smooth visual stability
+      setTimeout(dismiss, 120);
     };
 
     window.addEventListener("artha:dashboard-ready", handleDashboardReady);
 
-    const startTime = Date.now();
-    const intervalMs = 40;
-    const maxSafetyTimeoutMs = 4500;
-
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-
-      setProgress((prev) => {
-        let next = prev;
-
-        if (isDataReadyRef.current || elapsed > maxSafetyTimeoutMs) {
-          // Data is ready or safety timeout exceeded: quickly jump to 100%
-          next = Math.min(prev + 12, 100);
-        } else {
-          // Smooth progressive ramp-up while data loads
-          if (prev < 35) {
-            next = prev + 3;
-          } else if (prev < 65) {
-            next = prev + 1.8;
-          } else if (prev < 88) {
-            next = prev + 0.9;
-          } else if (prev < 95) {
-            next = prev + 0.3;
-          }
-        }
-
-        // Update status text based on current progress
-        const stage = [...STAGES].reverse().find((s) => next >= s.threshold);
-        if (stage) {
-          setStatusMessage(stage.message);
-        }
-
-        if (next >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsFadingOut(true);
-            setTimeout(() => {
-              setIsDismissed(true);
-            }, 500);
-          }, 200);
-        }
-
-        return Math.round(next * 10) / 10;
-      });
-    }, intervalMs);
+    // Fallback safety timeout: never block user for more than 1.2s even on slow connections
+    const timer = setTimeout(dismiss, 1200);
 
     return () => {
-      clearInterval(interval);
+      clearTimeout(timer);
       window.removeEventListener("artha:dashboard-ready", handleDashboardReady);
     };
   }, [isAuthPage]);
 
-  const handleSkip = () => {
-    setProgress(100);
-    setStatusMessage("Financial Intelligence Ready");
-    setIsFadingOut(true);
-    setTimeout(() => {
-      setIsDismissed(true);
-    }, 300);
-  };
-
-  if (isDismissed) return null;
-
-  const displayProgress = Math.min(Math.round(progress), 100);
+  if (isDismissed || !mounted) return null;
 
   return (
     <div
       id="root-splash-screen"
-      className={`fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-[#09090b] text-white px-4 select-none transition-all duration-500 ease-out ${
+      aria-hidden="true"
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#09090b] text-white select-none transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         isFadingOut
-          ? "opacity-0 pointer-events-none scale-98 blur-xs"
-          : "opacity-100 pointer-events-auto scale-100"
+          ? "opacity-0 scale-[1.02] pointer-events-none blur-[2px]"
+          : "opacity-100 scale-100 pointer-events-auto"
       }`}
-      style={{ willChange: "opacity, transform" }}
+      style={{ willChange: "opacity, transform, filter" }}
     >
-      {/* Ambient Liquid Glows */}
-      <div className="absolute top-[-15%] left-[-15%] w-[320px] sm:w-[550px] h-[320px] sm:h-[550px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.30)_0%,rgba(6,182,212,0.1)_45%,transparent_70%)] pointer-events-none filter blur-[80px] sm:blur-[90px] animate-pulse" />
-      <div className="absolute bottom-[-15%] right-[-15%] w-[320px] sm:w-[550px] h-[320px] sm:h-[550px] rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.25)_0%,rgba(20,184,166,0.08)_45%,transparent_70%)] pointer-events-none filter blur-[80px] sm:blur-[90px] animate-pulse" />
+      {/* Subtle, restrained ambient radial light - Apple/Google style */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] rounded-full pointer-events-none opacity-30 blur-[90px]"
+        style={{
+          background: "radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(16, 185, 129, 0.08) 50%, transparent 70%)"
+        }}
+      />
 
       {/* Main Center Content */}
-      <div className="relative z-10 flex flex-col items-center max-w-sm sm:max-w-md w-full px-2 sm:px-4 text-center">
-        {/* App Icon with Pulsing Halo */}
-        <div className="relative mb-5 sm:mb-6">
-          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-400 opacity-75 blur-xl animate-pulse" />
-          <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 via-blue-500 to-emerald-400 p-0.5 shadow-2xl shadow-blue-500/40">
-            <div className="w-full h-full bg-[#09090b]/85 rounded-[14px] flex items-center justify-center backdrop-blur-md p-2">
-              <svg width="100%" height="100%" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 512 150 L 150 850 L 350 850 L 512 537 L 674 850 L 874 850 Z" fill="#60A5FA" />
-                <path d="M 180 650 Q 350 650 512 500 T 800 250" stroke="#3B82F6" strokeWidth="90" strokeLinecap="round" fill="none" />
-                <path d="M 600 250 L 800 250 L 800 450" stroke="#3B82F6" strokeWidth="90" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              </svg>
-            </div>
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Minimalist Titanium / Obsidian Icon Mark */}
+        <div className="relative mb-6">
+          <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-zinc-900/90 border border-white/10 shadow-2xl shadow-black/80 backdrop-blur-xl">
+            <svg 
+              className="w-9 h-9 sm:w-11 sm:h-11 text-white" 
+              viewBox="0 0 48 48" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Outer Precision Hex-Chevron / Ascending A */}
+              <path
+                d="M24 6L6 38H16L24 23.5L32 38H42L24 6Z"
+                fill="url(#artha-silver-grad)"
+              />
+              {/* Inner Focus Diamond / Growth Needle */}
+              <path
+                d="M24 16.5L19 26H29L24 16.5Z"
+                fill="#09090b"
+                opacity="0.9"
+              />
+              <path
+                d="M24 27L21 33H27L24 27Z"
+                fill="url(#artha-accent-grad)"
+              />
+              <defs>
+                <linearGradient id="artha-silver-grad" x1="6" y1="6" x2="42" y2="38" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#FFFFFF" />
+                  <stop offset="0.6" stopColor="#E4E4E7" />
+                  <stop offset="1" stopColor="#A1A1AA" />
+                </linearGradient>
+                <linearGradient id="artha-accent-grad" x1="21" y1="27" x2="27" y2="33" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#3B82F6" />
+                  <stop offset="1" stopColor="#10B981" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
         </div>
 
-        {/* Brand Name & Tagline */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl sm:text-3xl font-black tracking-tight text-white">Artha</span>
-          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-blue-500/20 to-emerald-500/20 border border-blue-400/30 text-blue-400 px-2.5 py-0.5 rounded-full shadow-inner">
-            Wealth
+        {/* Brand Typographic Lockup */}
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xl sm:text-2xl font-bold tracking-[0.2em] text-white uppercase font-sans">
+              Artha
+            </span>
+            <span className="text-[10px] font-semibold tracking-[0.25em] text-zinc-400 uppercase border border-zinc-700/60 bg-zinc-800/50 px-2 py-0.5 rounded-md">
+              Wealth
+            </span>
+          </div>
+          <span className="text-[10px] font-medium tracking-[0.22em] text-zinc-500 uppercase mt-1">
+            Global Market Intelligence
           </span>
         </div>
-        <p className="text-[10px] sm:text-[11px] font-semibold tracking-wider text-zinc-400 uppercase flex items-center gap-1.5 mb-6">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Live Market & Portfolio Engine</span>
-        </p>
 
-        {/* Modern Glass Progress Card */}
-        <div className="w-full p-4 sm:p-5 rounded-2xl bg-zinc-950/85 border border-zinc-800/90 shadow-2xl backdrop-blur-xl flex flex-col gap-3.5">
-          {/* Status Message & Percentage */}
-          <div className="flex items-center justify-between text-xs font-medium gap-2">
-            <span className="text-zinc-300 truncate max-w-[220px] sm:max-w-[270px] flex items-center gap-2 text-[11px] sm:text-xs text-left">
-              <Sparkles className="h-3.5 w-3.5 text-blue-400 shrink-0 animate-spin" style={{ animationDuration: "3s" }} />
-              <span className="truncate">{statusMessage}</span>
-            </span>
-            <span className="font-mono font-bold text-blue-400 text-xs sm:text-sm shrink-0">
-              {displayProgress}%
-            </span>
-          </div>
-
-          {/* High-Performance Smooth Progress Bar */}
-          <div className="w-full h-2 rounded-full bg-zinc-900 overflow-hidden border border-zinc-800/80">
-            <div
-              className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-200 ease-out"
-              style={{ width: `${displayProgress}%` }}
-            />
-          </div>
-
-          {/* Bottom Indicators & Skip */}
-          <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-zinc-400 border-t border-zinc-900/90 pt-3">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-              <span className="text-zinc-400 font-mono tracking-wider">QUANT SYNC</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="text-zinc-400 hover:text-white flex items-center gap-1 text-[10px] sm:text-[11px] transition-colors py-0.5 px-2 rounded-md hover:bg-zinc-800/60 cursor-pointer"
-            >
-              <span>Skip</span>
-              <ArrowRight className="h-3 w-3" />
-            </button>
-          </div>
-        </div>
-
-        {/* Security / Engine Watermark */}
-        <div className="mt-6 flex items-center gap-1.5 text-[9px] sm:text-[10px] text-zinc-500 font-mono">
-          <ShieldCheck className="h-3.5 w-3.5 text-emerald-500/80 shrink-0" />
-          <span>INSTANT REAL-TIME QUANT ENGINE</span>
+        {/* Minimal Precision Hairline Progress Bar */}
+        <div className="w-28 sm:w-36 h-[2px] bg-zinc-800/80 rounded-full mt-7 overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-400 to-emerald-400 rounded-full animate-splash-progress" />
         </div>
       </div>
     </div>

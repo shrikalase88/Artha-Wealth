@@ -24,9 +24,15 @@ import {
   PieChart,
   Check,
   Copy,
+  ArrowUpRight,
+  ArrowDownRight,
+  Globe,
+  Layers,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import { formatIndianCurrency } from "@/lib/utils";
-import { RadialVelocityGauge } from "@/components/ui/radial-velocity-gauge";
+import { MarketMoversCard } from "@/components/ui/market-movers-card";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
@@ -378,13 +384,13 @@ export function DashboardView() {
       })()}
 
       <div className="px-4 sm:px-6 lg:px-8 space-y-6 pt-2 pb-4 sm:pb-6">
-        <div className="hidden lg:flex sticky top-0 z-30 w-full border-b border-[#27272a] bg-[#09090b]/95 backdrop-blur-xl py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 overflow-x-auto scrollbar-none">
+        <div className="hidden lg:flex sticky top-0 z-30 w-full border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-xl py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 overflow-x-auto scrollbar-none">
           <div className="flex items-center justify-between gap-4 w-full min-w-max">
-            <nav className="inline-flex items-center p-1 sm:p-1.5 bg-[#121215]/95 backdrop-blur-2xl rounded-2xl border border-[#27272a] shadow-lg gap-1 sm:gap-1.5 overflow-x-auto">
+            <nav className="inline-flex items-center p-1 bg-zinc-900/90 backdrop-blur-2xl rounded-xl border border-white/[0.08] shadow-sm gap-1 overflow-x-auto">
               {[
-                { id: "market", name: "Markets", icon: Activity },
-                { id: "funds", name: "Funds", icon: Compass },
-                { id: "currency", name: "Currency", icon: Coins },
+                { id: "market", name: "Markets", icon: TrendingUp },
+                { id: "funds", name: "Funds", icon: PieChart },
+                { id: "currency", name: "Currency", icon: ArrowRightLeft },
                 { id: "sip", name: "SIP Calculator", icon: Calculator },
               ].map((tab) => {
                 const active = activeTab === tab.id;
@@ -397,14 +403,14 @@ export function DashboardView() {
                       setActiveTab(tab.id);
                       router.push(`/dashboard?tab=${tab.id}`, { scroll: false });
                     }}
-                    className={`flex items-center justify-center gap-2 py-2 px-4.5 rounded-xl transition-all duration-200 select-none whitespace-nowrap cursor-pointer ${
+                    className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-all duration-150 select-none whitespace-nowrap cursor-pointer active:scale-95 ${
                       active
-                        ? "bg-gradient-to-r from-blue-600/30 via-indigo-600/30 to-blue-600/30 text-white font-extrabold border border-blue-500/40 shadow-md shadow-blue-500/20 backdrop-blur-xl"
-                        : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent font-semibold"
+                        ? "bg-white/[0.08] text-white font-semibold border border-white/[0.1] shadow-xs"
+                        : "text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent font-medium"
                     }`}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-blue-400 stroke-[2.5]" : "text-slate-400"}`} />
-                    <span className="text-sm font-bold whitespace-nowrap">{tab.name}</span>
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-white stroke-[2.2]" : "text-zinc-400 stroke-[1.8]"}`} />
+                    <span className="text-xs font-semibold whitespace-nowrap">{tab.name}</span>
                   </button>
                 );
               })}
@@ -412,8 +418,8 @@ export function DashboardView() {
 
             <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Live Aggregator Mode
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Sync Active
               </span>
             </div>
           </div>
@@ -422,11 +428,11 @@ export function DashboardView() {
         {activeTab === "sip" && (
           <div className="space-y-6 animate-fade-in-up">
             {/* Header / Mode Switcher */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-950/80 border border-[#27272a] rounded-2xl p-4 sm:p-5 backdrop-blur-xl shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/60 border border-white/[0.08] rounded-2xl p-4 sm:p-5 backdrop-blur-xl shadow-xl">
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <Calculator className="h-5 w-5" />
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <Calculator className="h-5 w-5 stroke-[1.8]" />
                   </div>
                   SIP & Wealth Growth Engine
                 </h2>
@@ -436,13 +442,13 @@ export function DashboardView() {
               </div>
 
               {/* Mode Switcher Pill */}
-              <div className="inline-flex p-1 rounded-xl bg-zinc-900/90 border border-zinc-800 self-start sm:self-auto">
+              <div className="inline-flex p-1 rounded-xl bg-zinc-900 border border-white/[0.08] self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setSipMode("sip")}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 ${
                     sipMode === "sip"
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                      ? "bg-white/[0.1] text-white border border-white/20 shadow-xs"
                       : "text-zinc-400 hover:text-white"
                   }`}
                 >
@@ -451,9 +457,9 @@ export function DashboardView() {
                 <button
                   type="button"
                   onClick={() => setSipMode("lumpsum")}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 ${
                     sipMode === "lumpsum"
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                      ? "bg-white/[0.1] text-white border border-white/20 shadow-xs"
                       : "text-zinc-400 hover:text-white"
                   }`}
                 >
@@ -585,7 +591,7 @@ export function DashboardView() {
               <div className="lg:col-span-7 space-y-6">
                 {/* 3 Metrics Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  <div className="p-4 rounded-2xl bg-zinc-950/80 border border-[#27272a] shadow-lg">
+                  <div className="p-4 rounded-2xl bg-zinc-900/60 border border-white/[0.08] shadow-lg">
                     <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Total Invested</p>
                     <p className="text-xl sm:text-2xl font-mono font-bold text-white mt-1">
                       ₹{sipCalculation.totalInvested.toLocaleString("en-IN")}
@@ -593,7 +599,7 @@ export function DashboardView() {
                     <p className="text-[10px] text-zinc-500 mt-1">Principal contribution</p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-zinc-950/80 border border-[#27272a] shadow-lg">
+                  <div className="p-4 rounded-2xl bg-zinc-900/60 border border-white/[0.08] shadow-lg">
                     <p className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">Wealth Gained</p>
                     <p className="text-xl sm:text-2xl font-mono font-bold text-emerald-400 mt-1">
                       +₹{sipCalculation.wealthGained.toLocaleString("en-IN")}
@@ -603,12 +609,12 @@ export function DashboardView() {
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 to-emerald-950/30 border border-blue-500/30 shadow-lg">
-                    <p className="text-[11px] font-semibold text-blue-300 uppercase tracking-wider">Maturity Value</p>
-                    <p className="text-xl sm:text-2xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mt-1">
+                  <div className="p-4 rounded-2xl bg-zinc-900/80 border border-white/[0.12] shadow-lg">
+                    <p className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">Maturity Value</p>
+                    <p className="text-xl sm:text-2xl font-mono font-bold text-white mt-1">
                       ₹{sipCalculation.maturityValue.toLocaleString("en-IN")}
                     </p>
-                    <p className="text-[10px] text-blue-300/80 mt-1">Estimated corpus</p>
+                    <p className="text-[10px] text-zinc-400 mt-1">Estimated total corpus</p>
                   </div>
                 </div>
 
@@ -712,39 +718,39 @@ export function DashboardView() {
         {/* -------------------- TAB 2: LIVE SHAREMARKET VIEW -------------------- */}
         {activeTab === "market" && (
           <div className="space-y-6 animate-fade-in-up">
-            {/* Regional Selector Sub-Options Bar */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-2 scrollbar-none select-none -mx-4 px-4 sm:mx-0 sm:px-0">
-                {[
-                  { id: "india", label: "India", flag: "🇮🇳", sub: "Nifty 50 & Sensex" },
-                  { id: "us", label: "US Market", flag: "🇺🇸", sub: "S&P 500 & Nasdaq" },
-                  { id: "europe", label: "Europe", flag: "🇪🇺", sub: "FTSE & DAX 40" },
-                  { id: "china", label: "China / HK", flag: "🇨🇳", sub: "Hang Seng & Tech" },
-                  { id: "japan", label: "Japan", flag: "🇯🇵", sub: "Nikkei 225 & Auto" },
-                  { id: "arab", label: "Middle East", flag: "🇸🇦", sub: "Tadawul & Energy" },
-                ].map((region) => {
-                  const isActive = selectedMarketRegion === region.id;
-                  return (
-                    <button
-                      key={region.id}
-                      type="button"
-                      onClick={() => setSelectedMarketRegion(region.id as any)}
-                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                        isActive
-                          ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/40"
-                          : "bg-slate-900/60 border border-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-800/80"
-                      }`}
-                    >
-                      <span className="text-sm">{region.flag}</span>
-                      <span>{region.label}</span>
-                      <span className={`text-[9px] font-normal px-1.5 py-0.2 rounded-full ${
-                        isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
-                      }`}>
-                        {region.sub}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Regional Selector Sub-Options Bar - Apple/Google Segmented Pill Design */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1.5 scrollbar-none select-none -mx-4 px-4 sm:mx-0 sm:px-0">
+              {[
+                { id: "india", label: "India", flag: "🇮🇳", sub: "Nifty & Sensex" },
+                { id: "us", label: "US Market", flag: "🇺🇸", sub: "S&P 500 & Nasdaq" },
+                { id: "europe", label: "Europe", flag: "🇪🇺", sub: "FTSE & DAX 40" },
+                { id: "china", label: "China / HK", flag: "🇨🇳", sub: "Hang Seng & Tech" },
+                { id: "japan", label: "Japan", flag: "🇯🇵", sub: "Nikkei 225 & Auto" },
+                { id: "arab", label: "Middle East", flag: "🇸🇦", sub: "Tadawul & Energy" },
+              ].map((region) => {
+                const isActive = selectedMarketRegion === region.id;
+                return (
+                  <button
+                    key={region.id}
+                    type="button"
+                    onClick={() => setSelectedMarketRegion(region.id as any)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 ${
+                      isActive
+                        ? "bg-white/[0.1] text-white font-semibold border border-white/20 shadow-xs"
+                        : "bg-zinc-900/60 border border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    <span className="text-sm">{region.flag}</span>
+                    <span>{region.label}</span>
+                    <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md ${
+                      isActive ? "bg-white/10 text-white" : "bg-zinc-800/80 text-zinc-400"
+                    }`}>
+                      {region.sub}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
             {/* Currency & Region Helper Wrapper */}
             {(() => {
@@ -754,13 +760,17 @@ export function DashboardView() {
                   {/* Sector Performance Bar Chart & Top 5 Movers Donut Chart */}
                   {marketSummary && marketSummary.sectors && (
                     <div className="grid gap-4 md:grid-cols-2 pt-2 animate-fade-in-up stagger-1">
-                      <Card className="border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <div className="h-px w-4 bg-slate-400/30" /> Sector Performance (% Change)
+                      <Card className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
+                        <CardHeader className="p-4 sm:p-5 pb-2 border-b border-white/[0.06]">
+                          <CardTitle className="text-xs font-bold text-zinc-300 uppercase tracking-widest flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Layers className="h-4 w-4 text-blue-400 stroke-[1.8]" />
+                              <span>Sector Performance (% Change)</span>
+                            </div>
+                            <span className="text-[10px] font-mono text-zinc-400 font-medium">Equities Benchmark</span>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="h-[250px] p-4">
+                        <CardContent className="h-[270px] p-3">
                           <BarChart
                             data={marketSummary.sectors.map((s: any) => ({ name: s.short, "Change %": s.change_pct ?? s.change ?? 0 }))}
                             index="name"
@@ -773,19 +783,20 @@ export function DashboardView() {
                         </CardContent>
                       </Card>
 
-                      <Card className="border-white/5 bg-slate-900/40 glass-card fluid-card-hover">
-                        <CardHeader className="pb-1">
-                          <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
+                      <Card className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
+                        <CardHeader className="p-4 sm:p-5 pb-2 border-b border-white/[0.06]">
+                          <CardTitle className="text-xs font-bold text-zinc-300 uppercase tracking-widest flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className="h-px w-4 bg-slate-400/30" /> Top 5 Market Movers
+                              <TrendingUp className="h-4 w-4 text-emerald-400 stroke-[2]" />
+                              <span>Top 5 Market Movers</span>
                             </div>
-                            <span className="text-[10px] font-mono text-emerald-400 font-normal flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono text-zinc-400 font-medium flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                              Directional Velocity
+                              <span>Directional Velocity</span>
                             </span>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="min-h-[260px] p-3 flex justify-center items-center">
+                        <CardContent className="min-h-[270px] p-3 sm:p-4 flex flex-col justify-center">
                           {(() => {
                             const sourceStocks = marketSummary?.stocks || [];
                             const dynamicMovers = [...sourceStocks]
@@ -801,7 +812,7 @@ export function DashboardView() {
                             }));
 
                             return (
-                              <RadialVelocityGauge
+                              <MarketMoversCard
                                 data={chartData}
                                 currencySymbol={currSymbol}
                                 className="w-full"
@@ -816,10 +827,10 @@ export function DashboardView() {
                   {/* Indices Cards */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <div className="h-px w-4 bg-slate-400/30" /> Major Indices
+                      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-px w-4 bg-zinc-600" /> Major Indices
                       </h3>
-                      <span className="text-[11px] font-mono text-slate-500">Live Tick Data ({currSymbol})</span>
+                      <span className="text-[11px] font-mono text-zinc-500">Live Tick Data ({currSymbol})</span>
                     </div>
 
                     {marketSummary ? (
@@ -835,43 +846,44 @@ export function DashboardView() {
                           return (
                             <Card 
                               key={idx.short} 
-                              className="border-white/10 bg-[#090e1d]/90 glass-card hover:bg-white/[0.06] transition-all duration-300 overflow-hidden shadcn-card-hover group" 
-                              style={{ borderBottomWidth: '2px', borderBottomColor: positive ? '#10b981' : '#ef4444' }}
+                              className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl hover:border-white/20 hover:bg-zinc-900/80 transition-all duration-200 overflow-hidden group shadow-sm active:scale-[0.99]"
                             >
                               <CardContent className="p-3.5 sm:p-4 flex flex-col justify-between h-full space-y-3">
                                 {/* Header row */}
                                 <div className="flex justify-between items-start gap-1">
                                   <div className="min-w-0">
-                                    <p className="text-xs sm:text-sm font-bold text-white tracking-tight truncate group-hover:text-blue-300 transition-colors">
+                                    <p className="text-xs sm:text-sm font-semibold text-white tracking-tight truncate group-hover:text-blue-400 transition-colors">
                                       {idx.short || idx.name}
                                     </p>
-                                    <p className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">{selectedMarketRegion.toUpperCase()} • Index</p>
+                                    <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">{selectedMarketRegion.toUpperCase()} • Index</p>
                                   </div>
-                                  <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 ${positive ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-red-500/15 text-red-400 border border-red-500/30"}`}>
-                                    {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                  <div className={`flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold shrink-0 border ${
+                                    positive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                  }`}>
+                                    {positive ? <TrendingUp className="h-3 w-3 stroke-[2]" /> : <TrendingDown className="h-3 w-3 stroke-[2]" />}
                                     {positive ? "+" : ""}{typeof idx?.change_pct === "number" ? Number(idx.change_pct).toFixed(2) : "0.00"}%
                                   </div>
                                 </div>
 
                                 {/* Price & points */}
                                 <div>
-                                  <h4 className="text-lg sm:text-xl font-black text-white font-mono tracking-tight">
+                                  <h4 className="text-lg sm:text-xl font-bold text-white font-mono tracking-tight">
                                     {currSymbol}{price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </h4>
-                                  <p className={`text-[11px] font-mono font-semibold mt-0.5 ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                                  <p className={`text-[11px] font-mono font-medium mt-0.5 ${positive ? "text-emerald-400" : "text-rose-400"}`}>
                                     {positive ? "+" : ""}{change.toFixed(2)} pts
                                   </p>
                                 </div>
 
                                 {/* Day High/Low visual range slider bar */}
-                                <div className="pt-2 border-t border-white/10 space-y-1">
-                                  <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                                <div className="pt-2 border-t border-white/[0.06] space-y-1">
+                                  <div className="flex justify-between text-[9px] font-mono text-zinc-400">
                                     <span>Low {currSymbol}{dayLow.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                                     <span>High {currSymbol}{dayHigh.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                                   </div>
-                                  <div className="relative h-1.5 w-full bg-slate-800/80 rounded-full overflow-hidden border border-white/5">
+                                  <div className="relative h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
                                     <div 
-                                      className={`h-full rounded-full transition-all duration-500 ${positive ? "bg-gradient-to-r from-emerald-600 to-teal-400" : "bg-gradient-to-r from-red-600 to-rose-400"}`} 
+                                      className={`h-full rounded-full transition-all duration-300 ${positive ? "bg-emerald-500" : "bg-rose-500"}`} 
                                       style={{ width: `${posPct}%` }} 
                                     />
                                   </div>
@@ -882,13 +894,13 @@ export function DashboardView() {
                         })}
                       </div>
                     ) : marketError ? (
-                      <div className="p-6 border border-red-500/30 bg-red-500/10 text-red-200 rounded-lg text-sm font-mono flex items-center gap-3">
-                        <Activity className="h-4 w-4" /> Failed to load real-time market indexes. Checking connection...
+                      <div className="p-6 border border-rose-500/20 bg-rose-500/10 text-rose-300 rounded-2xl text-xs font-mono flex items-center gap-3">
+                        <Activity className="h-4 w-4 stroke-[1.8]" /> Failed to load real-time market indexes. Checking connection...
                       </div>
                     ) : (
                       <div className="grid gap-3.5 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 animate-pulse">
                         {[1, 2, 3, 4].map((n) => (
-                          <div key={n} className="h-36 bg-slate-900/40 border border-white/5 rounded-2xl glass-card" />
+                          <div key={n} className="h-36 bg-zinc-900/60 border border-white/[0.08] rounded-2xl" />
                         ))}
                       </div>
                     )}
@@ -897,10 +909,10 @@ export function DashboardView() {
                   {/* Sector Categories */}
                   <div className="space-y-3 pt-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <div className="h-px w-4 bg-slate-400/30" /> Sector Performance
+                      <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-px w-4 bg-zinc-600" /> Sector Performance
                       </h3>
-                      <span className="text-[11px] font-mono text-slate-500">Market Breakdown</span>
+                      <span className="text-[11px] font-mono text-zinc-500">Market Breakdown</span>
                     </div>
                     
                     <div className="grid gap-3.5 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -909,15 +921,17 @@ export function DashboardView() {
                         const price = Number(sector.price || 0);
 
                         return (
-                          <Card key={sector.name} className="border-white/10 bg-[#090e1d]/90 glass-card hover:bg-white/[0.06] transition-all duration-300 shadcn-card-hover group cursor-pointer">
+                          <Card key={sector.name} className="border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl hover:border-white/20 hover:bg-zinc-900/80 transition-all duration-200 group cursor-pointer shadow-sm active:scale-[0.99]">
                             <CardContent className="p-3.5 flex flex-col justify-between h-full space-y-2.5">
                               <div className="flex justify-between items-start gap-1">
                                 <div className="min-w-0">
-                                  <p className="text-xs font-bold text-slate-200 group-hover:text-white transition-colors truncate">{sector.name}</p>
-                                  <p className="text-[9px] text-slate-500 font-medium">Sector Benchmark</p>
+                                  <p className="text-xs font-semibold text-zinc-200 group-hover:text-white transition-colors truncate">{sector.name}</p>
+                                  <p className="text-[9px] font-mono text-zinc-500">Sector Benchmark</p>
                                 </div>
-                                <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${positive ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
-                                  {positive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold shrink-0 border ${
+                                  positive ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                }`}>
+                                  {positive ? <TrendingUp className="h-3 w-3 stroke-[2]" /> : <TrendingDown className="h-3 w-3 stroke-[2]" />}
                                   {positive ? "+" : ""}{sector.change_pct}%
                                 </div>
                               </div>
@@ -926,9 +940,9 @@ export function DashboardView() {
                                 <p className="text-base font-bold text-white font-mono tracking-tight">{currSymbol}{price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                               </div>
 
-                              <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[9.5px]">
-                                <span className="text-slate-400 font-medium">Status</span>
-                                <span className={`font-bold font-mono ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                              <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[9.5px]">
+                                <span className="text-zinc-500 font-medium">Status</span>
+                                <span className={`font-semibold font-mono ${positive ? "text-emerald-400" : "text-rose-400"}`}>
                                   {positive ? "Outperforming" : "Underperforming"}
                                 </span>
                               </div>
@@ -941,14 +955,14 @@ export function DashboardView() {
 
                   {/* Stocks Listing - Active Movers */}
                   <div className="space-y-4 pt-4">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                      <div className="h-px w-4 bg-slate-400/30" /> Active Movers ({currSymbol})
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                      <div className="h-px w-4 bg-zinc-600" /> Active Movers ({currSymbol})
                     </h3>
                     
-                    <div className="border border-white/5 bg-slate-900/40 glass-card rounded-xl overflow-hidden">
+                    <div className="border border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl">
                       {marketSummary && marketSummary.stocks ? (
-                        <div className="divide-y divide-white/10">
-                          <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/[0.02]">
+                        <div className="divide-y divide-white/[0.04]">
+                          <div className="grid grid-cols-12 gap-3 p-3.5 sm:p-4 text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-widest bg-white/[0.02]">
                             <div className="col-span-5 sm:col-span-4">Company</div>
                             <div className="col-span-2 hidden sm:block">Ticker</div>
                             <div className="col-span-4 sm:col-span-2 text-right">Last Price</div>
@@ -959,41 +973,42 @@ export function DashboardView() {
                             const change = stock.change ?? 0;
                             const positive = change >= 0;
                             return (
-                              <div key={stock.symbol} className="grid grid-cols-12 gap-4 p-4 items-center fluid-row-hover border-b border-white/5 last:border-0">
+                              <div key={stock.symbol} className="grid grid-cols-12 gap-3 p-3.5 sm:p-4 items-center hover:bg-white/[0.02] transition-colors border-b border-white/[0.04] last:border-0">
                                 {/* Company Name */}
                                 <div className="col-span-5 sm:col-span-4 min-w-0">
-                                  <p className="text-sm font-bold text-white tracking-wide truncate">{stock.short}</p>
-                                  <p className="text-[10px] text-slate-400 mt-0.5 truncate pr-2">{stock.name}</p>
+                                  <p className="text-xs sm:text-sm font-semibold text-white tracking-tight truncate">{stock.short}</p>
+                                  <p className="text-[10px] text-zinc-400 mt-0.5 truncate pr-2">{stock.name}</p>
                                 </div>
                                 
                                 {/* Ticker badge (sm+) */}
                                 <div className="col-span-2 hidden sm:flex items-center">
-                                  <span className="text-[10px] font-mono bg-white/5 border border-white/5 text-slate-300 px-2 py-0.5 rounded font-medium">
+                                  <span className="text-[10px] font-mono bg-zinc-800/80 border border-white/[0.06] text-zinc-300 px-2 py-0.5 rounded-md font-medium">
                                     {stock.symbol}
                                   </span>
                                 </div>
                                 
                                 {/* Last Price */}
                                 <div className="col-span-4 sm:col-span-2 text-right">
-                                  <p className="text-sm font-bold font-mono text-white">
+                                  <p className="text-xs sm:text-sm font-bold font-mono text-white">
                                     {currSymbol}{Number(stock.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </p>
                                 </div>
                                 
                                 {/* Absolute Change (sm+) */}
                                 <div className="col-span-2 hidden sm:block text-right">
-                                  <p className={`text-sm font-mono font-semibold ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                                  <p className={`text-xs sm:text-sm font-mono font-medium ${positive ? "text-emerald-400" : "text-rose-400"}`}>
                                     {positive ? "+" : ""}{change.toFixed(2)}
                                   </p>
                                 </div>
                                 
                                 {/* Change Percent Pill */}
                                 <div className="col-span-3 sm:col-span-2 flex justify-end">
-                                  <span className={`text-xs font-bold font-mono px-2.5 py-1 rounded-lg flex items-center justify-center gap-0.5 min-w-[75px] ${
+                                  <span className={`text-[11px] sm:text-xs font-mono font-bold px-2 py-1 rounded-md flex items-center justify-center gap-0.5 min-w-[70px] sm:min-w-[76px] border ${
                                     positive 
-                                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/15" 
-                                      : "bg-red-500/10 text-red-400 border border-red-500/15"
+                                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                                      : "bg-rose-500/10 text-rose-400 border-rose-500/20"
                                   }`}>
+                                    {positive ? <ArrowUpRight className="h-3 w-3 stroke-[2.2] shrink-0" /> : <ArrowDownRight className="h-3 w-3 stroke-[2.2] shrink-0" />}
                                     {positive ? "+" : ""}{typeof stock?.change_pct === "number" ? Number(stock.change_pct).toFixed(2) : "0.00"}%
                                   </span>
                                 </div>
@@ -1002,8 +1017,8 @@ export function DashboardView() {
                           })}
                         </div>
                       ) : (
-                        <div className="divide-y divide-white/10">
-                          <div className="grid grid-cols-12 gap-4 p-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/[0.02]">
+                        <div className="divide-y divide-white/[0.04]">
+                          <div className="grid grid-cols-12 gap-3 p-3.5 sm:p-4 text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-widest bg-white/[0.02]">
                             <div className="col-span-5 sm:col-span-4">Company</div>
                             <div className="col-span-2 hidden sm:block">Ticker</div>
                             <div className="col-span-4 sm:col-span-2 text-right">Last Price</div>
@@ -1011,7 +1026,7 @@ export function DashboardView() {
                             <div className="col-span-3 sm:col-span-2 text-right">Trend</div>
                           </div>
                           {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center border-b border-white/5 last:border-0 animate-pulse">
+                            <div key={i} className="grid grid-cols-12 gap-3 p-3.5 sm:p-4 items-center border-b border-white/[0.04] last:border-0 animate-pulse">
                               <div className="col-span-5 sm:col-span-4 flex items-center gap-3">
                                 <Skeleton className="h-8 w-8 rounded-md bg-white/5" />
                                 <div className="flex flex-col gap-1.5">
@@ -1089,8 +1104,8 @@ export function DashboardView() {
 
               return (
                 <div className="space-y-6">
-                  {/* Category Filter Pills Bar */}
-                  <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none select-none -mx-4 px-4 sm:mx-0 sm:px-0">
+                  {/* Category Filter Pills Bar - Apple/Google Segmented Design */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none select-none -mx-4 px-4 sm:mx-0 sm:px-0">
                     {filterOptions.map((opt) => {
                       const isActive = fundFilterCategory === opt.id;
                       const count = getCategoryCount(opt.id);
@@ -1099,16 +1114,16 @@ export function DashboardView() {
                           key={opt.id}
                           type="button"
                           onClick={() => setFundFilterCategory(opt.id)}
-                          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 ${
                             isActive
-                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-500/20 border border-blue-400/40"
-                              : "bg-slate-900/60 border border-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-800/80"
+                              ? "bg-white/[0.1] text-white font-semibold border border-white/20 shadow-xs"
+                              : "bg-zinc-900/60 border border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                           }`}
                         >
                           <span>{opt.label}</span>
                           <span
-                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-                              isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
+                            className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${
+                              isActive ? "bg-white/15 text-white font-semibold" : "bg-zinc-800 text-zinc-400"
                             }`}
                           >
                             {count}
@@ -1122,7 +1137,7 @@ export function DashboardView() {
                   {fundsLoading ? (
                     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 animate-pulse">
                       {[1, 2, 3, 4, 5, 6].map((n) => (
-                        <div key={n} className="h-44 bg-slate-900/40 border border-white/5 rounded-2xl" />
+                        <div key={n} className="h-44 bg-zinc-900/60 border border-white/[0.08] rounded-2xl" />
                       ))}
                     </div>
                   ) : displayFunds.length > 0 ? (
@@ -1135,12 +1150,12 @@ export function DashboardView() {
 
                         const catLower = (fund.category || "").toLowerCase();
                         const colorClasses = catLower.includes("mid")
-                          ? "bg-purple-500/10 text-purple-400 border-purple-500/10"
+                          ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
                           : catLower.includes("small")
-                          ? "bg-amber-500/10 text-amber-400 border-amber-500/10"
+                          ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
                           : catLower.includes("large") || catLower.includes("flexi")
-                          ? "bg-blue-500/10 text-blue-400 border-blue-500/10"
-                          : "bg-emerald-500/10 text-emerald-400 border-emerald-500/10";
+                          ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                          : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
 
                         return (
                           <a
@@ -1148,40 +1163,41 @@ export function DashboardView() {
                             href={searchUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group relative flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 fluid-card-hover block focus:outline-none"
+                            className="group relative flex flex-col justify-between rounded-2xl border border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl p-5 hover:border-white/20 hover:bg-zinc-900/80 transition-all duration-200 block focus:outline-none shadow-sm active:scale-[0.99]"
                           >
                             <div className="space-y-3">
                               <div className="flex items-center justify-between gap-2">
                                 <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${colorClasses}`}>
                                   {fund.category}
                                 </span>
-                                <span className="text-[10px] font-mono text-slate-500">ID: {fund.code}</span>
+                                <span className="text-[10px] font-mono text-zinc-500">ID: {fund.code}</span>
                               </div>
                               <div>
-                                <h3 className="font-semibold text-sm sm:text-base text-slate-200 group-hover:text-white line-clamp-2 tracking-tight transition-colors">
+                                <h3 className="font-semibold text-sm sm:text-base text-zinc-200 group-hover:text-white line-clamp-2 tracking-tight transition-colors">
                                   {fund.name}
                                 </h3>
-                                <p className="mt-1 text-[11px] font-medium text-slate-500">
-                                  AUM: <span className="text-slate-400">{fund.aum}</span>
+                                <p className="mt-1 text-[11px] font-medium text-zinc-500">
+                                  AUM: <span className="text-zinc-400">{fund.aum}</span>
                                 </p>
                               </div>
                             </div>
 
-                            <div className="mt-5 grid grid-cols-2 gap-2 border-t border-slate-800/60 pt-3">
+                            <div className="mt-5 grid grid-cols-2 gap-2 border-t border-white/[0.06] pt-3">
                               <div>
-                                <p className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Direct NAV</p>
-                                <p className="text-base font-bold text-slate-100 mt-0.5">₹{fund.nav}</p>
-                                <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded mt-1 ${positive ? "text-emerald-400 bg-emerald-500/5" : "text-rose-400 bg-rose-500/5"}`}>
-                                  {positive ? "↑" : "↓"} {Math.abs(fund.change_pct)}%
+                                <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Direct NAV</p>
+                                <p className="text-base font-bold font-mono text-zinc-100 mt-0.5">₹{fund.nav}</p>
+                                <span className={`inline-flex items-center gap-0.5 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded mt-1 border ${positive ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : "text-rose-400 bg-rose-500/10 border-rose-500/20"}`}>
+                                  {positive ? <TrendingUp className="h-3 w-3 stroke-[2]" /> : <TrendingDown className="h-3 w-3 stroke-[2]" />}
+                                  {Math.abs(fund.change_pct)}%
                                 </span>
                               </div>
                               <div className="text-right">
-                                <p className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Annual Returns</p>
-                                <p className={`text-base font-bold mt-0.5 ${fund.return_1y < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                                  {fund.return_1y}% <span className="text-[10px] text-slate-500 font-normal">1Y</span>
+                                <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-500">Annual Returns</p>
+                                <p className={`text-base font-bold font-mono mt-0.5 ${fund.return_1y < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                  {fund.return_1y}% <span className="text-[10px] text-zinc-500 font-normal">1Y</span>
                                 </p>
-                                <p className="text-xs font-semibold text-slate-400 mt-1">
-                                  {fund.return_3y}% <span className="text-[10px] text-slate-500 font-normal">3Y</span>
+                                <p className="text-xs font-semibold font-mono text-zinc-400 mt-1">
+                                  {fund.return_3y}% <span className="text-[10px] text-zinc-500 font-normal">3Y</span>
                                 </p>
                               </div>
                             </div>
@@ -1291,8 +1307,8 @@ export function DashboardView() {
 
           return (
             <div className="space-y-6 animate-fade-in-up">
-              {/* Regional/Base Currency Quick Selector Bar - Edge to Edge on Mobile (Matching Markets & Funds) */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none select-none -mx-4 px-4 sm:mx-0 sm:px-0">
+              {/* Regional/Base Currency Quick Selector Bar - Apple/Google Segmented Design */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 scrollbar-none select-none -mx-4 px-4 sm:mx-0 sm:px-0">
                 {CURRENCIES.map((c) => {
                   const isActive = baseCurrency === c.short;
                   return (
@@ -1300,16 +1316,16 @@ export function DashboardView() {
                       key={c.short}
                       type="button"
                       onClick={() => handleSelectBase(c.short)}
-                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer touch-manipulation ${
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-150 cursor-pointer touch-manipulation active:scale-95 ${
                         isActive
-                          ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-500/20 border border-blue-400/40"
-                          : "bg-slate-900/60 border border-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-800/80"
+                          ? "bg-white/[0.1] text-white font-semibold border border-white/20 shadow-xs"
+                          : "bg-zinc-900/60 border border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                       }`}
                     >
                       <span className="text-base leading-none">{c.flag}</span>
                       <span>{c.short}</span>
-                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                        isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-400"
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-md ${
+                        isActive ? "bg-white/15 text-white font-semibold" : "bg-zinc-800 text-zinc-400"
                       }`}>
                         {c.symbol}
                       </span>
@@ -1318,26 +1334,26 @@ export function DashboardView() {
                 })}
               </div>
 
-              {/* Currency Converter Card: Glass-card matching Markets & Funds */}
-              <div className="rounded-2xl border border-white/5 bg-slate-900/40 glass-card p-4 sm:p-5 space-y-4">
+              {/* Currency Converter Card: Obsidian Glass matching Markets & Funds */}
+              <div className="rounded-2xl border border-white/[0.08] bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 space-y-4 shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
-                      <ArrowRightLeft className="w-4 h-4" />
+                      <ArrowRightLeft className="w-4 h-4 stroke-[1.8]" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white tracking-tight">Currency Converter</h3>
-                      <p className="text-[11px] text-slate-400">Live multi-currency cross rates</p>
+                      <h3 className="text-sm font-semibold text-white tracking-tight">Currency Converter</h3>
+                      <p className="text-[11px] text-zinc-400">Live multi-currency cross rates</p>
                     </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={swapCurrencies}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 text-xs font-semibold transition-all active:scale-95 cursor-pointer touch-manipulation"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-zinc-200 border border-white/[0.08] text-xs font-medium transition-all active:scale-95 cursor-pointer touch-manipulation"
                     title="Swap base & target currencies"
                   >
-                    <ArrowRightLeft className="w-3.5 h-3.5" />
+                    <ArrowRightLeft className="w-3.5 h-3.5 stroke-[1.8]" />
                     <span className="hidden sm:inline">Swap</span>
                   </button>
                 </div>
@@ -1346,7 +1362,7 @@ export function DashboardView() {
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
                   {/* Amount in Base Currency */}
                   <div className="sm:col-span-5 space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
                       You Convert ({baseCurrObj.short})
                     </label>
                     <div className="relative flex items-center">
@@ -1357,10 +1373,10 @@ export function DashboardView() {
                         step="any"
                         value={currencyAmount}
                         onChange={(e) => setCurrencyAmount(e.target.value)}
-                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-3 pr-20 py-2.5 text-base sm:text-lg font-bold font-mono text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className="w-full bg-zinc-950/80 border border-white/[0.08] rounded-xl pl-3 pr-20 py-2.5 text-base sm:text-lg font-bold font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
                         placeholder="1"
                       />
-                      <div className="absolute right-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 text-xs font-bold font-mono text-slate-200 pointer-events-none">
+                      <div className="absolute right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-zinc-800 border border-white/[0.06] text-xs font-semibold font-mono text-zinc-200 pointer-events-none">
                         <span>{baseCurrObj.flag}</span>
                         <span>{baseCurrObj.short}</span>
                       </div>
@@ -1372,10 +1388,10 @@ export function DashboardView() {
                     <button
                       type="button"
                       onClick={swapCurrencies}
-                      className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 active:scale-90 transition-all cursor-pointer touch-manipulation"
+                      className="p-2.5 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] text-zinc-200 active:scale-90 active:rotate-180 transition-all duration-200 cursor-pointer touch-manipulation"
                       title="Swap Currencies"
                     >
-                      <ArrowRightLeft className="w-4 h-4 text-blue-400" />
+                      <ArrowRightLeft className="w-4 h-4 stroke-[1.8]" />
                     </button>
                   </div>
 

@@ -1,51 +1,66 @@
 "use client";
 
-import { Activity, Clock } from "lucide-react";
+import { Clock, Globe, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function TopBar() {
   const [mounted, setMounted] = useState(false);
+  const [timeStr, setTimeStr] = useState("");
   const [dateStr, setDateStr] = useState("");
 
   useEffect(() => {
     setMounted(true);
     const updateTime = () => {
       const now = new Date();
+      setTimeStr(
+        now.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        })
+      );
       setDateStr(
         now.toLocaleDateString("en-US", {
           weekday: "short",
           month: "short",
           day: "numeric",
-          year: "numeric",
         })
       );
     };
     updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
-    <header className="hidden lg:flex h-14 border-b border-[#27272a] bg-[#09090b]/80 backdrop-blur-xl px-8 items-center justify-between sticky top-0 z-40 w-full select-none">
-      {/* Left side: Live Engine Badge */}
+    <header className="hidden lg:flex h-14 border-b border-white/[0.08] bg-[#09090b]/80 backdrop-blur-xl px-8 items-center justify-between sticky top-0 z-40 w-full select-none">
+      {/* Left side: Live Market Status */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Live Quant Engine</span>
+        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Live Market Feeds</span>
         </div>
-        <span className="text-zinc-500 text-xs font-mono">•</span>
-        <span className="text-xs text-zinc-400 font-medium">Global Markets, Funds & Forex</span>
+        <span className="text-zinc-600 text-xs">•</span>
+        <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
+          <Globe className="h-3.5 w-3.5 text-zinc-400 stroke-[1.8]" />
+          <span>India • US • Europe • Asia</span>
+        </div>
       </div>
 
-      {/* Right side: Current Date & System Status */}
+      {/* Right side: Real-time Market Clock & Institutional Feed */}
       <div className="flex items-center gap-4">
         {mounted && (
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono">
-            <Clock className="h-3.5 w-3.5 text-zinc-400" />
+          <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
+            <Clock className="h-3.5 w-3.5 text-zinc-500 stroke-[1.8]" />
             <span>{dateStr}</span>
+            <span className="text-zinc-600">•</span>
+            <span className="text-zinc-300 font-medium">{timeStr}</span>
           </div>
         )}
-        <div className="flex items-center gap-1.5 text-xs text-blue-400 font-mono bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-lg">
-          <Activity className="h-3.5 w-3.5" />
-          <span>AMFI & NSE FEED</span>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/[0.08] text-xs font-mono text-zinc-300">
+          <ShieldCheck className="h-3.5 w-3.5 text-blue-400 stroke-[1.8]" />
+          <span>AMFI & NSE Verified</span>
         </div>
       </div>
     </header>

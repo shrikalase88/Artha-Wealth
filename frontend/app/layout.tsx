@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "Artha Wealth — Finance Hub",
@@ -62,7 +59,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased bg-[#09090b] text-zinc-50`}>
+      <body className="font-sans antialiased bg-[#09090b] text-zinc-50 min-h-screen">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
